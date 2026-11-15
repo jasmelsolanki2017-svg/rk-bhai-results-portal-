@@ -32,7 +32,7 @@ const City = mongoose.model("PortalCity", new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "PortalUser", required: true, unique: true },
   cityName: { type: String, required: true, trim: true, maxlength: 60 },
   expectedTime: { type: String, default: "" },
-  status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
+  status: { type: String, enum: ["pending", "approved", "rejected", "returned", "hidden"], default: "pending" },
   createdAt: { type: Date, default: Date.now },
   reviewedAt: { type: Date, default: null }
 }));
@@ -169,6 +169,15 @@ app.post("/api/user/city", userOnly, async (req, res) => {
   const city = await City.create({ userId: req.portalUserId, cityName, expectedTime, status: "pending" });
   res.status(201).json({ id: city._id, cityName: city.cityName, expectedTime: city.expectedTime, status: city.status });
 });
+app.patch("/api/user/city/name", userOnly, async (req, res) => {
+  const cityName = String(req.body?.cityName || "").trim().replace(/\\s+/g, " ");
+  const expectedTime = String(req.body?.expectedTime || "");
+  if (cityName.length < 2 || cityName.length > 60) return res.status(400).json({ error: "शहर का नाम 2 से 60 अक्षर का रखें।" });
+  if (!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(expectedTime)) return res.status(400).json({ error: "परिणाम आने का सही समय चुनें।" });
+  const city = await City.findOneAndUpdate({ userId: req.portalUserId, status: "returned" }, { cityName, expectedTime, status: "pending", reviewedAt: null }, { new: true });
+  if (!city) return res.status(403).json({ error: "नाम edit करने के लिए Admin का Send Back जरूरी है।" });
+  res.json({ id: city._id, cityName: city.cityName, expectedTime: city.expectedTime, status: city.status });
+});
 app.patch("/api/user/city/time", userOnly, async (req, res) => {
   const expectedTime = String(req.body?.expectedTime || "");
   if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(expectedTime)) return res.status(400).json({ error: "परिणाम आने का सही समय चुनें।" });
@@ -290,12 +299,28 @@ app.get("/api/admin/cities", adminOnly, async (req, res) => {
   res.json(cities.map(c => ({ ...c, username: names.get(String(c.userId)) || "Unknown" })));
 });
 app.patch("/api/admin/cities/:id", adminOnly, async (req, res) => {
-  const status = req.body?.status;
-  if (!["approved", "rejected"].includes(status)) return res.status(400).json({ error: "Invalid approval status" });
-  const city = await City.findByIdAndUpdate(req.params.id, { status, reviewedAt: new Date() }, { new: true });
+  const update = {};
+  if (req.body?.status !== undefined) {
+    if (!["approved", "rejected", "returned", "hidden", "pending"].includes(req.body.status)) return res.status(400).json({ error: "Invalid city status" });
+    update.status = req.body.status;
+    update.reviewedAt = new Date();
+  }
+  if (req.body?.cityName !== undefined) {
+    const cityName = String(req.body.cityName).trim().replace(/\\s+/g, " ");
+    if (cityName.length < 2 || cityName.length > 60) return res.status(400).json({ error: "शहर का नाम 2 से 60 अक्षर का रखें।" });
+    update.cityName = cityName;
+  }
+  const city = await City.findByIdAndUpdate(req.params.id, update, { new: true, runValidators: true });
   if (!city) return res.status(404).json({ error: "City request नहीं मिली।" });
-  if (status === "rejected") await Result.updateMany({ cityId: city._id }, { $set: { published: false } });
+  if (req.body?.status && req.body.status !== "approved") await Result.updateMany({ cityId: city._id }, { $set: { published: false } });
+  if (req.body?.cityName) await Result.updateMany({ cityId: city._id }, { $set: { title: city.cityName } });
   res.json(city);
+});
+app.delete("/api/admin/cities/:id", adminOnly, async (req, res) => {
+  const city = await City.findByIdAndDelete(req.params.id);
+  if (!city) return res.status(404).json({ error: "City नहीं मिला।" });
+  await Result.updateMany({ cityId: city._id }, { $set: { published: false, deleted: true } });
+  res.json({ ok: true });
 });
 
 app.get("/api/admin/results", adminOnly, async (req, res) => {
