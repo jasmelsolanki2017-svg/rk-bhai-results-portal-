@@ -12,6 +12,7 @@ app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json({ limit: "30kb" }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+app.get("/admin", (req, res) => res.sendFile(path.join(__dirname, "public", "admin.html")));
 
 const Result = mongoose.model("Result", new mongoose.Schema({
   title: { type: String, required: true, trim: true, maxlength: 100 },
@@ -49,13 +50,15 @@ app.post("/api/admin/login", async (req, res) => {
   const token = jwt.sign({ role: "admin" }, process.env.JWT_SECRET, { expiresIn: "8h" });
   res.cookie("admin_session", token, {
     httpOnly: true, sameSite: "strict", secure: process.env.NODE_ENV === "production",
-    maxAge: 8 * 60 * 60 * 1000
+    maxAge: 8 * 60 * 60 * 1000, path: "/"
   });
   res.json({ ok: true });
 });
 
+app.get("/api/admin/session", adminOnly, (req, res) => res.json({ ok: true, role: "admin" }));
+
 app.post("/api/admin/logout", adminOnly, (req, res) => {
-  res.clearCookie("admin_session");
+  res.clearCookie("admin_session", { path: "/", sameSite: "strict", secure: process.env.NODE_ENV === "production" });
   res.json({ ok: true });
 });
 
@@ -80,7 +83,14 @@ app.get("/api/results", async (req, res) => {
   res.json(rows);
 });
 app.get("/api/admin/results", adminOnly, async (req, res) => {
-  res.json(await Result.find().sort({ resultDate: -1 }).limit(200).lean());
+  const filter = {};
+  if (req.query.month) {
+    if (!/^\\d{4}-(0[1-9]|1[0-2])$/.test(req.query.month))
+      return res.status(400).json({ error: "Invalid month. Use YYYY-MM." });
+    const [year, month] = req.query.month.split("-").map(Number);
+    filter.resultDate = { $gte: new Date(Date.UTC(year, month - 1, 1)), $lt: new Date(Date.UTC(year, month, 1)) };
+  }
+  res.json(await Result.find(filter).sort({ resultDate: -1, title: 1 }).limit(2000).lean());
 });
 app.post("/api/admin/results", adminOnly, async (req, res) => {
   const { title, resultText, resultDate, published } = req.body || {};
@@ -91,7 +101,7 @@ app.post("/api/admin/results", adminOnly, async (req, res) => {
 });
 app.patch("/api/admin/results/:id", adminOnly, async (req, res) => {
   const allowed = {};
-  for (const key of ["title", "resultText", "resultDate", "published"])
+  for (const key of ["title", "resultText", "resultDate", "published", "sourceUrl"])
     if (req.body && Object.prototype.hasOwnProperty.call(req.body, key)) allowed[key] = req.body[key];
   const row = await Result.findByIdAndUpdate(req.params.id, allowed, { new: true, runValidators: true });
   if (!row) return res.status(404).json({ error: "Record not found" });
@@ -112,7 +122,7 @@ async function seedHistoricalRecords() {
     const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
     await Result.findOneAndUpdate(
       { title: item.title, resultDate: { $gte: start, $lt: end } },
-      { $set: { resultText: item.resultText, resultDate: new Date(item.date + "T12:00:00.000Z"), published: true, sourceUrl: item.sourceUrl } },
+      { $setOnInsert: { resultText: item.resultText, resultDate: new Date(item.date + "T12:00:00.000Z"), published: true, sourceUrl: item.sourceUrl } },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
   }
