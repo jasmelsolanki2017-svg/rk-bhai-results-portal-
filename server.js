@@ -223,7 +223,7 @@ app.get("/api/user/session", async (req, res) => {
   try {
     const payload = jwt.verify(req.cookies.user_session, process.env.JWT_SECRET);
     if (payload.role !== "user") throw new Error("Invalid role");
-    const user = await User.findById(payload.sub).select("username active mustChangePassword expiresAt").lean();
+    const user = await User.findById(payload.sub).select("name username active mustChangePassword expiresAt").lean();
     if (!user || !user.active || (user.expiresAt && user.expiresAt <= new Date())) return res.status(401).json({ error: "Account बंद है या इसकी अवधि समाप्त हो गई है। Admin से दोबारा approval लें।" });
     res.json({ ok: true, role: "user", name: user.name || user.username, username: user.username, mustChangePassword: !!user.mustChangePassword });
   } catch { return res.status(401).json({ error: "Login required" }); }
