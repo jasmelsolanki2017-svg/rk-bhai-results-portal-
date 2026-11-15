@@ -17,6 +17,7 @@ app.get("/user", (req, res) => res.sendFile(path.join(__dirname, "public", "user
 app.get("/admin/users", (req, res) => res.sendFile(path.join(__dirname, "public", "admin-users.html")));
 
 const User = mongoose.model("PortalUser", new mongoose.Schema({
+  name: { type: String, default: "", trim: true, maxlength: 80 },
   username: { type: String, required: true, unique: true, trim: true, lowercase: true, maxlength: 40 },
   mobile: { type: String, default: "", trim: true },
   email: { type: String, default: "", trim: true, lowercase: true },
@@ -98,21 +99,26 @@ app.get("/api/admin/session", adminOnly, (req, res) => res.json({ ok: true, role
 
 app.get("/api/admin/users", adminOnly, async (req, res) => {
   await disableExpiredUsers();
-  const users = await User.find().select("username mobile email active expiresAt createdAt").sort({ createdAt: -1 }).lean();
+  const users = await User.find().select("name username mobile email active expiresAt createdAt").sort({ createdAt: -1 }).lean();
   const cities = await City.find().lean();
   const cityByUser = new Map(cities.map(c => [String(c.userId), c]));
   res.json(users.map(u => { const c = cityByUser.get(String(u._id)); return { ...u, city: c ? { id: c._id, name: c.cityName, status: c.status } : null }; }));
 });
 app.post("/api/admin/users", adminOnly, async (req, res) => {
+  const name = String(req.body?.name || "").trim();
   const username = String(req.body?.username || "").trim().toLowerCase();
+  const expiresInDays = Number(req.body?.expiresInDays);
   const mobile = String(req.body?.mobile || "").replace(/\D/g, "");
   const email = String(req.body?.email || "").trim().toLowerCase();
+  if (name.length < 2 || name.length > 80) return res.status(400).json({ error: "User का पूरा नाम 2 से 80 अक्षर में भरें।" });
   if (!/^[a-z0-9._-]{3,40}$/.test(username)) return res.status(400).json({ error: "Username 3-40 अक्षर का रखें।" });
+  if (!Number.isInteger(expiresInDays) || expiresInDays < 1 || expiresInDays > 3650) return res.status(400).json({ error: "Active days 1 से 3650 के बीच चुनें।" });
   if (!/^[6-9]\d{9}$/.test(mobile)) return res.status(400).json({ error: "सही 10 अंकों का भारतीय मोबाइल नंबर भरें।" });
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: "सही Email ID भरें।" });
   if (await User.exists({ $or: [{ username }, { mobile }, { email }] })) return res.status(409).json({ error: "Username, mobile या email पहले से मौजूद है।" });
-  const user = await User.create({ username, mobile, email, passwordHash: await bcrypt.hash("userlogin", 12), mustChangePassword: true });
-  res.status(201).json({ id: user._id, username: user.username, mobile: user.mobile, email: user.email, active: user.active, defaultPassword: "userlogin", createdAt: user.createdAt });
+  const expiresAt = new Date(Date.now() + expiresInDays * 86400000);
+  const user = await User.create({ name, username, mobile, email, expiresAt, passwordHash: await bcrypt.hash("userlogin", 12), mustChangePassword: true });
+  res.status(201).json({ id: user._id, name: user.name, username: user.username, mobile: user.mobile, email: user.email, active: user.active, expiresAt: user.expiresAt, defaultPassword: "userlogin", createdAt: user.createdAt });
 });
 app.patch("/api/admin/users/:id", adminOnly, async (req, res) => {
   const update = {};
@@ -211,7 +217,7 @@ app.post("/api/user/login", async (req, res) => {
     return res.status(401).json({ error: "गलत username या password, या account बंद है।" });
   const token = jwt.sign({ role: "user", sub: String(user._id) }, process.env.JWT_SECRET, { expiresIn: "7d" });
   res.cookie("user_session", token, { httpOnly: true, sameSite: "strict", secure: process.env.NODE_ENV === "production", maxAge: 7 * 24 * 60 * 60 * 1000, path: "/" });
-  res.json({ ok: true, username: user.username, mustChangePassword: user.mustChangePassword });
+  res.json({ ok: true, name: user.name || user.username, username: user.username, mustChangePassword: user.mustChangePassword });
 });
 app.get("/api/user/session", async (req, res) => {
   try {
@@ -219,7 +225,7 @@ app.get("/api/user/session", async (req, res) => {
     if (payload.role !== "user") throw new Error("Invalid role");
     const user = await User.findById(payload.sub).select("username active mustChangePassword expiresAt").lean();
     if (!user || !user.active || (user.expiresAt && user.expiresAt <= new Date())) return res.status(401).json({ error: "Account बंद है या इसकी अवधि समाप्त हो गई है। Admin से दोबारा approval लें।" });
-    res.json({ ok: true, role: "user", username: user.username, mustChangePassword: !!user.mustChangePassword });
+    res.json({ ok: true, role: "user", name: user.name || user.username, username: user.username, mustChangePassword: !!user.mustChangePassword });
   } catch { return res.status(401).json({ error: "Login required" }); }
 });
 app.post("/api/user/change-password", async (req, res) => {
