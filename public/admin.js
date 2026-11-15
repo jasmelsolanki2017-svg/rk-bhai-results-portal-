@@ -1,9 +1,119 @@
-const $=s=>document.querySelector(s), msg=$("#msg");
-async function api(url,opts={}){const r=await fetch(url,{credentials:"same-origin",headers:{"Content-Type":"application/json",...(opts.headers||{})},...opts});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||"Request failed");return data}
-function showPanel(on){$("#loginBox").hidden=on;$("#panel").hidden=!on}
-async function refresh(){const rows=await api("/api/admin/results");$("#adminRows").innerHTML=rows.map(x=>`<article class="admin-row"><div><b>${esc(x.title)}</b><p>${esc(x.resultText)} · ${new Date(x.resultDate).toLocaleDateString("hi-IN")} · ${x.published?"Published":"Draft"}</p></div><div class="actions"><button type="button" data-pub="${x._id}">${x.published?"Unpublish":"Publish"}</button><button type="button" class="danger" data-del="${x._id}">Delete</button></div></article>`).join("")||"<p class='muted'>अभी कोई रिकॉर्ड नहीं है।</p>";}
-function esc(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-$("#loginForm").addEventListener("submit",async e=>{e.preventDefault();try{const f=new FormData(e.target);await api("/api/admin/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});showPanel(true);await refresh();msg.textContent="Login सफल";}catch(err){msg.textContent=err.message;}});
-$("#resultForm").addEventListener("submit",async e=>{e.preventDefault();try{const f=new FormData(e.target);await api("/api/admin/results",{method:"POST",body:JSON.stringify({title:f.get("title"),resultText:f.get("resultText"),resultDate:f.get("resultDate"),published:f.has("published")})});e.target.reset();await refresh();msg.textContent="रिकॉर्ड सेव हो गया";}catch(err){msg.textContent=err.message;}});
-$("#adminRows").addEventListener("click",async e=>{const pub=e.target.dataset.pub, del=e.target.dataset.del;try{if(pub){const row=(await api("/api/admin/results")).find(x=>x._id===pub);await api("/api/admin/results/"+pub,{method:"PATCH",body:JSON.stringify({published:!row.published})});}if(del){if(!confirm("क्या यह रिकॉर्ड हटाना है?"))return;await api("/api/admin/results/"+del,{method:"DELETE"});}await refresh();}catch(err){msg.textContent=err.message;}});
-$("#logout").addEventListener("click",async()=>{try{await api("/api/admin/logout",{method:"POST"});showPanel(false);msg.textContent="Logout हो गया";}catch(err){msg.textContent=err.message;}});
+const $=s=>document.querySelector(s);
+const msg=$("#msg");
+let allRows=[];
+let selectedMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
+
+async function api(url,opts={}){
+  const headers={...(opts.body?{"Content-Type":"application/json"}:{}),...(opts.headers||{})};
+  const response=await fetch(url,{credentials:"same-origin",...opts,headers});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok) throw new Error(data.error||("Request failed ("+response.status+")"));
+  return data;
+}
+function showPanel(on){$("#loginBox").hidden=on;$("#panel").hidden=!on;}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function dateValue(v){return new Date(v).toISOString().slice(0,10);}
+function monthKey(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");}
+
+async function refresh(){
+  allRows=await api("/api/admin/results");
+  $("#recordCount").textContent=allRows.length+" रिकॉर्ड";
+  renderRows();
+  await loadMonth();
+}
+function renderRows(){
+  const q=$("#recordSearch").value.trim().toLocaleLowerCase();
+  const rows=allRows.filter(x=>(x.title+" "+x.resultText+" "+dateValue(x.resultDate)).toLocaleLowerCase().includes(q));
+  $("#adminRows").innerHTML=rows.map(x=>`
+    <article class="admin-row">
+      <div class="admin-row-info"><b>${esc(x.title)}</b><p>${esc(x.resultText)} · ${new Date(x.resultDate).toLocaleDateString("hi-IN")} · ${x.published?"Published":"Draft"}</p></div>
+      <div class="actions"><button type="button" data-edit="${x._id}">Edit</button><button type="button" data-pub="${x._id}">${x.published?"Unpublish":"Publish"}</button><button type="button" class="danger" data-del="${x._id}">Delete</button></div>
+    </article>`).join("")||"<p class='muted'>कोई रिकॉर्ड नहीं मिला।</p>";
+}
+async function loadMonth(){
+  const key=monthKey(selectedMonth);
+  $("#monthLabel").textContent=selectedMonth.toLocaleDateString("hi-IN",{month:"long",year:"numeric"});
+  $("#nextMonth").disabled=key>=monthKey(new Date());
+  $("#adminChart").innerHTML='<p class="muted">चार्ट लोड हो रहा है…</p>';
+  try{
+    const rows=await api("/api/admin/results?month="+encodeURIComponent(key));
+    renderMonthChart(rows,selectedMonth);
+  }catch(e){$("#adminChart").innerHTML='<p class="muted">चार्ट लोड नहीं हुआ: '+esc(e.message)+'</p>';}
+}
+function renderMonthChart(rows,month){
+  if(!rows.length){$("#adminChart").innerHTML='<p class="muted empty-month">इस महीने का कोई रिकॉर्ड नहीं है।</p>';return;}
+  const titles=[...new Set(rows.map(r=>r.title))].sort((a,b)=>a.localeCompare(b,"hi"));
+  const byDay=new Map();
+  rows.forEach(row=>{
+    const day=new Date(row.resultDate).getUTCDate();
+    if(!byDay.has(day))byDay.set(day,{});
+    byDay.get(day)[row.title]=row;
+  });
+  const daysInMonth=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
+  const groups=[];
+  for(let i=0;i<titles.length;i+=4)groups.push(titles.slice(i,i+4));
+  const summary='<div class="chart-summary"><strong>'+titles.length+' शहर/मार्केट</strong><span>'+rows.length+' रिकॉर्ड · एंट्री एडिट करने के लिए उस पर टैप करें</span></div>';
+  const tables=groups.map((group,index)=>{
+    const head='<tr><th class="date-col">तारीख</th>'+group.map(t=>'<th>'+esc(t)+'</th>').join("")+'</tr>';
+    const body=Array.from({length:daysInMonth},(_,i)=>{
+      const day=i+1, values=byDay.get(day)||{};
+      return '<tr><th class="date-col">'+String(day).padStart(2,"0")+'</th>'+group.map(t=>{
+        const row=values[t];
+        return '<td>'+(row?'<button class="chart-edit" type="button" data-edit="'+row._id+'" aria-label="Edit '+esc(t)+' '+day+'">'+esc(row.resultText)+'</button>':'—')+'</td>';
+      }).join("")+'</tr>';
+    }).join("");
+    return '<section class="market-chart"><h3>चार्ट '+(index+1)+' / '+groups.length+'</h3><div class="table-scroll"><table class="history-table"><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div></section>';
+  }).join("");
+  $("#adminChart").innerHTML=summary+tables;
+}
+function resetForm(){
+  const form=$("#resultForm");form.reset();form.elements.editId.value="";
+  $("#formTitle").textContent="नया रिकॉर्ड जोड़ें";$("#saveRecord").textContent="रिकॉर्ड सेव करें";$("#cancelEdit").hidden=true;
+}
+function editRecord(id){
+  const row=allRows.find(x=>x._id===id);if(!row)return;
+  const f=$("#resultForm").elements;
+  f.editId.value=row._id;f.title.value=row.title;f.resultText.value=row.resultText;
+  f.resultDate.value=dateValue(row.resultDate);f.sourceUrl.value=row.sourceUrl||"";
+  f.published.checked=!!row.published;
+  $("#formTitle").textContent="रिकॉर्ड एडिट करें";$("#saveRecord").textContent="बदलाव सेव करें";$("#cancelEdit").hidden=false;
+  $("#resultForm").scrollIntoView({behavior:"smooth",block:"start"});
+}
+$("#loginForm").addEventListener("submit",async e=>{
+  e.preventDefault();msg.textContent="Login हो रहा है…";
+  try{const f=new FormData(e.target);await api("/api/admin/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});showPanel(true);await refresh();msg.textContent="Login सफल";}
+  catch(err){msg.textContent=err.message;}
+});
+$("#resultForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  try{
+    const f=new FormData(e.target),id=f.get("editId");
+    const payload={title:f.get("title"),resultText:f.get("resultText"),resultDate:f.get("resultDate"),sourceUrl:f.get("sourceUrl"),published:f.has("published")};
+    await api(id?"/api/admin/results/"+id:"/api/admin/results",{method:id?"PATCH":"POST",body:JSON.stringify(payload)});
+    resetForm();await refresh();msg.textContent=id?"रिकॉर्ड अपडेट हो गया":"नया रिकॉर्ड सेव हो गया";
+  }catch(err){msg.textContent=err.message;}
+});
+$("#adminRows").addEventListener("click",async e=>{
+  const edit=e.target.closest("[data-edit]")?.dataset.edit;
+  const pub=e.target.closest("[data-pub]")?.dataset.pub;
+  const del=e.target.closest("[data-del]")?.dataset.del;
+  try{
+    if(edit){editRecord(edit);return;}
+    if(pub){const row=allRows.find(x=>x._id===pub);await api("/api/admin/results/"+pub,{method:"PATCH",body:JSON.stringify({published:!row.published})});}
+    if(del){if(!confirm("क्या यह रिकॉर्ड हमेशा के लिए हटाना है?"))return;await api("/api/admin/results/"+del,{method:"DELETE"});}
+    await refresh();msg.textContent="बदलाव सेव हो गया";
+  }catch(err){msg.textContent=err.message;}
+});
+$("#adminChart").addEventListener("click",e=>{
+  const edit=e.target.closest("[data-edit]")?.dataset.edit;if(edit)editRecord(edit);
+});
+$("#recordSearch").addEventListener("input",renderRows);
+$("#cancelEdit").addEventListener("click",resetForm);
+$("#prevMonth").addEventListener("click",()=>{selectedMonth=new Date(selectedMonth.getFullYear(),selectedMonth.getMonth()-1,1);loadMonth();});
+$("#nextMonth").addEventListener("click",()=>{const d=new Date(selectedMonth.getFullYear(),selectedMonth.getMonth()+1,1);if(d<=new Date(new Date().getFullYear(),new Date().getMonth(),1)){selectedMonth=d;loadMonth();}});
+$("#logout").addEventListener("click",async()=>{
+  try{await api("/api/admin/logout",{method:"POST"});showPanel(false);$("#loginForm").reset();msg.textContent="Logout हो गया";}
+  catch(err){msg.textContent=err.message;showPanel(false);}
+});
+(async()=>{try{await api("/api/admin/session");showPanel(true);await refresh();msg.textContent="Admin session चालू है";}
+catch{showPanel(false);}})();
