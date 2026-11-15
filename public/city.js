@@ -1,6 +1,6 @@
 const $=s=>document.querySelector(s);
 const city=new URLSearchParams(location.search).get("name")||"";
-let rows=[];
+let rows=[],months=[],activeMonth="";
 async function api(url,opts={}){const headers={...(opts.body?{"Content-Type":"application/json"}:{}),...(opts.headers||{})};const r=await fetch(url,{credentials:"same-origin",...opts,headers});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Request failed");return d;}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function dateValue(v){const d=new Date(v);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);}
@@ -11,18 +11,27 @@ async function load(){
  await api("/api/admin/session");
  const all=await api("/api/admin/results");
  rows=all.filter(x=>String(x.title||"").trim()===city).sort((a,b)=>new Date(b.resultDate)-new Date(a.resultDate));
+ months=[...new Set(rows.map(x=>monthKey(x.resultDate)))].sort((a,b)=>b.localeCompare(a));
+ if(!months.includes(activeMonth))activeMonth=months[0]||"";
  $("#cityTitle").textContent=city;
- $("#cityCount").textContent=rows.length+" कुल रिकॉर्ड · महीने के अनुसार अलग-अलग चार्ट";
+ $("#cityCount").textContent=rows.length+" कुल रिकॉर्ड · "+months.length+" महीने";
  render();
 }
 function render(){
- const months=[...new Set(rows.map(x=>monthKey(x.resultDate)))].sort((a,b)=>b.localeCompare(a));
- $("#cityRecords").innerHTML=months.map((key,index)=>{
-  const list=rows.filter(x=>monthKey(x.resultDate)===key);
-  const body=list.map(x=>'<tr><td class="date-col">'+new Date(x.resultDate).toLocaleDateString("hi-IN",{day:"2-digit",month:"short",year:"numeric",timeZone:"UTC"})+'</td><td><button class="chart-edit" type="button" data-edit="'+x._id+'" title="Edit record">'+esc(x.resultText)+'</button></td><td>'+(x.published?"Published":"Unpublished")+'</td><td><div class="actions"><button type="button" data-edit="'+x._id+'">Edit</button><button type="button" class="danger" data-del="'+x._id+'">Delete</button></div></td></tr>').join("");
-  return '<section class="market-chart city-month-chart"><h3>'+esc(monthLabel(key))+' <span class="muted">('+list.length+' रिकॉर्ड)</span></h3><div class="table-scroll"><table class="history-table"><thead><tr><th>तारीख</th><th>परिणाम</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody>'+body+'</tbody></table></div></section>';
- }).join("")||'<p class="muted">इस शहर का कोई रिकॉर्ड नहीं मिला।</p>';
+ const picker=$("#monthPicker");
+ picker.innerHTML=months.map(key=>'<option value="'+key+'" '+(key===activeMonth?"selected":"")+'>'+esc(monthLabel(key))+' ('+rows.filter(x=>monthKey(x.resultDate)===key).length+')</option>').join("");
+ picker.disabled=!months.length;
+ const index=months.indexOf(activeMonth);
+ $("#prevMonth").disabled=index<0||index>=months.length-1;
+ $("#nextMonth").disabled=index<=0;
+ const list=rows.filter(x=>monthKey(x.resultDate)===activeMonth);
+ $("#activeMonthLabel").textContent=activeMonth?monthLabel(activeMonth):"कोई रिकॉर्ड नहीं";
+ const body=list.map(x=>'<tr><td class="date-col">'+new Date(x.resultDate).toLocaleDateString("hi-IN",{day:"2-digit",month:"short",year:"numeric",timeZone:"UTC"})+'</td><td><button class="chart-edit" type="button" data-edit="'+x._id+'" title="Edit record">'+esc(x.resultText)+'</button></td><td>'+(x.published?"Published":"Unpublished")+'</td><td><div class="actions"><button type="button" data-edit="'+x._id+'">Edit</button><button type="button" class="danger" data-del="'+x._id+'">Delete</button></div></td></tr>').join("");
+ $("#cityRecords").innerHTML=list.length?'<section class="market-chart city-month-chart"><div class="table-scroll"><table class="history-table"><thead><tr><th>तारीख</th><th>परिणाम</th><th>स्थिति</th><th>कार्रवाई</th></tr></thead><tbody>'+body+'</tbody></table></div></section>':'<p class="muted">इस महीने का कोई रिकॉर्ड नहीं मिला।</p>';
 }
+$("#monthPicker").addEventListener("change",e=>{activeMonth=e.target.value;render();});
+$("#prevMonth").addEventListener("click",()=>{const i=months.indexOf(activeMonth);if(i>=0&&i<months.length-1){activeMonth=months[i+1];render();}});
+$("#nextMonth").addEventListener("click",()=>{const i=months.indexOf(activeMonth);if(i>0){activeMonth=months[i-1];render();}});
 function edit(id){
  const x=rows.find(r=>r._id===id);if(!x)return;
  const f=$("#cityEditForm").elements;
