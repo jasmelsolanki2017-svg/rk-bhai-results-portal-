@@ -6,6 +6,18 @@
 <section id="userLogin" class="admin-box"><h1>User Login</h1><p class="muted">यह निजी पेज है। Admin द्वारा बनाया गया username और password डालें।</p><form id="userLoginForm"><input name="username" autocomplete="username" placeholder="Username" required><input name="password" type="password" autocomplete="current-password" placeholder="Password" required><button type="submit">Login</button></form><p id="userMessage" class="muted" role="status"></p></section>
 <section id="userContent" hidden>
 <div class="admin-top"><h1>Welcome, <span id="userName"></span></h1><button id="userLogout" type="button">Logout</button></div>
+<section class="admin-box" id="citySetup">
+<h2>मेरा शहर</h2><p id="cityStatus" class="muted">शहर की जानकारी लोड हो रही है…</p>
+<form id="cityForm"><label>अपने शहर / मार्केट का नाम</label><input name="cityName" maxlength="60" required placeholder="जैसे Chandigarh City"><button type="submit">शहर Approval के लिए भेजें</button></form>
+</section>
+<section class="admin-box" id="userRecordBox" hidden>
+<h2>नया रिकॉर्ड जोड़ें</h2><form id="userRecordForm">
+<label>परिणाम</label><input name="resultText" maxlength="300" required placeholder="आज का परिणाम / रिकॉर्ड">
+<label>तारीख</label><input name="resultDate" type="date" required>
+<label>सोर्स लिंक (वैकल्पिक)</label><input name="sourceUrl" type="url" placeholder="https://...">
+<button type="submit">रिकॉर्ड सेव करें</button></form>
+<p id="recordMessage" class="muted" role="status"></p><h3>मेरे रिकॉर्ड</h3><div id="myRecords"></div>
+</section>
 <section class="intro"><h2>हाल के प्रकाशित रिकॉर्ड</h2><p>यहाँ प्रकाशित रिकॉर्ड देख सकते हैं।</p></section>
 <section id="results" class="results"><p class="muted">लोड हो रहा है…</p></section>
 <section class="chart-panel"><div class="chart-heading"><h2>मासिक रिकॉर्ड चार्ट</h2><p>तारीख के अनुसार ऐतिहासिक रिकॉर्ड</p></div><div class="month-nav"><button id="prevMonth" type="button">‹ पिछला</button><strong id="monthLabel">लोड हो रहा है…</strong><button id="nextMonth" type="button">अगला ›</button></div><div id="historyChart" class="history-chart"></div></section>
