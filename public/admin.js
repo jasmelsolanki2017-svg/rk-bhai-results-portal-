@@ -19,8 +19,13 @@ async function refresh(){
   allRows=await api("/api/admin/results");
   $("#recordCount").textContent=allRows.length+" रिकॉर्ड";
   renderRows();
+  renderCityLinks();
   await loadMonth();
   await loadUsers();
+}
+function renderCityLinks(){
+ const cities=[...new Set(allRows.map(x=>String(x.title||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"hi"));
+ $("#cityLinks").innerHTML=cities.map(city=>"<a class=\"city-link\" href=\"/city.html?name="+encodeURIComponent(city)+"\"><strong>"+esc(city)+"</strong><span>"+allRows.filter(x=>x.title===city).length+" रिकॉर्ड</span></a>").join("")||"<p class=\"muted\">अभी कोई शहर/मार्केट रिकॉर्ड नहीं है।</p>";
 }
 function renderRows(){
   const q=$("#recordSearch").value.trim().toLocaleLowerCase();
