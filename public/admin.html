@@ -29,7 +29,7 @@
     <h2>नया User बनाएं</h2>
     <form id="createUserForm">
       <label>Username (3-40 अक्षर, English)</label><input name="username" minlength="3" maxlength="40" pattern="[A-Za-z0-9._-]+" required placeholder="जैसे user01">
-      <label>Temporary Password (कम से कम 8 अक्षर)</label><input name="password" type="text" minlength="8" maxlength="100" required placeholder="मजबूत पासवर्ड रखें">
+      <label>Temporary Password (कम से कम 8 अक्षर)</label><input name="password" type="password" minlength="8" maxlength="100" required autocomplete="new-password" placeholder="मजबूत पासवर्ड रखें">
       <button type="submit">User Create करें</button>
     </form>
     <p id="userAdminMsg" class="muted" role="status"></p>
