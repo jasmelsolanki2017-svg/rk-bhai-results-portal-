@@ -37,7 +37,7 @@ async function loadMonth(){
 }
 function renderMonthChart(rows,month){
   if(!rows.length){$("#adminChart").innerHTML='<p class="muted empty-month">इस महीने का कोई रिकॉर्ड नहीं है।</p>';return;}
-  const titles=[...new Set(rows.map(r=>r.title))].sort((a,b)=>a.localeCompare(b,"hi"));
+  const titles=[...new Set(rows.map(r=>r.title))].sort((a,b)=>{const ac=/chandigarh/i.test(a),bc=/chandigarh/i.test(b);return ac!==bc?(ac?1:-1):a.localeCompare(b,"hi");});
   const byDay=new Map();
   rows.forEach(row=>{
     const day=new Date(row.resultDate).getUTCDate();
@@ -46,7 +46,7 @@ function renderMonthChart(rows,month){
   });
   const daysInMonth=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
   const groups=[];
-  for(let i=0;i<titles.length;i+=5)groups.push(titles.slice(i,i+5));
+  for(let i=0;i<titles.length;i+=7)groups.push(titles.slice(i,i+7));
   const summary='<div class="chart-summary"><strong>'+titles.length+' शहर/मार्केट</strong><span>'+rows.length+' रिकॉर्ड · एंट्री एडिट करने के लिए उस पर टैप करें</span></div>';
   const tables=groups.map((group,index)=>{
     const head='<tr><th class="date-col">तारीख</th>'+group.map(t=>'<th>'+esc(t)+'</th>').join("")+'</tr>';
