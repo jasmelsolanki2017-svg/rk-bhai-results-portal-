@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RK Bhai Admin</title><link rel="stylesheet" href="/style.css"></head>
+<body><header><div class="brand">RK <span>BHAI</span></div><p>ADMIN PANEL</p></header>
+<main>
+<section class="intro"><h1>Admin Panel</h1><p>केवल अधिकृत एडमिन के लिए</p></section>
+<section id="loginBox" class="admin-box"><h2>Admin Login</h2><form id="loginForm"><input name="username" autocomplete="username" placeholder="Username" required><input name="password" type="password" autocomplete="current-password" placeholder="Password" required><button>Login</button></form></section>
+<section id="panel" class="admin-box" hidden><div class="admin-top"><h2>परिणाम प्रबंधन</h2><button id="logout" type="button" class="secondary">Logout</button></div>
+<form id="resultForm"><input name="title" placeholder="शीर्षक" maxlength="100" required><input name="resultText" placeholder="प्रकाशित परिणाम / सूचना" maxlength="300" required><input name="resultDate" type="date" required><label class="check"><input name="published" type="checkbox"> तुरंत प्रकाशित करें</label><button>रिकॉर्ड सेव करें</button></form>
+<div id="adminRows"></div></section><p id="msg" class="muted" role="status"></p>
+</main><script src="/admin.js"></script></body></html>
