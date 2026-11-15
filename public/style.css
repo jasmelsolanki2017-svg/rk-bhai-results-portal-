@@ -116,3 +116,12 @@ footer{text-align:center;padding:25px;color:#777;font-size:13px}@media(max-width
 .inline-time-form input{padding:8px;border:1px solid #59451f;border-radius:7px;background:#090909;color:#fff}
 .inline-time-form button{padding:8px 12px;border:1px solid #80632d;border-radius:7px;background:#3a2b15;color:#f5d78e}
 .chart-city-time{display:block;margin-top:4px;font-size:11px;font-weight:400;color:#c7a969;white-space:nowrap}
+
+
+/* Clear mobile-friendly user expiry controls */
+.expiry-controls{display:grid;gap:12px;width:100%;min-width:0}
+.expiry-field{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:8px}
+.expiry-field label{grid-column:1/-1;color:#e2d1a7;font-size:13px}
+.admin-box .expiry-field input{width:100%;min-width:0;min-height:44px;padding:10px;background:#090909;color:#fff;color-scheme:dark;border:1px solid #80632d;border-radius:8px;font:inherit;touch-action:manipulation}
+.expiry-field button{min-height:44px;white-space:nowrap}
+@media(max-width:420px){.expiry-field{grid-template-columns:minmax(0,1fr)}.expiry-field button{width:100%}}
