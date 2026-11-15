@@ -96,6 +96,59 @@ app.post("/api/admin/login", async (req, res) => {
 });
 
 app.get("/api/admin/session", adminOnly, (req, res) => res.json({ ok: true, role: "admin" }));
+app.get("/api/admin/backup", adminOnly, async (req, res) => {
+  const [users, cities, results] = await Promise.all([
+    User.find().lean(), City.find().lean(), Result.find().lean()
+  ]);
+  const backup = {
+    app: "rk-bhai-results-portal",
+    version: 1,
+    createdAt: new Date().toISOString(),
+    collections: { users, cities, results }
+  };
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Content-Disposition", 'attachment; filename="rk-bhai-backup-' + stamp + '.json"');
+  res.send(JSON.stringify(backup));
+});
+
+app.post("/api/admin/restore", adminOnly, express.json({ limit: "25mb" }), async (req, res) => {
+  const backup = req.body;
+  const data = backup && backup.collections;
+  if (!backup || backup.app !== "rk-bhai-results-portal" || backup.version !== 1 ||
+      !data || !Array.isArray(data.users) || !Array.isArray(data.cities) || !Array.isArray(data.results)) {
+    return res.status(400).json({ error: "यह सही RK Bhai backup file नहीं है।" });
+  }
+  if (data.users.length > 5000 || data.cities.length > 5000 || data.results.length > 20000) {
+    return res.status(413).json({ error: "Backup में records की संख्या तय सीमा से अधिक है।" });
+  }
+  const validId = value => value && /^[a-f\\d]{24}$/i.test(String(value));
+  if (data.users.some(x => !validId(x._id) || !x.username || !x.passwordHash) ||
+      data.cities.some(x => !validId(x._id) || !validId(x.userId) || !x.cityName) ||
+      data.results.some(x => !validId(x._id) || !x.title || !x.resultText || !x.resultDate || Number.isNaN(new Date(x.resultDate).getTime()))) {
+    return res.status(400).json({ error: "Backup file में कुछ records सही format में नहीं हैं।" });
+  }
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      await Promise.all([
+        User.deleteMany({}, { session }),
+        City.deleteMany({}, { session }),
+        Result.deleteMany({}, { session })
+      ]);
+      if (data.users.length) await User.insertMany(data.users, { session, ordered: true });
+      if (data.cities.length) await City.insertMany(data.cities, { session, ordered: true });
+      if (data.results.length) await Result.insertMany(data.results, { session, ordered: true });
+    });
+    res.json({ ok: true, counts: { users: data.users.length, cities: data.cities.length, results: data.results.length } });
+  } catch (err) {
+    console.error("Backup restore failed:", err.message);
+    res.status(400).json({ error: "Restore नहीं हो पाया। पुराना data सुरक्षित रखने की कोशिश की गई है। Backup file जाँचें।" });
+  } finally {
+    await session.endSession();
+  }
+});
+
 
 app.get("/api/admin/users", adminOnly, async (req, res) => {
   await disableExpiredUsers();
