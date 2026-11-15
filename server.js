@@ -274,7 +274,15 @@ app.get("/api/results", async (req, res) => {
   const activeUsers = await User.find({ active: true, $or: [{ expiresAt: null }, { expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }] }).distinct("_id");
   const approvedCityIds = await City.find({ status: "approved", userId: { $in: activeUsers } }).distinct("_id");
   const filter = { published: true, deleted: { $ne: true }, $or: [{ ownerUserId: null }, { ownerUserId: { $exists: false } }, { cityId: { $in: approvedCityIds } }] };
-  if (req.query.today === "1") {
+  if (req.query.recent === "2") {
+    const today = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit"
+    }).format(new Date());
+    const todayStart = new Date(today + "T00:00:00.000Z");
+    const yesterdayStart = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000);
+    const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+    filter.resultDate = { $gte: yesterdayStart, $lt: tomorrowStart };
+  } else if (req.query.today === "1") {
     const today = new Intl.DateTimeFormat("en-CA", {
       timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit"
     }).format(new Date());
