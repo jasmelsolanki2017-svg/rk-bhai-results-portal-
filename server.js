@@ -18,6 +18,7 @@ const Result = mongoose.model("Result", new mongoose.Schema({
   resultText: { type: String, required: true, trim: true, maxlength: 300 },
   resultDate: { type: Date, required: true },
   published: { type: Boolean, default: false },
+  sourceUrl: { type: String, default: "" },
   createdAt: { type: Date, default: Date.now }
 }));
 
@@ -95,7 +96,25 @@ app.delete("/api/admin/results/:id", adminOnly, async (req, res) => {
 });
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 
+async function seedHistoricalRecords() {
+  const recordsPath = path.join(__dirname, "data", "historical-records.json");
+  const records = JSON.parse(require("fs").readFileSync(recordsPath, "utf8"));
+  for (const item of records) {
+    const start = new Date(item.date + "T00:00:00.000Z");
+    const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+    await Result.findOneAndUpdate(
+      { title: item.title, resultDate: { $gte: start, $lt: end } },
+      { $set: { resultText: item.resultText, resultDate: new Date(item.date + "T12:00:00.000Z"), published: true, sourceUrl: item.sourceUrl } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+  }
+  console.log(`Historical archive records checked: ${records.length}`);
+}
+
 const port = process.env.PORT || 3000;
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => app.listen(port, () => console.log(`RK portal running on ${port}`)))
+  .then(async () => {
+    await seedHistoricalRecords();
+    app.listen(port, () => console.log(`RK portal running on ${port}`));
+  })
   .catch(err => { console.error("Database connection failed:", err.message); process.exit(1); });
