@@ -81,6 +81,26 @@ async function loadMonth(){
     renderMonthTable();
   }catch(e){chartHost.innerHTML='<p class="muted">मासिक रिकॉर्ड लोड नहीं हो पाए।</p>';}
 }
+function renderCalendar(){
+  const calendar=document.getElementById("historyCalendar");
+  if(!calendar)return;
+  const year=selectedMonth.getFullYear(),month=selectedMonth.getMonth();
+  const firstDay=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  let rows=monthRows;
+  if(chartCity.value)rows=rows.filter(r=>r.title===chartCity.value);
+  const recordDays=new Set(rows.map(r=>new Date(r.resultDate).getUTCDate()));
+  const chosen=historyDate.value;
+  const names=["रवि","सोम","मंगल","बुध","गुरु","शुक्र","शनि"];
+  const headings=names.map(n=>'<span class="calendar-weekday">'+n+'</span>').join("");
+  const blanks=Array.from({length:firstDay},()=>'<span class="calendar-empty" aria-hidden="true"></span>').join("");
+  const days=Array.from({length:daysInMonth},(_,i)=>{
+    const day=i+1,key=year+"-"+String(month+1).padStart(2,"0")+"-"+String(day).padStart(2,"0");
+    const has=recordDays.has(day),active=chosen===key;
+    return '<button type="button" class="calendar-day'+(has?' has-record':'')+(active?' selected':'')+'" data-date="'+key+'" aria-label="'+day+(has?', रिकॉर्ड उपलब्ध':'')+'">'+day+(has?'<i></i>':'')+'</button>';
+  }).join("");
+  calendar.innerHTML='<div class="calendar-title"><strong>तारीख चुनें</strong><span>'+selectedMonth.toLocaleDateString("hi-IN",{month:"long",year:"numeric"})+'</span></div><div class="calendar-grid">'+headings+blanks+days+'</div><p class="calendar-help">सुनहरे निशान वाली तारीखों पर रिकॉर्ड उपलब्ध हैं। तारीख चुनकर उस दिन का रिकॉर्ड देखें।</p>';
+}
 function renderMonthTable(){
   let rows=monthRows;
   let titles=[...new Set([...rows.map(r=>r.title),...monthCities.map(c=>c.cityName)])];
@@ -114,8 +134,8 @@ function renderMonthTable(){
 prevButton.addEventListener("click",()=>{selectedMonth=new Date(selectedMonth.getFullYear(),selectedMonth.getMonth()-1,1);loadMonth();});
 nextButton.addEventListener("click",()=>{const candidate=new Date(selectedMonth.getFullYear(),selectedMonth.getMonth()+1,1);if(candidate<=new Date(new Date().getFullYear(),new Date().getMonth(),1)){selectedMonth=candidate;loadMonth();}});
 citySearch.addEventListener("input",renderRecent);
-chartCity.addEventListener("change",renderMonthTable);
-historyDate.addEventListener("change",()=>{if(historyDate.value){const chosen=new Date(historyDate.value+"T00:00:00");selectedMonth=new Date(chosen.getFullYear(),chosen.getMonth(),1);loadMonth();}else renderMonthTable();});
-clearDate.addEventListener("click",()=>{historyDate.value="";renderMonthTable();});
+chartCity.addEventListener("change",()=>{renderCalendar();renderMonthTable();});
+historyDate.addEventListener("change",()=>{if(historyDate.value){const chosen=new Date(historyDate.value+"T00:00:00");selectedMonth=new Date(chosen.getFullYear(),chosen.getMonth(),1);loadMonth();}else{renderCalendar();renderMonthTable();}});
+clearDate.addEventListener("click",()=>{historyDate.value="";renderCalendar();renderMonthTable();});\ndocument.getElementById("historyCalendar").addEventListener("click",event=>{const button=event.target.closest("[data-date]");if(!button)return;historyDate.value=button.dataset.date;renderCalendar();renderMonthTable();});
 loadMonth();
 loadResults();
