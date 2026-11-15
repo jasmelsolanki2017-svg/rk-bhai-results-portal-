@@ -19,7 +19,8 @@ async function loadMyCity(){
  const form=$("#cityForm"),status=$("#cityStatus"),box=$("#userRecordBox");
  if(!city){status.textContent="आपने अभी शहर नहीं बनाया है। एक ही शहर भेज सकते हैं; Admin approval जरूरी है।";form.hidden=false;box.hidden=true;return;}
  form.hidden=true;
- status.textContent="शहर: "+city.cityName+" · स्थिति: "+({pending:"Approval pending",approved:"Approved",rejected:"Rejected"}[city.status]||city.status);
+ status.innerHTML="शहर: "+userEsc(city.cityName)+" · स्थिति: "+({pending:"Approval pending",approved:"Approved",rejected:"Rejected"}[city.status]||city.status)+"<br>परिणाम का समय: "+(city.expectedTime||"समय नहीं दिया गया")+" IST";
+ if(city.status==="approved") status.innerHTML+='<form id="cityTimeForm" class="inline-time-form"><label>परिणाम आने का समय बदलें (IST)</label><input name="expectedTime" type="time" required value="'+userEsc(city.expectedTime||"")+'"><button type="submit">समय अपडेट करें</button></form>';
  box.hidden=city.status!=="approved";
  if(city.status==="approved") await loadMyRecords();
 }
@@ -30,7 +31,7 @@ async function loadMyRecords(){
 function userEsc(v){return String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 $("#cityForm").addEventListener("submit",async e=>{
  e.preventDefault();const cityName=new FormData(e.target).get("cityName");
- try{await userApi("/api/user/city",{method:"POST",body:JSON.stringify({cityName})});await loadMyCity();}
+ try{await userApi("/api/user/city",{method:"POST",body:JSON.stringify({cityName,expectedTime:new FormData(e.target).get("expectedTime")})});await loadMyCity();}
  catch(err){$("#cityStatus").textContent=err.message;}
 });
 $("#userRecordForm").addEventListener("submit",async e=>{
@@ -44,5 +45,12 @@ $("#myRecords").addEventListener("click",async e=>{
  const date=prompt("तारीख YYYY-MM-DD (खाली छोड़ें तो तारीख नहीं बदलेगी):");
  const payload={resultText:next};if(date)payload.resultDate=date;
  try{await userApi("/api/user/results/"+id,{method:"PATCH",body:JSON.stringify(payload)});await loadMyRecords();if(window.loadResults)loadResults();if(window.loadMonth)loadMonth();}
+ catch(err){alert(err.message);}
+});
+
+document.addEventListener("submit",async e=>{
+ if(e.target.id!=="cityTimeForm")return;
+ e.preventDefault();const expectedTime=new FormData(e.target).get("expectedTime");
+ try{await userApi("/api/user/city/time",{method:"PATCH",body:JSON.stringify({expectedTime})});await loadMyCity();if(window.loadMonth)loadMonth();}
  catch(err){alert(err.message);}
 });
