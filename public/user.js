@@ -6,16 +6,16 @@ async function userApi(url,opts={}){
  return data;
 }
 function showUser(on){$("#userLogin").hidden=on;$("#userContent").hidden=!on;$("#passwordChangeBox").hidden=true;}
-function showPasswordChange(on){$("#userLogin").hidden=true;$("#userContent").hidden=true;$("#passwordChangeBox").hidden=!on;}
+function showExpiryWarning(expiresAt){\n const popup=$("#expiryWarning");if(!popup)return;\n if(!expiresAt){popup.hidden=true;return;}\n const end=new Date(expiresAt);if(Number.isNaN(end.getTime())){popup.hidden=true;return;}\n const update=()=>{const ms=end.getTime()-Date.now();if(ms<=0){$("#expiryRemaining").textContent="आपके अकाउंट की अवधि समाप्त हो गई है।";$("#expiryDate").textContent="अब Admin से दोबारा अवधि बढ़वाएँ।";return;}\n const days=Math.floor(ms/86400000),hours=Math.floor(ms%86400000/3600000),minutes=Math.floor(ms%3600000/60000),seconds=Math.floor(ms%60000/1000);\n $("#expiryRemaining").textContent=`${days} दिन ${hours} घंटे ${minutes} मिनट ${seconds} सेकंड बाकी`;\n $("#expiryDate").textContent="अकाउंट बंद होने की तारीख: "+end.toLocaleString("hi-IN",{dateStyle:"medium",timeStyle:"short"})+" (IST)";};\n update();popup.hidden=false;if(window.userExpiryTimer)clearInterval(window.userExpiryTimer);window.userExpiryTimer=setInterval(update,1000);\n}\n$("#expiryClose")?.addEventListener("click",()=>{$("#expiryWarning").hidden=true;});\nfunction showPasswordChange(on){$("#userLogin").hidden=true;$("#userContent").hidden=true;$("#passwordChangeBox").hidden=!on;}
 $("#userLoginForm").addEventListener("submit",async e=>{
  e.preventDefault();$("#userMessage").textContent="Login हो रहा है…";
- try{const f=new FormData(e.target);const data=await userApi("/api/user/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});$("#userName").textContent=data.name||data.username;if(data.mustChangePassword){showPasswordChange(true);$("#passwordChangeMessage").textContent="Default password बदलना जरूरी है।";}else{showUser(true);await loadMyCity();if(window.loadResults)loadResults();if(window.loadMonth)loadMonth();}$("#userMessage").textContent="";}
+ try{const f=new FormData(e.target);const data=await userApi("/api/user/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});$("#userName").textContent=data.name||data.username;if(data.mustChangePassword){showPasswordChange(true);$("#passwordChangeMessage").textContent="Default password बदलना जरूरी है।";}else{showUser(true);showExpiryWarning(data.expiresAt);await loadMyCity();if(window.loadResults)loadResults();if(window.loadMonth)loadMonth();}$("#userMessage").textContent="";}
  catch(err){$("#userMessage").textContent=err.message;}
 });
 async function logoutUser(){try{await fetch("/api/user/logout",{method:"POST",credentials:"same-origin"});}catch{}showPasswordChange(false);showUser(false);$("#userLoginForm").reset();}
 $("#userLogout").addEventListener("click",logoutUser);
 $("#forcedLogout").addEventListener("click",logoutUser);
-(async()=>{try{const data=await userApi("/api/user/session");$("#userName").textContent=data.username;if(data.mustChangePassword){showPasswordChange(true);$("#passwordChangeMessage").textContent="पहले default password बदलें।";}else{showUser(true);await loadMyCity();}}catch{showUser(false);}})();
+(async()=>{try{const data=await userApi("/api/user/session");$("#userName").textContent=data.username;if(data.mustChangePassword){showPasswordChange(true);$("#passwordChangeMessage").textContent="पहले default password बदलें।";}else{showUser(true);showExpiryWarning(data.expiresAt);await loadMyCity();}}catch{showUser(false);}})();
 
 async function loadMyCity(){
  const city=await userApi("/api/user/city");
