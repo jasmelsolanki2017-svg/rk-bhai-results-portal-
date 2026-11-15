@@ -1,10 +1,33 @@
 <!doctype html>
-<html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RK Bhai Admin</title><link rel="stylesheet" href="/style.css"></head>
-<body><header><div class="brand">RK <span>BHAI</span></div><p>ADMIN PANEL</p></header>
+<html lang="hi">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RK Bhai Admin</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<header><div class="brand">RK <span>BHAI</span></div><p>ADMIN PANEL</p></header>
 <main>
-<section class="intro"><h1>Admin Panel</h1><p>केवल अधिकृत एडमिन के लिए</p></section>
-<section id="loginBox" class="admin-box"><h2>Admin Login</h2><form id="loginForm"><input name="username" autocomplete="username" placeholder="Username" required><input name="password" type="password" autocomplete="current-password" placeholder="Password" required><button>Login</button></form></section>
-<section id="panel" class="admin-box" hidden><div class="admin-top"><h2>परिणाम प्रबंधन</h2><button id="logout" type="button" class="secondary">Logout</button></div>
-<form id="resultForm"><input name="title" placeholder="शीर्षक" maxlength="100" required><input name="resultText" placeholder="प्रकाशित परिणाम / सूचना" maxlength="300" required><input name="resultDate" type="date" required><label class="check"><input name="published" type="checkbox"> तुरंत प्रकाशित करें</label><button>रिकॉर्ड सेव करें</button></form>
-<div id="adminRows"></div></section><p id="msg" class="muted" role="status"></p>
-</main><script src="/admin.js"></script></body></html>
+<section class="intro"><h1>Admin Panel</h1><p>सभी रिकॉर्ड और मासिक चार्ट का प्रबंधन</p></section>
+<section id="loginBox" class="admin-box"><h2>Admin Login</h2><form id="loginForm"><input name="username" autocomplete="username" placeholder="Username" required><input name="password" type="password" autocomplete="current-password" placeholder="Password" required><button type="submit">Login</button></form></section>
+<section id="panel" hidden>
+  <section class="admin-box">
+    <div class="admin-top"><h2>पूरा मासिक चार्ट</h2><button id="logout" type="button" class="secondary">Logout</button></div>
+    <p class="muted">किसी भी चार्ट एंट्री पर टैप करके उसे एडिट कर सकते हैं।</p>
+    <div class="month-nav"><button id="prevMonth" type="button">‹ पिछला</button><strong id="monthLabel">लोड हो रहा है…</strong><button id="nextMonth" type="button">अगला ›</button></div>
+    <div id="adminChart" class="history-chart"><p class="muted">चार्ट लोड हो रहा है…</p></div>
+  </section>
+  <section class="admin-box">
+    <h2 id="formTitle">नया रिकॉर्ड जोड़ें</h2>
+    <form id="resultForm">
+      <input name="editId" type="hidden">
+      <label>शहर / मार्केट / शीर्षक</label><input name="title" placeholder="शीर्षक" maxlength="100" required>
+      <label>परिणाम / रिकॉर्ड</label><input name="resultText" placeholder="परिणाम / सूचना" maxlength="300" required>
+      <label>तारीख</label><input name="resultDate" type="date" required>
+      <label>सोर्स लिंक (वैकल्पिक)</label><input name="sourceUrl" type="url" placeholder="https://...">
+      <label class="check"><input name="published" type="checkbox"> प्रकाशित करें</label>
+      <div class="form-actions"><button id="saveRecord" type="submit">रिकॉर्ड सेव करें</button><button id="cancelEdit" type="button" class="secondary" hidden>एडिट रद्द करें</button></div>
+    </form>
+  </section>
+  <section class="admin-box"><div class="admin-top"><h2>सभी रिकॉर्ड</h2><span id="recordCount" class="muted"></span></div><input id="recordSearch" type="search" placeholder="शीर्षक या तारीख से खोजें"><div id="adminRows"></div></section>
+</section>
+<p id="msg" class="muted" role="status"></p>
+</main>
+<script src="/admin.js"></script>
+</body></html>
