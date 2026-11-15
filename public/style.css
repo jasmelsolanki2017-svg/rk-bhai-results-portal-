@@ -17,3 +17,17 @@ footer{text-align:center;padding:25px;color:#777;font-size:13px}@media(max-width
 .chart-note{text-align:center;color:#888;font-size:11px;margin:14px 0 0}
 .list-heading{margin:0 0 14px}
 @media(max-width:520px){.chart-panel{padding:15px 10px}.chart-bars{gap:5px;height:170px}.chart-track{height:110px;width:65%}.chart-month{font-size:11px}}
+
+.month-nav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:18px 0 14px}
+.month-nav strong{color:#f4d58b;text-align:center;font-size:16px}
+.month-nav button{background:#302515;color:#f4d58b;border:1px solid #70552a;border-radius:8px;padding:9px 12px;font:inherit;font-size:13px;cursor:pointer}
+.month-nav button:disabled{opacity:.35;cursor:not-allowed}
+.table-scroll{width:100%;overflow-x:auto;border:1px solid #59451f;border-radius:10px}
+.history-table{width:100%;border-collapse:collapse;min-width:520px;background:#101010;font-size:14px}
+.history-table th,.history-table td{padding:11px 12px;text-align:center;border:1px solid #3a3327;white-space:nowrap}
+.history-table thead th{background:#332817;color:#f4d58b;position:sticky;top:0}
+.history-table tbody th{background:#211b12;color:#e3c477}
+.history-table td{color:#f5f1e8}
+.history-table tbody tr:nth-child(even){background:#181818}
+.empty-month{text-align:center;padding:22px 8px}
+@media(max-width:520px){.chart-panel{padding:15px 10px}.month-nav button{padding:8px;font-size:12px}.month-nav strong{font-size:14px}.history-table th,.history-table td{padding:9px 10px;font-size:13px}}
