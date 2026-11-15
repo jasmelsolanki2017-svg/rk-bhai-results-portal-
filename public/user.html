@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RK Bhai | User Dashboard</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<header><div class="brand">RK <span>BHAI</span></div><p>USER DASHBOARD</p><div class="live-clock"><span>भारत का समय</span><strong id="liveClock">--:--:--</strong><small id="liveDate">लोड हो रहा है…</small></div><nav class="top-links"><a href="/">Public Dashboard</a></nav></header>
+<main>
+<section id="userLogin" class="admin-box"><h1>User Login</h1><p class="muted">Admin द्वारा बनाया गया username और password डालें।</p><form id="userLoginForm"><input name="username" autocomplete="username" placeholder="Username" required><input name="password" type="password" autocomplete="current-password" placeholder="Password" required><button type="submit">Login</button></form><p id="userMessage" class="muted" role="status"></p></section>
+<section id="userContent" hidden>
+<div class="admin-top"><h1>Welcome, <span id="userName"></span></h1><button id="userLogout" type="button">Logout</button></div>
+<section class="intro"><h2>हाल के प्रकाशित रिकॉर्ड</h2><p>यहाँ सार्वजनिक रूप से प्रकाशित रिकॉर्ड देख सकते हैं।</p></section>
+<section id="results" class="results"><p class="muted">लोड हो रहा है…</p></section>
+<section class="chart-panel"><div class="chart-heading"><h2>मासिक रिकॉर्ड चार्ट</h2><p>तारीख के अनुसार ऐतिहासिक रिकॉर्ड</p></div><div class="month-nav"><button id="prevMonth" type="button">‹ पिछला</button><strong id="monthLabel">लोड हो रहा है…</strong><button id="nextMonth" type="button">अगला ›</button></div><div id="historyChart" class="history-chart"></div></section>
+</section>
+</main>
+<script src="/clock.js"></script><script src="/app.js"></script><script src="/user.js"></script>
+</body></html>
