@@ -124,6 +124,18 @@ app.patch("/api/admin/users/:id", adminOnly, async (req, res) => {
   const update = {};
   if (typeof req.body?.active === "boolean") update.active = req.body.active;
   if (req.body?.clearExpiry === true) update.expiresAt = null;
+  if (req.body?.extendByDays !== undefined) {
+    const days = Number(req.body.extendByDays);
+    if (!Number.isInteger(days) || days < 1 || days > 3650)
+      return res.status(400).json({ error: "अतिरिक्त दिन 1 से 3650 के बीच रखें।" });
+    const existingExpiry = await User.findById(req.params.id).select("expiresAt");
+    if (!existingExpiry) return res.status(404).json({ error: "User नहीं मिला।" });
+    const currentExpiry = existingExpiry.expiresAt && existingExpiry.expiresAt > new Date()
+      ? existingExpiry.expiresAt
+      : new Date();
+    update.expiresAt = new Date(currentExpiry.getTime() + days * 86400000);
+    update.active = true;
+  }
   if (req.body?.expiresInDays !== undefined) {
     const days = Number(req.body.expiresInDays);
     if (!Number.isInteger(days) || days < 1 || days > 3650) return res.status(400).json({ error: "दिन 1 से 3650 के बीच रखें।" });
