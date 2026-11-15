@@ -99,3 +99,5 @@ footer{text-align:center;padding:25px;color:#777;font-size:13px}@media(max-width
   .result h2{font-size:14px}
   .value{font-size:16px;max-width:42%;text-align:right}
 }
+
+.city-links{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}.city-link{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:13px;border:1px solid #80632d;border-radius:10px;background:#21190e;color:#f4d58b;text-decoration:none}.city-link span{font-size:12px;color:#bbb;white-space:nowrap}.back-link{color:#f4d58b;border:1px solid #80632d;padding:8px 12px;border-radius:8px;text-decoration:none;font-size:13px;white-space:nowrap}
