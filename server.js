@@ -21,6 +21,11 @@ const Result = mongoose.model("Result", new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 }));
 
+// Prefer a pre-generated bcrypt hash. ADMIN_PASSWORD is supported for simple
+// Render setup and is converted to a bcrypt hash once when the process starts.
+const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH ||
+  (process.env.ADMIN_PASSWORD ? bcrypt.hashSync(process.env.ADMIN_PASSWORD, 12) : "");
+
 function adminOnly(req, res, next) {
   try {
     const token = req.cookies.admin_session;
@@ -35,10 +40,10 @@ function adminOnly(req, res, next) {
 
 app.post("/api/admin/login", async (req, res) => {
   const { username, password } = req.body || {};
-  if (!username || !password || !process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD_HASH || !process.env.JWT_SECRET)
+  if (!username || !password || !process.env.ADMIN_USERNAME || !adminPasswordHash || !process.env.JWT_SECRET)
     return res.status(400).json({ error: "Admin configuration missing" });
   const validUser = username === process.env.ADMIN_USERNAME;
-  const validPass = await bcrypt.compare(password, process.env.ADMIN_PASSWORD_HASH);
+  const validPass = await bcrypt.compare(password, adminPasswordHash);
   if (!validUser || !validPass) return res.status(401).json({ error: "Incorrect login" });
   const token = jwt.sign({ role: "admin" }, process.env.JWT_SECRET, { expiresIn: "8h" });
   res.cookie("admin_session", token, {
