@@ -19,7 +19,6 @@ async function refresh(){
   allRows=await api("/api/admin/results");
   renderCityLinks();
   await loadMonth();
-  await loadUsers();
 }
 function renderCityLinks(){
  const cities=[...new Set(allRows.map(x=>String(x.title||"").trim()).filter(Boolean))].sort((a,b)=>{const ac=/chandigarh/i.test(a),bc=/chandigarh/i.test(b);return ac!==bc?(ac?1:-1):a.localeCompare(b,"hi");});
