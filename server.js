@@ -140,7 +140,7 @@ app.post("/api/user/city", userOnly, async (req, res) => {
 });
 app.patch("/api/user/city/time", userOnly, async (req, res) => {
   const expectedTime = String(req.body?.expectedTime || "");
-  if (!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(expectedTime)) return res.status(400).json({ error: "परिणाम आने का सही समय चुनें।" });
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(expectedTime)) return res.status(400).json({ error: "परिणाम आने का सही समय चुनें।" });
   const city = await City.findOneAndUpdate({ userId: req.portalUserId }, { expectedTime }, { new: true });
   if (!city) return res.status(404).json({ error: "आपका शहर नहीं मिला।" });
   res.json({ id: city._id, cityName: city.cityName, expectedTime: city.expectedTime, status: city.status });
