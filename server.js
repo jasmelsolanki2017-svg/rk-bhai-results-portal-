@@ -208,6 +208,11 @@ app.post("/api/user/results", userOnly, async (req, res) => {
   const resultDate = req.body?.resultDate;
   if (!resultText || resultText.length > 300 || !resultDate || Number.isNaN(Date.parse(resultDate)))
     return res.status(400).json({ error: "सही परिणाम और तारीख भरें।" });
+  const submittedDate = new Date(resultDate);
+  const dayStart = new Date(Date.UTC(submittedDate.getUTCFullYear(), submittedDate.getUTCMonth(), submittedDate.getUTCDate()));
+  const dayEnd = new Date(dayStart.getTime() + 86400000);
+  const duplicate = await Result.exists({ cityId: city._id, deleted: { $ne: true }, resultDate: { $gte: dayStart, $lt: dayEnd } });
+  if (duplicate) return res.status(409).json({ error: "इस शहर की इस तारीख का परिणाम पहले से मौजूद है। पुराने रिकॉर्ड को edit करें।" });
   const row = await Result.create({ title: city.cityName, resultText, resultDate, sourceUrl: String(req.body?.sourceUrl || "").slice(0, 500), published: true, ownerUserId: req.portalUserId, cityId: city._id });
   res.status(201).json(row);
 });
@@ -357,6 +362,11 @@ app.post("/api/admin/results", adminOnly, async (req, res) => {
   const { title, resultText, resultDate, published, sourceUrl } = req.body || {};
   if (!title || !resultText || !resultDate || Number.isNaN(Date.parse(resultDate)))
     return res.status(400).json({ error: "Title, result and valid date are required" });
+  const submittedDate = new Date(resultDate);
+  const dayStart = new Date(Date.UTC(submittedDate.getUTCFullYear(), submittedDate.getUTCMonth(), submittedDate.getUTCDate()));
+  const dayEnd = new Date(dayStart.getTime() + 86400000);
+  const duplicate = await Result.exists({ title: String(title).trim(), deleted: { $ne: true }, resultDate: { $gte: dayStart, $lt: dayEnd } });
+  if (duplicate) return res.status(409).json({ error: "इस शहर/मार्केट का इस तारीख का रिकॉर्ड पहले से मौजूद है। पुराने रिकॉर्ड को edit करें।" });
   const row = await Result.create({ title, resultText, resultDate, published: published === true, sourceUrl: sourceUrl || "" });
   res.status(201).json(row);
 });
@@ -364,6 +374,15 @@ app.patch("/api/admin/results/:id", adminOnly, async (req, res) => {
   const allowed = {};
   for (const key of ["title", "resultText", "resultDate", "published", "sourceUrl"])
     if (req.body && Object.prototype.hasOwnProperty.call(req.body, key)) allowed[key] = req.body[key];
+  const existing = await Result.findById(req.params.id);
+  if (!existing) return res.status(404).json({ error: "Record not found" });
+  const nextTitle = String(allowed.title ?? existing.title).trim();
+  const nextDate = allowed.resultDate !== undefined ? new Date(allowed.resultDate) : existing.resultDate;
+  if (Number.isNaN(nextDate.getTime())) return res.status(400).json({ error: "Invalid result date" });
+  const dayStart = new Date(Date.UTC(nextDate.getUTCFullYear(), nextDate.getUTCMonth(), nextDate.getUTCDate()));
+  const dayEnd = new Date(dayStart.getTime() + 86400000);
+  const duplicate = await Result.exists({ _id: { $ne: existing._id }, title: nextTitle, deleted: { $ne: true }, resultDate: { $gte: dayStart, $lt: dayEnd } });
+  if (duplicate) return res.status(409).json({ error: "इस शहर/मार्केट का इस तारीख का रिकॉर्ड पहले से मौजूद है।" });
   const row = await Result.findByIdAndUpdate(req.params.id, allowed, { new: true, runValidators: true });
   if (!row) return res.status(404).json({ error: "Record not found" });
   res.json(row);
