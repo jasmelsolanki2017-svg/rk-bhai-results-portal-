@@ -1,6 +1,6 @@
 const $=s=>document.querySelector(s);
 const msg=$("#msg");
-let allRows=[];
+let allRows=[];\nlet cityNames=[];
 let selectedMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
 
 async function api(url,opts={}){
@@ -73,7 +73,26 @@ function editRecord(id){
   $("#formTitle").textContent="रिकॉर्ड एडिट करें";$("#saveRecord").textContent="बदलाव सेव करें";$("#cancelEdit").hidden=false;
   $("#resultForm").scrollIntoView({behavior:"smooth",block:"start"});
 }
-$("#loginForm").addEventListener("submit",async e=>{
+
+function renderTitleSuggestions(query=""){
+ const box=$("#titleSuggestions");if(!box)return;
+ const q=String(query||"").trim().toLocaleLowerCase("hi");
+ const matches=cityNames.filter(name=>!q||name.toLocaleLowerCase("hi").includes(q)).slice(0,40);
+ box.innerHTML=matches.map(name=>'<button type="button" class="city-suggestion" data-city-name="'+esc(name)+'">'+esc(name)+'</button>').join("")||'<div class="city-suggestion-empty">कोई मिलता-जुलता शहर नहीं मिला</div>';
+ box.hidden=false;
+}
+const titleInput=$("#resultTitle"),suggestionBox=$("#titleSuggestions");
+titleInput.addEventListener("focus",()=>renderTitleSuggestions(titleInput.value));
+titleInput.addEventListener("input",()=>renderTitleSuggestions(titleInput.value));
+suggestionBox.addEventListener("click",e=>{
+ const item=e.target.closest("[data-city-name]");if(!item)return;
+ titleInput.value=item.dataset.cityName;suggestionBox.hidden=true;titleInput.focus();
+});
+document.addEventListener("click",e=>{
+ if(!e.target.closest(".city-picker"))suggestionBox.hidden=true;
+});
+titleInput.addEventListener("keydown",e=>{if(e.key==="Escape")suggestionBox.hidden=true;});
+\n$("#loginForm").addEventListener("submit",async e=>{
   e.preventDefault();msg.textContent="Login हो रहा है…";
   try{const f=new FormData(e.target);await api("/api/admin/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});showPanel(true);await refresh();msg.textContent="Login सफल";}
   catch(err){msg.textContent=err.message;}
