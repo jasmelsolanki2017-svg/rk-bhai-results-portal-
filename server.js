@@ -131,11 +131,9 @@ app.post("/api/admin/restore", adminOnly, express.json({ limit: "25mb" }), async
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      await Promise.all([
-        User.deleteMany({}, { session }),
-        City.deleteMany({}, { session }),
-        Result.deleteMany({}, { session })
-      ]);
+      await User.deleteMany({}, { session });
+      await City.deleteMany({}, { session });
+      await Result.deleteMany({}, { session });
       if (data.users.length) await User.insertMany(data.users, { session, ordered: true });
       if (data.cities.length) await City.insertMany(data.cities, { session, ordered: true });
       if (data.results.length) await Result.insertMany(data.results, { session, ordered: true });
