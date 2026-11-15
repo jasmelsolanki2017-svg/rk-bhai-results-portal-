@@ -183,3 +183,23 @@ footer{text-align:center;padding:25px;color:#777;font-size:13px}@media(max-width
 /* Public archive search and filters */
 .public-filters,.archive-filters{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:10px 0 16px;padding:12px;border:1px solid #59451f;border-radius:10px;background:#15120d}.public-filters label,.archive-filters label{font-size:12px;color:#e2d1a7}.public-filters input,.archive-filters input,.archive-filters select{min-width:0;padding:10px 12px;border:1px solid #80632d;border-radius:8px;background:#090909;color:#fff;font:inherit}.public-filters input{flex:1}.archive-filters input,.archive-filters select{flex:1}.filter-clear{padding:10px 12px;border:1px solid #80632d;border-radius:8px;background:#302515;color:#f4d58b;font:inherit}.result-updated{display:block;margin-top:4px;color:#9d927b;font-size:10px;font-weight:400;white-space:normal}.recent-results-table td .no-result{color:#d7ad55;font-weight:800}.recent-results-table td{vertical-align:middle}
 @media(max-width:520px){.public-filters,.archive-filters{align-items:stretch}.public-filters label,.archive-filters label{width:100%}.public-filters input,.archive-filters input,.archive-filters select{width:100%;flex:auto}.filter-clear{width:100%}.result-updated{font-size:9px}}
+
+
+/* Clear user identity cards in admin management */
+.users-management-section #usersList{display:grid;gap:14px;margin-top:14px}
+.user-manage-card{display:grid;gap:14px;padding:15px;border:1px solid #66502a;border-left:5px solid #b58a3b;border-radius:13px;background:linear-gradient(145deg,#211b12,#111);min-width:0}
+.user-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.user-identity{min-width:0}
+.user-number{display:inline-block;color:#c9aa68;font-size:10px;letter-spacing:1.5px;font-weight:800}
+.user-identity h3{margin:4px 0;font-size:20px;line-height:1.25;color:#fff;overflow-wrap:anywhere}
+.username-tag{display:inline-block;padding:4px 9px;border:1px solid #66502a;border-radius:20px;background:#120f0a;color:#f3d184;font-size:12px}
+.account-status{flex:none;padding:6px 9px;border-radius:20px;font-size:10px;font-weight:900;letter-spacing:.5px}
+.account-status.is-active{background:#17351f;border:1px solid #39784a;color:#a9e4b5}
+.account-status.is-disabled{background:#3b1b1b;border:1px solid #874444;color:#ffb9b9}
+.user-details-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.user-details-grid>div{min-width:0;padding:10px;border:1px solid #393027;border-radius:8px;background:#15130f}
+.user-details-grid small{display:block;margin-bottom:4px;color:#b9a77f;font-size:11px}
+.user-details-grid b{display:block;color:#eee;font-size:13px;overflow-wrap:anywhere;font-weight:600}
+.user-manage-card .expiry-controls{padding-top:12px;border-top:1px solid #393027}
+.user-manage-card .actions{padding-top:10px;border-top:1px dashed #393027}
+@media(max-width:420px){.user-manage-card{padding:12px 10px}.user-identity h3{font-size:18px}.account-status{font-size:9px;padding:5px 7px}.user-details-grid{gap:6px}.user-details-grid>div{padding:8px}.user-details-grid b{font-size:12px}}
