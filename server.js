@@ -26,6 +26,7 @@ const User = mongoose.model("PortalUser", new mongoose.Schema({
 const City = mongoose.model("PortalCity", new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "PortalUser", required: true, unique: true },
   cityName: { type: String, required: true, trim: true, maxlength: 60 },
+  expectedTime: { type: String, default: "" },
   status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
   createdAt: { type: Date, default: Date.now },
   reviewedAt: { type: Date, default: null }
@@ -126,14 +127,21 @@ app.delete("/api/admin/users/:id", adminOnly, async (req, res) => {
 });
 app.get("/api/user/city", userOnly, async (req, res) => {
   const city = await City.findOne({ userId: req.portalUserId }).lean();
-  res.json(city ? { id: city._id, cityName: city.cityName, status: city.status } : null);
+  res.json(city ? { id: city._id, cityName: city.cityName, expectedTime: city.expectedTime || "", status: city.status } : null);
 });
 app.post("/api/user/city", userOnly, async (req, res) => {
   const cityName = String(req.body?.cityName || "").trim().replace(/\s+/g, " ");
   if (cityName.length < 2 || cityName.length > 60) return res.status(400).json({ error: "शहर का नाम 2 से 60 अक्षर का रखें।" });
   if (await City.exists({ userId: req.portalUserId })) return res.status(409).json({ error: "आप एक ही शहर बना सकते हैं।" });
-  const city = await City.create({ userId: req.portalUserId, cityName, status: "pending" });
-  res.status(201).json({ id: city._id, cityName: city.cityName, status: city.status });
+  const city = await City.create({ userId: req.portalUserId, cityName, expectedTime, status: "pending" });
+  res.status(201).json({ id: city._id, cityName: city.cityName, expectedTime: city.expectedTime, status: city.status });
+});
+app.patch("/api/user/city/time", userOnly, async (req, res) => {
+  const expectedTime = String(req.body?.expectedTime || "");
+  if (!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(expectedTime)) return res.status(400).json({ error: "परिणाम आने का सही समय चुनें।" });
+  const city = await City.findOneAndUpdate({ userId: req.portalUserId }, { expectedTime }, { new: true });
+  if (!city) return res.status(404).json({ error: "आपका शहर नहीं मिला।" });
+  res.json({ id: city._id, cityName: city.cityName, expectedTime: city.expectedTime, status: city.status });
 });
 app.get("/api/user/results", userOnly, async (req, res) => {
   const rows = await Result.find({ ownerUserId: req.portalUserId, deleted: { $ne: true } }).sort({ resultDate: -1 }).limit(500).lean();
@@ -194,6 +202,10 @@ app.post("/api/admin/logout", adminOnly, (req, res) => {
   res.json({ ok: true });
 });
 
+app.get("/api/public/cities", async (req, res) => {
+  const cities = await City.find({ status: "approved" }).select("cityName expectedTime").sort({ cityName: 1 }).lean();
+  res.json(cities.map(c => ({ cityName: c.cityName, expectedTime: c.expectedTime || "" })));
+});
 app.get("/api/results", async (req, res) => {
   const approvedCityIds = await City.find({ status: "approved" }).distinct("_id");
   const filter = { published: true, deleted: { $ne: true }, $or: [{ ownerUserId: null }, { ownerUserId: { $exists: false } }, { cityId: { $in: approvedCityIds } }] };
