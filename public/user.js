@@ -22,7 +22,8 @@ async function loadMyCity(){
  const form=$("#cityForm"),status=$("#cityStatus"),box=$("#userRecordBox");
  if(!city){status.textContent="आपने अभी शहर नहीं बनाया है। एक ही शहर भेज सकते हैं; Admin approval जरूरी है।";form.hidden=false;box.hidden=true;return;}
  form.hidden=true;
- status.innerHTML="शहर: "+userEsc(city.cityName)+" · स्थिति: "+({pending:"Approval pending",approved:"Approved",rejected:"Rejected"}[city.status]||city.status)+"<br>परिणाम का समय: "+(city.expectedTime||"समय नहीं दिया गया")+" IST";
+ status.innerHTML="शहर: "+userEsc(city.cityName)+" · स्थिति: "+({pending:"Approval pending",approved:"Approved",rejected:"Rejected",returned:"Admin ने वापस भेजा — नाम edit करें",hidden:"Admin ने hide किया"}[city.status]||city.status)+"<br>परिणाम का समय: "+(city.expectedTime||"समय नहीं दिया गया")+" IST";
+ if(city.status==="returned") status.innerHTML+='<form id="cityRenameForm" class="inline-time-form"><label>शहर का नाम सुधारें</label><input name="cityName" minlength="2" maxlength="60" required value="'+userEsc(city.cityName)+'"><label>परिणाम का समय</label><input name="expectedTime" type="time" required value="'+userEsc(city.expectedTime||"")+'"><button type="submit">दोबारा Approval भेजें</button></form>';
  if(city.status==="approved") status.innerHTML+='<form id="cityTimeForm" class="inline-time-form"><label>परिणाम आने का समय बदलें (IST)</label><input name="expectedTime" type="time" required value="'+userEsc(city.expectedTime||"")+'"><button type="submit">समय अपडेट करें</button></form>';
  box.hidden=city.status!=="approved";
  if(city.status==="approved") await loadMyRecords();
@@ -52,6 +53,7 @@ $("#myRecords").addEventListener("click",async e=>{
 });
 
 document.addEventListener("submit",async e=>{
+ if(e.target.id==="cityRenameForm"){e.preventDefault();const f=new FormData(e.target);try{await userApi("/api/user/city/name",{method:"PATCH",body:JSON.stringify({cityName:f.get("cityName"),expectedTime:f.get("expectedTime")})});await loadMyCity();}catch(err){alert(err.message);}return;}
  if(e.target.id!=="cityTimeForm")return;
  e.preventDefault();const expectedTime=new FormData(e.target).get("expectedTime");
  try{await userApi("/api/user/city/time",{method:"PATCH",body:JSON.stringify({expectedTime})});await loadMyCity();if(window.loadMonth)loadMonth();}
