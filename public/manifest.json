@@ -1,0 +1,20 @@
+{
+  "id": "/",
+  "name": "RK Bhai Results & Historical Archive",
+  "short_name": "RK Bhai",
+  "description": "प्रकाशित परिणाम और पुराने रिकॉर्ड",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#090909",
+  "theme_color": "#090909",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
