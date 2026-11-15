@@ -25,6 +25,13 @@
       <div class="form-actions"><button id="saveRecord" type="submit">रिकॉर्ड सेव करें</button><button id="cancelEdit" type="button" class="secondary" hidden>एडिट रद्द करें</button></div>
     </form>
   </section>
+  <section class="admin-box">
+    <h2>Database Backup & Restore</h2>
+    <p class="muted">पूरे portal का backup JSON file में डाउनलोड करें। Restore करने पर मौजूदा Users, Cities और Results backup वाले data से replace होंगे।</p>
+    <div class="form-actions"><button id="downloadBackup" type="button">Backup Download करें</button><label class="back-link" for="restoreFile">Backup File चुनें</label><input id="restoreFile" type="file" accept=".json,application/json" hidden><button id="restoreBackup" type="button" class="danger" disabled>Restore करें</button></div>
+    <p class="muted">सुरक्षा: Backup file में user password hashes शामिल हैं। इसे किसी के साथ साझा न करें। Restore से पहले वर्तमान data का backup डाउनलोड कर लें।</p>
+    <p id="backupMsg" class="muted" role="status"></p>
+  </section>
   <section class="admin-box"><h2>शहर / मार्केट के अनुसार रिकॉर्ड</h2><p class="muted">किसी शहर पर टैप करके उसके सभी रिकॉर्ड अलग पेज पर खोलें।</p><div id="cityLinks" class="city-links"></div></section>
 </section>
 <p id="msg" class="muted" role="status"></p>
