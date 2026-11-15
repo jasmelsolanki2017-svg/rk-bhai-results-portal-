@@ -129,7 +129,7 @@ app.get("/api/user/city", userOnly, async (req, res) => {
   res.json(city ? { id: city._id, cityName: city.cityName, status: city.status } : null);
 });
 app.post("/api/user/city", userOnly, async (req, res) => {
-  const cityName = String(req.body?.cityName || "").trim().replace(/\\s+/g, " ");
+  const cityName = String(req.body?.cityName || "").trim().replace(/\s+/g, " ");
   if (cityName.length < 2 || cityName.length > 60) return res.status(400).json({ error: "शहर का नाम 2 से 60 अक्षर का रखें।" });
   if (await City.exists({ userId: req.portalUserId })) return res.status(409).json({ error: "आप एक ही शहर बना सकते हैं।" });
   const city = await City.create({ userId: req.portalUserId, cityName, status: "pending" });
