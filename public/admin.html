@@ -17,7 +17,7 @@
     <h2 id="formTitle">नया रिकॉर्ड जोड़ें</h2>
     <form id="resultForm">
       <input name="editId" type="hidden">
-      <label>शहर / मार्केट / शीर्षक</label><input name="title" placeholder="शीर्षक" maxlength="100" required>
+      <label>शहर / मार्केट / शीर्षक</label><div class="city-picker"><input name="title" id="resultTitle" placeholder="शहर का नाम लिखें या यहाँ टैप करें" maxlength="100" autocomplete="off" required aria-autocomplete="list" aria-controls="titleSuggestions"><div id="titleSuggestions" class="city-suggestions" hidden></div></div>
       <label>परिणाम / रिकॉर्ड</label><input name="resultText" placeholder="परिणाम / सूचना" maxlength="300" required>
       <label>तारीख</label><input name="resultDate" type="date" required>
       <label>सोर्स लिंक (वैकल्पिक)</label><input name="sourceUrl" type="url" placeholder="https://...">
