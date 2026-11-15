@@ -387,6 +387,23 @@ app.get("/api/public/cities", async (req, res) => {
   const cities = await City.find({ status: "approved", userId: { $in: activeUsers } }).select("cityName expectedTime").sort({ cityName: 1 }).lean();
   res.json(cities.map(c => ({ cityName: c.cityName, expectedTime: c.expectedTime || "" })));
 });
+app.get("/api/public/export.csv", async (req, res) => {
+  const activeUsers = await User.find({ active: true, $or: [{ expiresAt: null }, { expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }] }).distinct("_id");
+  const approvedCityIds = await City.find({ status: "approved", userId: { $in: activeUsers } }).distinct("_id");
+  const filter = { published: true, deleted: { $ne: true }, $or: [{ ownerUserId: null }, { ownerUserId: { $exists: false } }, { cityId: { $in: approvedCityIds } }] };
+  const rows = await Result.find(filter).select("title resultText resultDate sourceUrl").sort({ resultDate: -1, title: 1 }).limit(20000).lean();
+  const cell = value => {
+    let text = String(value ?? "");
+    if (/^[=+@\\-\\t\\r]/.test(text)) text = "'" + text;
+    return '"' + text.replace(/"/g, '""') + '"';
+  };
+  const lines = [["शहर / मार्केट", "परिणाम", "तारीख", "सोर्स लिंक"].map(cell).join(",")];
+  for (const row of rows) lines.push([row.title, row.resultText, row.resultDate ? new Date(row.resultDate).toISOString().slice(0, 10) : "", row.sourceUrl || ""].map(cell).join(","));
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", 'attachment; filename="rk-bhai-published-history.csv"');
+  res.send("\\uFEFF" + lines.join("\\r\\n"));
+});
+
 app.get("/api/results", async (req, res) => {
   const activeUsers = await User.find({ active: true, $or: [{ expiresAt: null }, { expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }] }).distinct("_id");
   const approvedCityIds = await City.find({ status: "approved", userId: { $in: activeUsers } }).distinct("_id");
