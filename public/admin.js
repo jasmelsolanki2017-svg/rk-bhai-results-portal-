@@ -91,28 +91,6 @@ $("#adminChart").addEventListener("click",e=>{
   const edit=e.target.closest("[data-edit]")?.dataset.edit;if(edit)editRecord(edit);
 });
 
-async function loadUsers(){
-  try{
-    const users=await api("/api/admin/users");
-    $("#adminUsers").innerHTML=users.map(u=>`
-      <article class="admin-row"><div class="admin-row-info"><b>${esc(u.username)}</b><p>${u.active?"Active":"Disabled"} · ${new Date(u.createdAt).toLocaleDateString("hi-IN")}</p></div>
-      <div class="actions"><button type="button" data-user-toggle="${u._id}" data-active="${u.active}">${u.active?"Disable":"Enable"}</button><button type="button" class="danger" data-user-delete="${u._id}">Delete</button></div></article>`).join("")||"<p class='muted'>अभी कोई user नहीं बनाया गया।</p>";
-  }catch(e){$("#adminUsers").innerHTML="<p class='muted'>Users लोड नहीं हुए: "+esc(e.message)+"</p>";}
-}
-$("#createUserForm").addEventListener("submit",async e=>{
- e.preventDefault();const f=new FormData(e.target),status=$("#userAdminMsg");status.textContent="User बनाया जा रहा है…";
- try{const data=await api("/api/admin/users",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});status.textContent="User "+data.username+" सफलतापूर्वक बन गया। Login जानकारी user को सुरक्षित तरीके से दें।";e.target.reset();await loadUsers();}
- catch(err){status.textContent=err.message;}
-});
-$("#adminUsers").addEventListener("click",async e=>{
- const toggle=e.target.closest("[data-user-toggle]"),del=e.target.closest("[data-user-delete]");
- try{
-  if(toggle){await api("/api/admin/users/"+toggle.dataset.userToggle,{method:"PATCH",body:JSON.stringify({active:toggle.dataset.active!=="true"})});}
-  if(del){if(!confirm("क्या इस user को हटाना है?"))return;await api("/api/admin/users/"+del.dataset.userDelete,{method:"DELETE"});}
-  await loadUsers();
- }catch(err){$("#userAdminMsg").textContent=err.message;}
-});
-
 $("#cancelEdit").addEventListener("click",resetForm);
 $("#prevMonth").addEventListener("click",()=>{selectedMonth=new Date(selectedMonth.getFullYear(),selectedMonth.getMonth()-1,1);loadMonth();});
 $("#nextMonth").addEventListener("click",()=>{const d=new Date(selectedMonth.getFullYear(),selectedMonth.getMonth()+1,1);if(d<=new Date(new Date().getFullYear(),new Date().getMonth(),1)){selectedMonth=d;loadMonth();}});
