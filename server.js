@@ -187,7 +187,7 @@ app.get("/api/health", (req, res) => res.json({ ok: true }));
 
 
 async function cleanupChandigarhDuplicates() {
-  const rows = await Result.find({ title: /^chandigarh\s*city$/i, deleted: { $ne: true } }).sort({ createdAt: 1, _id: 1 });
+  const rows = await Result.find({ title: /chandigarh/i, deleted: { $ne: true } }).sort({ createdAt: 1, _id: 1 });
   const keepByDate = new Map();
   let removed = 0;
   for (const row of rows) {
