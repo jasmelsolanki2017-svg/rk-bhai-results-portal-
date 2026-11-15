@@ -120,6 +120,20 @@ restoreFile.addEventListener("change",()=>{
   restoreButton.disabled=!selectedBackupFile;
   backupMsg.textContent=selectedBackupFile?"चुनी गई file: "+selectedBackupFile.name:"";
 });
+$("#downloadExcel").addEventListener("click",async()=>{
+  const status=$("#excelMsg");
+  status.textContent="Excel file तैयार हो रही है…";
+  try{
+    const response=await fetch("/api/admin/export.xlsx",{credentials:"same-origin"});
+    if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.error||"Excel download नहीं हुआ");}
+    const blob=await response.blob();
+    const url=URL.createObjectURL(blob),link=document.createElement("a");
+    link.href=url;link.download="rk-bhai-portal-export.xlsx";
+    document.body.appendChild(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    status.textContent="Excel file download शुरू हो गया।";
+  }catch(err){status.textContent=err.message;}
+});
 $("#downloadBackup").addEventListener("click",async()=>{
   backupMsg.textContent="Backup तैयार हो रहा है…";
   try{
