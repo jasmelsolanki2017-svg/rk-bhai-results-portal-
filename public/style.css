@@ -45,3 +45,26 @@ footer{text-align:center;padding:25px;color:#777;font-size:13px}@media(max-width
 .history-table td{color:#f5f1e8;font-weight:700}
 .history-table tbody tr:nth-child(even){background:#181818}
 @media(max-width:520px){main{width:98%;margin:16px auto}.chart-panel{padding:14px 8px}.history-table{font-size:12px}.history-table th,.history-table td{padding:8px 4px}.history-table .date-col{width:52px}.chart-summary{font-size:12px}}
+
+
+/* Admin workspace */
+.admin-box{margin:18px 0;padding:18px;background:linear-gradient(145deg,#191919,#101010);border:1px solid #59451f;border-radius:14px}
+.admin-box h2{margin:0 0 14px;color:var(--gold);font-size:20px}
+.admin-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.admin-top h2{margin:0}
+#loginForm,#resultForm{display:grid;gap:11px}
+#resultForm label{color:#e2d1a7;font-size:13px}
+.admin-box input:not([type=checkbox]){width:100%;min-width:0;padding:12px;border:1px solid #59451f;border-radius:8px;background:#090909;color:#fff;font:inherit}
+.admin-box button{border:1px solid #80632d;border-radius:8px;background:#3a2b15;color:#f5d78e;padding:10px 13px;font:inherit;cursor:pointer}
+.admin-box button.secondary{background:#252525;color:#eee;border-color:#555}
+.admin-box button.danger{background:#401c1c;border-color:#743333;color:#ffdada}
+.check{display:flex;align-items:center;gap:8px}
+.form-actions,.actions{display:flex;flex-wrap:wrap;gap:8px}
+.admin-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #393027}
+.admin-row:last-child{border-bottom:0}
+.admin-row-info{min-width:0;overflow-wrap:anywhere}
+.admin-row p{margin:5px 0 0;color:#aaa;font-size:13px}
+.chart-edit{width:100%;padding:5px 2px!important;background:#302515!important;color:#f4d58b!important;border:1px solid #8c6a2e!important;border-radius:5px!important;font-size:12px!important;overflow-wrap:anywhere}
+.chart-edit:hover{background:#57401f!important}
+#recordSearch{margin:0 0 12px}
+@media(max-width:600px){.admin-box{padding:13px 10px}.admin-top{align-items:flex-start}.admin-row{align-items:flex-start;flex-direction:column}.actions button{padding:8px 10px;font-size:12px}.admin-row-info{width:100%}}
