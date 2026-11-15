@@ -133,3 +133,13 @@ footer{text-align:center;padding:25px;color:#777;font-size:13px}@media(max-width
 .city-suggestion:last-child{border-bottom:0!important}
 .city-suggestion:hover,.city-suggestion:focus{background:#3a2b15!important}
 .city-suggestion-empty{padding:12px;color:#aaa;font-size:13px}
+
+/* Compact month navigation for city admin records */
+.city-month-nav{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:9px;margin:14px 0;padding:12px;border:1px solid #59451f;border-radius:10px;background:#12100c}
+.city-month-nav button{white-space:nowrap}
+.city-month-select{display:grid;gap:5px;min-width:0;text-align:center}
+.city-month-select label{font-size:12px;color:#c9aa68}
+.city-month-select select{width:100%;min-width:0;padding:10px;border:1px solid #80632d;border-radius:8px;background:#090909;color:#f5d78e;font:inherit}
+.city-month-select strong{font-size:13px;color:#eee}
+.city-month-nav button:disabled{opacity:.35;cursor:not-allowed}
+@media(max-width:420px){.city-month-nav{gap:5px;padding:8px}.city-month-nav button{padding:8px 7px;font-size:11px}.city-month-select select{padding:8px 5px;font-size:13px}}
