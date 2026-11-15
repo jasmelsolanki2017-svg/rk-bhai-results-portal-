@@ -25,6 +25,16 @@
       <div class="form-actions"><button id="saveRecord" type="submit">रिकॉर्ड सेव करें</button><button id="cancelEdit" type="button" class="secondary" hidden>एडिट रद्द करें</button></div>
     </form>
   </section>
+  <section class="admin-box">
+    <h2>नया User बनाएं</h2>
+    <form id="createUserForm">
+      <label>Username (3-40 अक्षर, English)</label><input name="username" minlength="3" maxlength="40" pattern="[A-Za-z0-9._-]+" required placeholder="जैसे user01">
+      <label>Temporary Password (कम से कम 8 अक्षर)</label><input name="password" type="text" minlength="8" maxlength="100" required placeholder="मजबूत पासवर्ड रखें">
+      <button type="submit">User Create करें</button>
+    </form>
+    <p id="userAdminMsg" class="muted" role="status"></p>
+    <h3>बनाए गए Users</h3><div id="adminUsers"></div>
+  </section>
   <section class="admin-box"><div class="admin-top"><h2>सभी रिकॉर्ड</h2><span id="recordCount" class="muted"></span></div><input id="recordSearch" type="search" placeholder="शीर्षक या तारीख से खोजें"><div id="adminRows"></div></section>
 </section>
 <p id="msg" class="muted" role="status"></p>
