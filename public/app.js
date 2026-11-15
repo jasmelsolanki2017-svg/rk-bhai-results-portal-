@@ -78,6 +78,7 @@ async function loadMonth(){
     if(monthStat)monthStat.textContent=rows.length;
     if(cityStat)cityStat.textContent=new Set(rows.map(r=>r.title)).size;
     populateCityFilter(cities,rows);
+    renderCalendar();
     renderMonthTable();
   }catch(e){chartHost.innerHTML='<p class="muted">मासिक रिकॉर्ड लोड नहीं हो पाए।</p>';}
 }
