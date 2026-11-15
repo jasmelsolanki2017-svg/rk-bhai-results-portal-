@@ -125,3 +125,11 @@ footer{text-align:center;padding:25px;color:#777;font-size:13px}@media(max-width
 .admin-box .expiry-field input{width:100%;min-width:0;min-height:44px;padding:10px;background:#090909;color:#fff;color-scheme:dark;border:1px solid #80632d;border-radius:8px;font:inherit;touch-action:manipulation}
 .expiry-field button{min-height:44px;white-space:nowrap}
 @media(max-width:420px){.expiry-field{grid-template-columns:minmax(0,1fr)}.expiry-field button{width:100%}}
+
+/* Searchable city dropdown in admin result form */
+.city-picker{position:relative;width:100%}
+.city-suggestions{position:absolute;z-index:30;top:calc(100% + 4px);left:0;right:0;max-height:260px;overflow-y:auto;background:#15120d;border:1px solid #80632d;border-radius:9px;box-shadow:0 12px 28px rgba(0,0,0,.55)}
+.city-suggestion{display:block;width:100%;text-align:left;border:0!important;border-bottom:1px solid #393027!important;border-radius:0!important;background:transparent!important;color:#f4d58b!important;padding:12px 14px!important}
+.city-suggestion:last-child{border-bottom:0!important}
+.city-suggestion:hover,.city-suggestion:focus{background:#3a2b15!important}
+.city-suggestion-empty{padding:12px;color:#aaa;font-size:13px}
