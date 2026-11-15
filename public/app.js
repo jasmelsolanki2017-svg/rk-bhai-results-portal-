@@ -137,6 +137,7 @@ nextButton.addEventListener("click",()=>{const candidate=new Date(selectedMonth.
 citySearch.addEventListener("input",renderRecent);
 chartCity.addEventListener("change",()=>{renderCalendar();renderMonthTable();});
 historyDate.addEventListener("change",()=>{if(historyDate.value){const chosen=new Date(historyDate.value+"T00:00:00");selectedMonth=new Date(chosen.getFullYear(),chosen.getMonth(),1);loadMonth();}else{renderCalendar();renderMonthTable();}});
-clearDate.addEventListener("click",()=>{historyDate.value="";renderCalendar();renderMonthTable();});\ndocument.getElementById("historyCalendar").addEventListener("click",event=>{const button=event.target.closest("[data-date]");if(!button)return;historyDate.value=button.dataset.date;renderCalendar();renderMonthTable();});
+clearDate.addEventListener("click",()=>{historyDate.value="";renderCalendar();renderMonthTable();});
+document.getElementById("historyCalendar").addEventListener("click",event=>{const button=event.target.closest("[data-date]");if(!button)return;historyDate.value=button.dataset.date;renderCalendar();renderMonthTable();});
 loadMonth();
 loadResults();
