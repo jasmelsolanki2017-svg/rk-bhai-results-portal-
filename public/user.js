@@ -77,3 +77,17 @@ $("#passwordChangeForm").addEventListener("submit",async e=>{
  try{await userApi("/api/user/change-password",{method:"POST",body:JSON.stringify({currentPassword,newPassword})});$("#passwordChangeMessage").textContent="Password बदल गया।";showUser(true);await loadMyCity();if(window.loadResults)loadResults();if(window.loadMonth)loadMonth();}
  catch(err){$("#passwordChangeMessage").textContent=err.message;}
 });
+
+
+// Show/hide password fields on explicit eye-button tap.
+document.addEventListener("click",e=>{
+ const button=e.target.closest(".password-toggle");
+ if(!button)return;
+ const input=button.parentElement.querySelector("input");
+ if(!input)return;
+ const visible=input.type==="password";
+ input.type=visible?"text":"password";
+ button.textContent=visible?"🙈":"👁";
+ button.setAttribute("aria-label",visible?"Password छिपाएँ":"Password दिखाएँ");
+ button.setAttribute("aria-pressed",String(visible));
+});
