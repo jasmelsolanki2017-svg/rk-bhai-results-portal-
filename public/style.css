@@ -171,3 +171,10 @@ footer{text-align:center;padding:25px;color:#777;font-size:13px}@media(max-width
 .password-field input{width:100%;padding-right:52px!important}
 .password-field .password-toggle{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:42px;height:40px;padding:0;border:0!important;background:transparent!important;color:#f5d78e!important;font-size:19px;cursor:pointer;touch-action:manipulation}
 .password-toggle:focus-visible{outline:2px solid #f5d78e;outline-offset:1px;border-radius:6px}
+
+
+/* Persistent account-expiry status inside the user dashboard */
+.expiry-status-banner{margin:14px 0 18px;padding:13px 15px;border:1px solid #9b783b;border-radius:10px;background:#241c10;color:#f4dfb1}
+.expiry-status-banner strong{display:block;margin-bottom:5px;color:#f5d78e}
+.expiry-status-banner p{margin:0 0 4px;font-weight:700;line-height:1.5}
+.expiry-status-banner small{color:#d6c7a5;line-height:1.5}
