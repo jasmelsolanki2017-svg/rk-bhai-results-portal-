@@ -164,3 +164,10 @@ footer{text-align:center;padding:25px;color:#777;font-size:13px}@media(max-width
 .recent-results-table td{font-weight:700;color:#f5d78e;font-size:15px}
 .recent-results-table td.no-result{color:#999;font-weight:500}
 .recent-note{font-size:11px;margin-top:7px}
+
+
+/* Password visibility toggle */
+.password-field{position:relative;width:100%;min-width:0}
+.password-field input{width:100%;padding-right:52px!important}
+.password-field .password-toggle{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:42px;height:40px;padding:0;border:0!important;background:transparent!important;color:#f5d78e!important;font-size:19px;cursor:pointer;touch-action:manipulation}
+.password-toggle:focus-visible{outline:2px solid #f5d78e;outline-offset:1px;border-radius:6px}
