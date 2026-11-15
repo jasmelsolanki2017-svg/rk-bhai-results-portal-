@@ -7,14 +7,42 @@ async function userApi(url,opts={}){
 }
 function showUser(on){$("#userLogin").hidden=on;$("#userContent").hidden=!on;$("#passwordChangeBox").hidden=true;}
 function showExpiryWarning(expiresAt){
- const popup=$("#expiryWarning");if(!popup)return;
- if(!expiresAt){popup.hidden=true;return;}
- const end=new Date(expiresAt);if(Number.isNaN(end.getTime())){popup.hidden=true;return;}
- const update=()=>{const ms=end.getTime()-Date.now();if(ms<=0){$("#expiryRemaining").textContent="आपके अकाउंट की अवधि समाप्त हो गई है।";$("#expiryDate").textContent="अब Admin से दोबारा अवधि बढ़वाएँ।";return;}
- const days=Math.floor(ms/86400000),hours=Math.floor(ms%86400000/3600000),minutes=Math.floor(ms%3600000/60000),seconds=Math.floor(ms%60000/1000);
- $("#expiryRemaining").textContent=`${days} दिन ${hours} घंटे ${minutes} मिनट ${seconds} सेकंड बाकी`;
- $("#expiryDate").textContent="अकाउंट बंद होने की तारीख: "+end.toLocaleString("hi-IN",{dateStyle:"medium",timeStyle:"short"})+" (IST)";};
- update();popup.hidden=false;if(window.userExpiryTimer)clearInterval(window.userExpiryTimer);window.userExpiryTimer=setInterval(update,1000);
+ const popup=$("#expiryWarning"),banner=$("#expiryStatusBanner");
+ const bannerText=$("#expiryStatusText"),bannerDate=$("#expiryStatusDate");
+ if(window.userExpiryTimer)clearInterval(window.userExpiryTimer);
+ if(!expiresAt){
+  if(popup)popup.hidden=true;
+  if(banner){banner.hidden=false;bannerText.textContent="Admin ने अभी account की expiry date तय नहीं की है।";bannerDate.textContent="";}
+  return;
+ }
+ const end=new Date(expiresAt);
+ if(Number.isNaN(end.getTime())){
+  if(popup)popup.hidden=true;
+  if(banner){banner.hidden=false;bannerText.textContent="Account की अवधि की जानकारी उपलब्ध नहीं है।";bannerDate.textContent="";}
+  return;
+ }
+ const update=()=>{
+  const ms=end.getTime()-Date.now();
+  const dateText="बंद होने की तारीख: "+end.toLocaleString("hi-IN",{dateStyle:"medium",timeStyle:"short"})+" (IST)";
+  if(ms<=0){
+   const msg="आपके account की अवधि समाप्त हो गई है।";
+   if($("#expiryRemaining"))$("#expiryRemaining").textContent=msg;
+   if($("#expiryDate"))$("#expiryDate").textContent="अब Admin से दोबारा अवधि बढ़वाएँ।";
+   if(bannerText)bannerText.textContent=msg+" Admin से अवधि बढ़वाएँ।";
+   if(bannerDate)bannerDate.textContent=dateText;
+   return;
+  }
+  const days=Math.floor(ms/86400000),hours=Math.floor(ms%86400000/3600000),minutes=Math.floor(ms%3600000/60000),seconds=Math.floor(ms%60000/1000);
+  const remaining=days+" दिन "+hours+" घंटे "+minutes+" मिनट "+seconds+" सेकंड बाकी";
+  if($("#expiryRemaining"))$("#expiryRemaining").textContent=remaining;
+  if($("#expiryDate"))$("#expiryDate").textContent=dateText;
+  if(bannerText)bannerText.textContent=remaining+" — account अपने आप बंद हो जाएगा।";
+  if(bannerDate)bannerDate.textContent=dateText;
+ };
+ update();
+ if(banner)banner.hidden=false;
+ if(popup)popup.hidden=false;
+ window.userExpiryTimer=setInterval(update,1000);
 }
 $("#expiryClose")?.addEventListener("click",()=>{$("#expiryWarning").hidden=true;});
 function showPasswordChange(on){$("#userLogin").hidden=true;$("#userContent").hidden=true;$("#passwordChangeBox").hidden=!on;}
@@ -74,7 +102,7 @@ document.addEventListener("submit",async e=>{
 $("#passwordChangeForm").addEventListener("submit",async e=>{
  e.preventDefault();const f=new FormData(e.target),currentPassword=f.get("currentPassword"),newPassword=f.get("newPassword");
  if(newPassword!==f.get("confirmPassword")){$("#passwordChangeMessage").textContent="दोनों नए password एक जैसे नहीं हैं।";return;}
- try{await userApi("/api/user/change-password",{method:"POST",body:JSON.stringify({currentPassword,newPassword})});$("#passwordChangeMessage").textContent="Password बदल गया।";showUser(true);await loadMyCity();if(window.loadResults)loadResults();if(window.loadMonth)loadMonth();}
+ try{await userApi("/api/user/change-password",{method:"POST",body:JSON.stringify({currentPassword,newPassword})});$("#passwordChangeMessage").textContent="Password बदल गया।";showUser(true);const session=await userApi("/api/user/session");showExpiryWarning(session.expiresAt);await loadMyCity();if(window.loadResults)loadResults();if(window.loadMonth)loadMonth();}
  catch(err){$("#passwordChangeMessage").textContent=err.message;}
 });
 
