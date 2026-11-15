@@ -226,7 +226,7 @@ app.post("/api/user/login", async (req, res) => {
     return res.status(401).json({ error: "गलत username या password, या account बंद है।" });
   const token = jwt.sign({ role: "user", sub: String(user._id) }, process.env.JWT_SECRET, { expiresIn: "7d" });
   res.cookie("user_session", token, { httpOnly: true, sameSite: "strict", secure: process.env.NODE_ENV === "production", maxAge: 7 * 24 * 60 * 60 * 1000, path: "/" });
-  res.json({ ok: true, name: user.name || user.username, username: user.username, mustChangePassword: user.mustChangePassword });
+  res.json({ ok: true, name: user.name || user.username, username: user.username, mustChangePassword: user.mustChangePassword, expiresAt: user.expiresAt || null });
 });
 app.get("/api/user/session", async (req, res) => {
   try {
@@ -234,7 +234,7 @@ app.get("/api/user/session", async (req, res) => {
     if (payload.role !== "user") throw new Error("Invalid role");
     const user = await User.findById(payload.sub).select("name username active mustChangePassword expiresAt").lean();
     if (!user || !user.active || (user.expiresAt && user.expiresAt <= new Date())) return res.status(401).json({ error: "Account बंद है या इसकी अवधि समाप्त हो गई है। Admin से दोबारा approval लें।" });
-    res.json({ ok: true, role: "user", name: user.name || user.username, username: user.username, mustChangePassword: !!user.mustChangePassword });
+    res.json({ ok: true, role: "user", name: user.name || user.username, username: user.username, mustChangePassword: !!user.mustChangePassword, expiresAt: user.expiresAt || null });
   } catch { return res.status(401).json({ error: "Login required" }); }
 });
 app.post("/api/user/change-password", async (req, res) => {
