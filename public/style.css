@@ -314,3 +314,9 @@ body>footer{border-top:1px solid #332817;background:#090909;color:#9b8d70}
 /* Pending result WAIT badge */
 .wait-badge{display:inline-flex;align-items:center;justify-content:center;min-width:58px;padding:5px 12px;border:1px solid #9a7838;border-radius:7px;background:linear-gradient(135deg,#3a2b15,#21180b);color:#f5d78e;font-size:11px;font-weight:900;letter-spacing:1.4px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 2px 8px rgba(0,0,0,.22)}
 .recent-results-table td .wait-badge{vertical-align:middle}
+
+
+/* Blink current published result until it moves to yesterday */
+.result-blink{display:inline-block;color:#ffe09a;font-weight:900;animation:currentResultBlink 1.15s ease-in-out infinite;text-shadow:0 0 9px rgba(215,173,85,.45)}
+@keyframes currentResultBlink{0%,100%{opacity:1;text-shadow:0 0 9px rgba(215,173,85,.45)}50%{opacity:.28;text-shadow:none}}
+@media(prefers-reduced-motion:reduce){.result-blink{animation:none;opacity:1}}
