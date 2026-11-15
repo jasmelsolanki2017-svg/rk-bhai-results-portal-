@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const path = require("path");
+const XLSX = require("xlsx");
 
 const app = express();
 app.use(helmet({ contentSecurityPolicy: false }));
@@ -96,6 +97,49 @@ app.post("/api/admin/login", async (req, res) => {
 });
 
 app.get("/api/admin/session", adminOnly, (req, res) => res.json({ ok: true, role: "admin" }));
+app.get("/api/admin/export.xlsx", adminOnly, async (req, res) => {
+  const [users, cities, results] = await Promise.all([
+    User.find().select("name username mobile email active expiresAt createdAt").lean(),
+    City.find().select("cityName expectedTime status userId createdAt reviewedAt").lean(),
+    Result.find().select("title resultText resultDate published sourceUrl createdAt updatedAt").sort({ resultDate: -1 }).lean()
+  ]);
+  const userNames = new Map(users.map(u => [String(u._id), u.username]));
+  const workbook = XLSX.utils.book_new();
+  const resultRows = results.map(r => ({
+    "शहर / मार्केट": r.title,
+    "परिणाम": r.resultText,
+    "तारीख": r.resultDate ? new Date(r.resultDate).toISOString().slice(0,10) : "",
+    "प्रकाशित": r.published ? "हाँ" : "नहीं",
+    "सोर्स लिंक": r.sourceUrl || "",
+    "बनाया गया": r.createdAt ? new Date(r.createdAt).toISOString() : "",
+    "अपडेट": r.updatedAt ? new Date(r.updatedAt).toISOString() : ""
+  }));
+  const userRows = users.map(u => ({
+    "नाम": u.name || "",
+    "Username": u.username,
+    "Mobile": u.mobile || "",
+    "Email": u.email || "",
+    "Active": u.active ? "हाँ" : "नहीं",
+    "Expiry": u.expiresAt ? new Date(u.expiresAt).toISOString() : "",
+    "Created": u.createdAt ? new Date(u.createdAt).toISOString() : ""
+  }));
+  const cityRows = cities.map(c => ({
+    "City": c.cityName,
+    "Username": userNames.get(String(c.userId)) || "",
+    "Expected Time": c.expectedTime || "",
+    "Status": c.status,
+    "Created": c.createdAt ? new Date(c.createdAt).toISOString() : "",
+    "Reviewed": c.reviewedAt ? new Date(c.reviewedAt).toISOString() : ""
+  }));
+  XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(resultRows), "Results");
+  XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(userRows), "Users");
+  XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(cityRows), "Cities");
+  const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+  res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+  res.setHeader("Content-Disposition", 'attachment; filename="rk-bhai-portal-export.xlsx"');
+  res.send(buffer);
+});
+
 app.get("/api/admin/backup", adminOnly, async (req, res) => {
   const [users, cities, results] = await Promise.all([
     User.find().lean(), City.find().lean(), Result.find().lean()
