@@ -28,16 +28,17 @@ async function loadMonth(){
   nextButton.disabled=monthKey(selectedMonth)>=monthKey(new Date());
   chartHost.innerHTML='<p class="muted">रिकॉर्ड लोड हो रहे हैं…</p>';
   try{
-    const rows=await getJson("/api/results?month="+encodeURIComponent(key));
+    const [rows,cities]=await Promise.all([getJson("/api/results?month="+encodeURIComponent(key)),getJson("/api/public/cities")]);
     const monthStat=document.getElementById("statMonth"),cityStat=document.getElementById("statCities");
     if(monthStat)monthStat.textContent=rows.length;
     if(cityStat)cityStat.textContent=new Set(rows.map(r=>r.title)).size;
-    renderMonthTable(rows,selectedMonth);
+    renderMonthTable(rows,selectedMonth,cities);
   }catch(e){chartHost.innerHTML='<p class="muted">मासिक रिकॉर्ड लोड नहीं हो पाए।</p>';}
 }
-function renderMonthTable(rows,month){
-  if(!rows.length){chartHost.innerHTML='<p class="muted empty-month">इस महीने के लिए अभी कोई प्रकाशित रिकॉर्ड उपलब्ध नहीं है।</p>';return;}
-  const titles=[...new Set(rows.map(r=>r.title))].sort((a,b)=>{const ac=/chandigarh/i.test(a),bc=/chandigarh/i.test(b);return ac!==bc?(ac?1:-1):a.localeCompare(b,"hi");});
+function renderMonthTable(rows,month,cities=[]){
+  const cityTimes=new Map(cities.map(c=>[c.cityName,c.expectedTime||""]));
+  const titles=[...new Set([...rows.map(r=>r.title),...cities.map(c=>c.cityName)])].sort((a,b)=>{const ac=/chandigarh/i.test(a),bc=/chandigarh/i.test(b);return ac!==bc?(ac?1:-1):a.localeCompare(b,"hi");});
+  if(!titles.length){chartHost.innerHTML='<p class="muted empty-month">इस महीने के लिए अभी कोई प्रकाशित परिणाम या approved city उपलब्ध नहीं है।</p>';return;}
   const byDay=new Map();
   rows.forEach(row=>{
     const raw=row.resultDate;
@@ -50,7 +51,7 @@ function renderMonthTable(rows,month){
   for(let i=0;i<titles.length;i+=7) groups.push(titles.slice(i,i+7));
   const summary='<div class="chart-summary"><strong>'+titles.length+' शहर/मार्केट</strong><span>'+rows.length+' प्रकाशित रिकॉर्ड</span></div>';
   const tables=groups.map((group,index)=>{
-    const head='<tr><th class="date-col">तारीख</th>'+group.map(t=>'<th>'+escapeHtml(t)+'</th>').join("")+'</tr>';
+    const head='<tr><th class="date-col">तारीख</th>'+group.map(t=>'<th>'+escapeHtml(t)+(cityTimes.get(t)?'<small class="chart-city-time">समय '+escapeHtml(cityTimes.get(t))+' IST</small>':'')+'</th>').join("")+'</tr>';
     const body=Array.from({length:daysInMonth},(_,i)=>{
       const day=i+1, values=byDay.get(day)||{};
       return '<tr><th class="date-col">'+String(day).padStart(2,"0")+'</th>'+group.map(t=>'<td>'+(values[t]?escapeHtml(values[t]):'—')+'</td>').join("")+'</tr>';
