@@ -13,6 +13,14 @@ app.use(express.json({ limit: "30kb" }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 app.get("/admin", (req, res) => res.sendFile(path.join(__dirname, "public", "admin.html")));
+app.get("/user", (req, res) => res.sendFile(path.join(__dirname, "public", "user.html")));
+
+const User = mongoose.model("PortalUser", new mongoose.Schema({
+  username: { type: String, required: true, unique: true, trim: true, lowercase: true, maxlength: 40 },
+  passwordHash: { type: String, required: true },
+  active: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now }
+}));
 
 const Result = mongoose.model("Result", new mongoose.Schema({
   title: { type: String, required: true, trim: true, maxlength: 100 },
@@ -28,6 +36,17 @@ const Result = mongoose.model("Result", new mongoose.Schema({
 // Render setup and is converted to a bcrypt hash once when the process starts.
 const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH ||
   (process.env.ADMIN_PASSWORD ? bcrypt.hashSync(process.env.ADMIN_PASSWORD, 12) : "");
+
+function userOnly(req, res, next) {
+  try {
+    const token = req.cookies.user_session;
+    if (!token) return res.status(401).json({ error: "Login required" });
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    if (payload.role !== "user") return res.status(403).json({ error: "Forbidden" });
+    req.portalUserId = payload.sub;
+    next();
+  } catch { return res.status(401).json({ error: "Session expired. Login again." }); }
+}
 
 function adminOnly(req, res, next) {
   try {
@@ -57,6 +76,57 @@ app.post("/api/admin/login", async (req, res) => {
 });
 
 app.get("/api/admin/session", adminOnly, (req, res) => res.json({ ok: true, role: "admin" }));
+
+app.get("/api/admin/users", adminOnly, async (req, res) => {
+  const users = await User.find().select("username active createdAt").sort({ createdAt: -1 }).lean();
+  res.json(users);
+});
+app.post("/api/admin/users", adminOnly, async (req, res) => {
+  const username = String(req.body?.username || "").trim().toLowerCase();
+  const password = String(req.body?.password || "");
+  if (!/^[a-z0-9._-]{3,40}$/.test(username) || password.length < 8 || password.length > 100)
+    return res.status(400).json({ error: "Username 3-40 अक्षर का और password कम से कम 8 अक्षर का रखें।" });
+  if (await User.exists({ username })) return res.status(409).json({ error: "यह username पहले से मौजूद है।" });
+  const user = await User.create({ username, passwordHash: await bcrypt.hash(password, 12) });
+  res.status(201).json({ id: user._id, username: user.username, active: user.active, createdAt: user.createdAt });
+});
+app.patch("/api/admin/users/:id", adminOnly, async (req, res) => {
+  const update = {};
+  if (typeof req.body?.active === "boolean") update.active = req.body.active;
+  if (req.body?.password) {
+    const password = String(req.body.password);
+    if (password.length < 8 || password.length > 100) return res.status(400).json({ error: "Password कम से कम 8 अक्षर का रखें।" });
+    update.passwordHash = await bcrypt.hash(password, 12);
+  }
+  const user = await User.findByIdAndUpdate(req.params.id, update, { new: true }).select("username active createdAt");
+  if (!user) return res.status(404).json({ error: "User नहीं मिला।" });
+  res.json(user);
+});
+app.delete("/api/admin/users/:id", adminOnly, async (req, res) => {
+  const user = await User.findByIdAndDelete(req.params.id);
+  if (!user) return res.status(404).json({ error: "User नहीं मिला।" });
+  res.json({ ok: true });
+});
+app.post("/api/user/login", async (req, res) => {
+  const username = String(req.body?.username || "").trim().toLowerCase();
+  const password = String(req.body?.password || "");
+  const user = await User.findOne({ username, active: true });
+  if (!user || !(await bcrypt.compare(password, user.passwordHash)))
+    return res.status(401).json({ error: "गलत username या password, या account बंद है।" });
+  const token = jwt.sign({ role: "user", sub: String(user._id) }, process.env.JWT_SECRET, { expiresIn: "7d" });
+  res.cookie("user_session", token, { httpOnly: true, sameSite: "strict", secure: process.env.NODE_ENV === "production", maxAge: 7 * 24 * 60 * 60 * 1000, path: "/" });
+  res.json({ ok: true, username: user.username });
+});
+app.get("/api/user/session", userOnly, async (req, res) => {
+  const user = await User.findById(req.portalUserId).select("username active").lean();
+  if (!user || !user.active) return res.status(401).json({ error: "Account बंद है।" });
+  res.json({ ok: true, role: "user", username: user.username });
+});
+app.post("/api/user/logout", userOnly, (req, res) => {
+  res.clearCookie("user_session", { path: "/", sameSite: "strict", secure: process.env.NODE_ENV === "production" });
+  res.json({ ok: true });
+});
+
 
 app.post("/api/admin/logout", adminOnly, (req, res) => {
   res.clearCookie("admin_session", { path: "/", sameSite: "strict", secure: process.env.NODE_ENV === "production" });
@@ -115,6 +185,25 @@ app.delete("/api/admin/results/:id", adminOnly, async (req, res) => {
 });
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 
+
+async function cleanupChandigarhDuplicates() {
+  const rows = await Result.find({ title: /^chandigarh\\s*city$/i, deleted: { $ne: true } }).sort({ createdAt: 1, _id: 1 });
+  const keepByDate = new Map();
+  let removed = 0;
+  for (const row of rows) {
+    const day = row.resultDate.toISOString().slice(0, 10);
+    if (keepByDate.has(day)) {
+      row.deleted = true;
+      await row.save();
+      removed++;
+    } else {
+      keepByDate.set(day, row);
+      if (row.title !== "Chandigarh City") { row.title = "Chandigarh City"; await row.save(); }
+    }
+  }
+  console.log("Chandigarh duplicate records hidden:", removed);
+}
+
 async function seedHistoricalRecords() {
   const recordsPath = path.join(__dirname, "data", "historical-records.json");
   const records = JSON.parse(require("fs").readFileSync(recordsPath, "utf8"));
@@ -134,6 +223,7 @@ const port = process.env.PORT || 3000;
 mongoose.connect(process.env.MONGODB_URI)
   .then(async () => {
     await seedHistoricalRecords();
+    await cleanupChandigarhDuplicates();
     app.listen(port, () => console.log(`RK portal running on ${port}`));
   })
   .catch(err => { console.error("Database connection failed:", err.message); process.exit(1); });
