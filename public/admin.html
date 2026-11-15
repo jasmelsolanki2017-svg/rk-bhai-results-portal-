@@ -8,7 +8,7 @@
 <section id="loginBox" class="admin-box"><h2>Admin Login</h2><form id="loginForm"><input name="username" autocomplete="username" placeholder="Username" required><input name="password" type="password" autocomplete="current-password" placeholder="Password" required><button type="submit">Login</button></form></section>
 <section id="panel" hidden>
   <section class="admin-box">
-    <div class="admin-top"><h2>पूरा मासिक चार्ट</h2><button id="logout" type="button" class="secondary">Logout</button></div>
+    <div class="admin-top"><h2>पूरा मासिक चार्ट</h2><div class="actions"><a class="back-link" href="/admin/users">User Management</a><button id="logout" type="button" class="secondary">Logout</button></div></div>
     <p class="muted">किसी भी चार्ट एंट्री पर टैप करके उसे एडिट कर सकते हैं।</p>
     <div class="month-nav"><button id="prevMonth" type="button">‹ पिछला</button><strong id="monthLabel">लोड हो रहा है…</strong><button id="nextMonth" type="button">अगला ›</button></div>
     <div id="adminChart" class="history-chart"><p class="muted">चार्ट लोड हो रहा है…</p></div>
@@ -24,16 +24,6 @@
       <label class="check"><input name="published" type="checkbox"> प्रकाशित करें</label>
       <div class="form-actions"><button id="saveRecord" type="submit">रिकॉर्ड सेव करें</button><button id="cancelEdit" type="button" class="secondary" hidden>एडिट रद्द करें</button></div>
     </form>
-  </section>
-  <section class="admin-box">
-    <h2>नया User बनाएं</h2>
-    <form id="createUserForm">
-      <label>Username (3-40 अक्षर, English)</label><input name="username" minlength="3" maxlength="40" pattern="[A-Za-z0-9._-]+" required placeholder="जैसे user01">
-      <label>Temporary Password (कम से कम 8 अक्षर)</label><input name="password" type="password" minlength="8" maxlength="100" required autocomplete="new-password" placeholder="मजबूत पासवर्ड रखें">
-      <button type="submit">User Create करें</button>
-    </form>
-    <p id="userAdminMsg" class="muted" role="status"></p>
-    <h3>बनाए गए Users</h3><div id="adminUsers"></div>
   </section>
   <section class="admin-box"><h2>शहर / मार्केट के अनुसार रिकॉर्ड</h2><p class="muted">किसी शहर पर टैप करके उसके सभी रिकॉर्ड अलग पेज पर खोलें।</p><div id="cityLinks" class="city-links"></div></section>
 </section>
