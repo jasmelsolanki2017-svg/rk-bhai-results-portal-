@@ -143,3 +143,13 @@ footer{text-align:center;padding:25px;color:#777;font-size:13px}@media(max-width
 .city-month-select strong{font-size:13px;color:#eee}
 .city-month-nav button:disabled{opacity:.35;cursor:not-allowed}
 @media(max-width:420px){.city-month-nav{gap:5px;padding:8px}.city-month-nav button{padding:8px 7px;font-size:11px}.city-month-select select{padding:8px 5px;font-size:13px}}
+
+
+/* User account expiry warning popup */
+.expiry-warning{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.82)}
+.expiry-warning[hidden]{display:none}
+.expiry-warning-card{width:min(100%,420px);padding:22px;border:1px solid #b58a3b;border-radius:14px;background:#17130d;color:#fff;text-align:center;box-shadow:0 18px 60px rgba(0,0,0,.65)}
+.expiry-warning-card h2{margin:0 0 14px;color:#f5d78e;font-size:20px}
+.expiry-warning-card p{line-height:1.55}
+.expiry-warning-card #expiryRemaining{font-size:19px;font-weight:700;color:#fff}
+.expiry-warning-card button{margin-top:10px;padding:11px 22px;border:1px solid #b58a3b;border-radius:8px;background:#3a2b15;color:#f5d78e;font:inherit}
