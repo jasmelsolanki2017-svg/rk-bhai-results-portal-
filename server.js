@@ -48,12 +48,14 @@ const Result = mongoose.model("Result", new mongoose.Schema({
 const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH ||
   (process.env.ADMIN_PASSWORD ? bcrypt.hashSync(process.env.ADMIN_PASSWORD, 12) : "");
 
-function userOnly(req, res, next) {
+async function userOnly(req, res, next) {
   try {
     const token = req.cookies.user_session;
     if (!token) return res.status(401).json({ error: "Login required" });
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     if (payload.role !== "user") return res.status(403).json({ error: "Forbidden" });
+    const user = await User.findById(payload.sub).select("active").lean();
+    if (!user || !user.active) return res.status(403).json({ error: "आपका account बंद है।" });
     req.portalUserId = payload.sub;
     next();
   } catch { return res.status(401).json({ error: "Session expired. Login again." }); }
@@ -118,6 +120,8 @@ app.patch("/api/admin/users/:id", adminOnly, async (req, res) => {
 app.delete("/api/admin/users/:id", adminOnly, async (req, res) => {
   const user = await User.findByIdAndDelete(req.params.id);
   if (!user) return res.status(404).json({ error: "User नहीं मिला।" });
+  const city = await City.findOneAndDelete({ userId: user._id });
+  if (city) await Result.updateMany({ cityId: city._id }, { $set: { deleted: true, published: false } });
   res.json({ ok: true });
 });
 app.get("/api/user/city", userOnly, async (req, res) => {
@@ -146,6 +150,8 @@ app.post("/api/user/results", userOnly, async (req, res) => {
   res.status(201).json(row);
 });
 app.patch("/api/user/results/:id", userOnly, async (req, res) => {
+  const city = await City.findOne({ userId: req.portalUserId, status: "approved" });
+  if (!city) return res.status(403).json({ error: "आपके शहर की approval active नहीं है।" });
   const row = await Result.findOne({ _id: req.params.id, ownerUserId: req.portalUserId, deleted: { $ne: true } });
   if (!row) return res.status(404).json({ error: "आपका रिकॉर्ड नहीं मिला।" });
   if (req.body?.resultText !== undefined) {
