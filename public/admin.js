@@ -22,7 +22,7 @@ async function refresh(){
   await loadUsers();
 }
 function renderCityLinks(){
- const cities=[...new Set(allRows.map(x=>String(x.title||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"hi"));
+ const cities=[...new Set(allRows.map(x=>String(x.title||"").trim()).filter(Boolean))].sort((a,b)=>{const ac=/chandigarh/i.test(a),bc=/chandigarh/i.test(b);return ac!==bc?(ac?1:-1):a.localeCompare(b,"hi");});
  $("#cityLinks").innerHTML=cities.map(city=>"<a class=\"city-link\" href=\"/city.html?name="+encodeURIComponent(city)+"\"><strong>"+esc(city)+"</strong><span>"+allRows.filter(x=>x.title===city).length+" रिकॉर्ड</span></a>").join("")||"<p class=\"muted\">अभी कोई शहर/मार्केट रिकॉर्ड नहीं है।</p>";
 }
 async function loadMonth(){
@@ -46,7 +46,7 @@ function renderMonthChart(rows,month){
   });
   const daysInMonth=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
   const groups=[];
-  for(let i=0;i<titles.length;i+=4)groups.push(titles.slice(i,i+4));
+  for(let i=0;i<titles.length;i+=5)groups.push(titles.slice(i,i+5));
   const summary='<div class="chart-summary"><strong>'+titles.length+' शहर/मार्केट</strong><span>'+rows.length+' रिकॉर्ड · एंट्री एडिट करने के लिए उस पर टैप करें</span></div>';
   const tables=groups.map((group,index)=>{
     const head='<tr><th class="date-col">तारीख</th>'+group.map(t=>'<th>'+esc(t)+'</th>').join("")+'</tr>';
