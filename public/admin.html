@@ -26,6 +26,12 @@
     </form>
   </section>
   <section class="admin-box">
+    <h2>Excel Export</h2>
+    <p class="muted">एक Excel file में Results, Users और Cities की अलग-अलग sheets डाउनलोड करें। इसमें password या password hash शामिल नहीं होंगे।</p>
+    <button id="downloadExcel" type="button">Excel Download करें</button>
+    <p id="excelMsg" class="muted" role="status"></p>
+  </section>
+  <section class="admin-box">
     <h2>Database Backup & Restore</h2>
     <p class="muted">पूरे portal का backup JSON file में डाउनलोड करें। Restore करने पर मौजूदा Users, Cities और Results backup वाले data से replace होंगे।</p>
     <div class="form-actions"><button id="downloadBackup" type="button">Backup Download करें</button><label class="back-link" for="restoreFile">Backup File चुनें</label><input id="restoreFile" type="file" accept=".json,application/json" hidden><button id="restoreBackup" type="button" class="danger" disabled>Restore करें</button></div>
