@@ -47,7 +47,7 @@ function renderMonthTable(rows,month){
   });
   const daysInMonth=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
   const groups=[];
-  for(let i=0;i<titles.length;i+=5) groups.push(titles.slice(i,i+5));
+  for(let i=0;i<titles.length;i+=7) groups.push(titles.slice(i,i+7));
   const summary='<div class="chart-summary"><strong>'+titles.length+' शहर/मार्केट</strong><span>'+rows.length+' प्रकाशित रिकॉर्ड</span></div>';
   const tables=groups.map((group,index)=>{
     const head='<tr><th class="date-col">तारीख</th>'+group.map(t=>'<th>'+escapeHtml(t)+'</th>').join("")+'</tr>';
