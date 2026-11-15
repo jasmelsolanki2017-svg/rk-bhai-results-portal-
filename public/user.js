@@ -5,14 +5,17 @@ async function userApi(url,opts={}){
  if(!response.ok)throw new Error(data.error||"Request failed");
  return data;
 }
-function showUser(on){$("#userLogin").hidden=on;$("#userContent").hidden=!on;}
+function showUser(on){$("#userLogin").hidden=on;$("#userContent").hidden=!on;$("#passwordChangeBox").hidden=true;}
+function showPasswordChange(on){$("#userLogin").hidden=true;$("#userContent").hidden=true;$("#passwordChangeBox").hidden=!on;}
 $("#userLoginForm").addEventListener("submit",async e=>{
  e.preventDefault();$("#userMessage").textContent="Login हो रहा है…";
- try{const f=new FormData(e.target);const data=await userApi("/api/user/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});$("#userName").textContent=data.username;showUser(true);await loadMyCity();$("#userMessage").textContent="";if(window.loadResults)loadResults();if(window.loadMonth)loadMonth();}
+ try{const f=new FormData(e.target);const data=await userApi("/api/user/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});$("#userName").textContent=data.username;if(data.mustChangePassword){showPasswordChange(true);$("#passwordChangeMessage").textContent="Default password बदलना जरूरी है।";}else{showUser(true);await loadMyCity();if(window.loadResults)loadResults();if(window.loadMonth)loadMonth();}$("#userMessage").textContent="";}
  catch(err){$("#userMessage").textContent=err.message;}
 });
-$("#userLogout").addEventListener("click",async()=>{try{await userApi("/api/user/logout",{method:"POST"});}catch{}showUser(false);$("#userLoginForm").reset();});
-(async()=>{try{const data=await userApi("/api/user/session");$("#userName").textContent=data.username;showUser(true);await loadMyCity();}catch{showUser(false);}})();
+async function logoutUser(){try{await fetch("/api/user/logout",{method:"POST",credentials:"same-origin"});}catch{}showPasswordChange(false);showUser(false);$("#userLoginForm").reset();}
+$("#userLogout").addEventListener("click",logoutUser);
+$("#forcedLogout").addEventListener("click",logoutUser);
+(async()=>{try{const data=await userApi("/api/user/session");$("#userName").textContent=data.username;if(data.mustChangePassword){showPasswordChange(true);$("#passwordChangeMessage").textContent="पहले default password बदलें।";}else{showUser(true);await loadMyCity();}}catch{showUser(false);}})();
 
 async function loadMyCity(){
  const city=await userApi("/api/user/city");
@@ -53,4 +56,11 @@ document.addEventListener("submit",async e=>{
  e.preventDefault();const expectedTime=new FormData(e.target).get("expectedTime");
  try{await userApi("/api/user/city/time",{method:"PATCH",body:JSON.stringify({expectedTime})});await loadMyCity();if(window.loadMonth)loadMonth();}
  catch(err){alert(err.message);}
+});
+
+$("#passwordChangeForm").addEventListener("submit",async e=>{
+ e.preventDefault();const f=new FormData(e.target),currentPassword=f.get("currentPassword"),newPassword=f.get("newPassword");
+ if(newPassword!==f.get("confirmPassword")){$("#passwordChangeMessage").textContent="दोनों नए password एक जैसे नहीं हैं।";return;}
+ try{await userApi("/api/user/change-password",{method:"POST",body:JSON.stringify({currentPassword,newPassword})});$("#passwordChangeMessage").textContent="Password बदल गया।";showUser(true);await loadMyCity();if(window.loadResults)loadResults();if(window.loadMonth)loadMonth();}
+ catch(err){$("#passwordChangeMessage").textContent=err.message;}
 });
