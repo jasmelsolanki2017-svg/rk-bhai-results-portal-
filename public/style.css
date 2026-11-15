@@ -337,3 +337,37 @@ body>footer{border-top:1px solid #332817;background:#090909;color:#9b8d70}
 .calendar-day.selected{outline:2px solid #e4bd69;outline-offset:1px;background:#59401d;color:#fff}
 .calendar-help{margin:12px 0 0;color:#9f947e;font-size:11px;line-height:1.5}
 @media(max-width:420px){.history-calendar{padding:11px 8px}.calendar-grid{gap:4px}.calendar-day{min-height:36px;font-size:12px;border-radius:6px}.calendar-empty{min-height:36px}.calendar-weekday{font-size:10px;padding:6px 0}}
+
+
+/* App tools: install, share, QR and archive export */
+.quick-tools{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin:18px 0 24px}
+.tool-button{display:flex;align-items:center;justify-content:center;gap:8px;min-height:54px;padding:10px 8px;border:1px solid #70552a;border-radius:12px;background:linear-gradient(145deg,#2c2112,#15120d);color:#f4d58b;text-decoration:none;font:inherit;font-size:13px;cursor:pointer;box-shadow:0 5px 16px #0003}
+.tool-button span{font-size:19px;line-height:1}.tool-button b{font-size:12px}
+.tool-button:hover{border-color:#e0b85e;background:#3a2b15}.tool-button[hidden]{display:none}
+.qr-dialog{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:18px;background:#000c}
+.qr-dialog[hidden]{display:none}
+.qr-card{position:relative;width:min(100%,360px);padding:24px 18px;border:1px solid #a17b37;border-radius:18px;background:linear-gradient(145deg,#211a10,#101010);text-align:center;box-shadow:0 20px 70px #000b}
+.qr-card h2{margin:0 0 8px;color:#f4d58b;font-size:19px}.qr-card p{margin:0 0 15px;color:#b8ad96;font-size:13px}
+.qr-card img{display:block;width:240px;height:240px;max-width:100%;margin:0 auto 14px;padding:9px;border-radius:10px;background:#fff}
+.qr-card a{color:#f4d58b;font-size:13px}
+.qr-close{position:absolute;top:8px;right:10px;width:34px;height:34px;border:1px solid #71562b;border-radius:50%;background:#17130d;color:#f4d58b;font-size:23px;cursor:pointer}
+@media(max-width:650px){.quick-tools{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:14px 0 20px}.tool-button{min-height:48px}.quick-tools .tool-button:last-child{grid-column:1/-1}}
+@media print{
+  @page{size:auto;margin:12mm}
+  body{background:#fff!important;color:#111!important}
+  body>*{display:none!important}
+  body>.public-main{display:block!important;width:100%!important;margin:0!important}
+  .public-main>*{display:none!important}
+  .public-main>.public-chart-panel{display:block!important;margin:0!important;padding:0!important;border:0!important;box-shadow:none!important;background:#fff!important;color:#111!important}
+  .public-chart-panel .chart-heading{border:0!important}
+  .public-chart-panel .chart-heading h2,.public-chart-panel .chart-heading p,.public-chart-panel .chart-note,.public-chart-panel .month-nav strong{color:#111!important}
+  .public-chart-panel .archive-filters,.public-chart-panel .history-calendar,.public-chart-panel .month-nav button{display:none!important}
+  .public-chart-panel .chart-summary,.public-chart-panel .chart-summary strong{color:#111!important}
+  .public-chart-panel .market-chart h3{color:#333!important}
+  .public-chart-panel .table-scroll{overflow:visible!important;border:0!important}
+  .public-chart-panel .history-table{min-width:0!important;width:100%!important;background:#fff!important;color:#111!important;font-size:9pt!important}
+  .public-chart-panel .history-table th,.public-chart-panel .history-table td{position:static!important;background:#fff!important;color:#111!important;border:1px solid #777!important;padding:5px 4px!important;white-space:normal!important}
+  .public-chart-panel .history-table thead th{background:#eee!important}
+  .public-chart-panel .history-table .date-col{width:auto!important}
+  .market-chart{break-inside:avoid}
+}
