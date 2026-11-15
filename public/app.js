@@ -82,7 +82,6 @@ async function loadMonth(){
   }catch(e){chartHost.innerHTML='<p class="muted">मासिक रिकॉर्ड लोड नहीं हो पाए।</p>';}
 }
 function renderMonthTable(){
-  const cityTimes=new Map(monthCities.map(c=>[c.cityName,c.expectedTime||""]));
   let rows=monthRows;
   let titles=[...new Set([...rows.map(r=>r.title),...monthCities.map(c=>c.cityName)])];
   if(chartCity.value){titles=titles.filter(t=>t===chartCity.value);rows=rows.filter(r=>r.title===chartCity.value);}
@@ -100,10 +99,10 @@ function renderMonthTable(){
   const groups=[];for(let i=0;i<titles.length;i+=7)groups.push(titles.slice(i,i+7));
   const summary='<div class="chart-summary"><strong>'+titles.length+' शहर/मार्केट</strong><span>'+rows.length+' प्रकाशित रिकॉर्ड</span>'+(chosenDate?'<span>तारीख: '+escapeHtml(new Date(chosenDate+"T00:00:00").toLocaleDateString("hi-IN"))+'</span>':'')+'</div>';
   const tables=groups.map((group,index)=>{
-    const head='<tr><th class="date-col">तारीख</th>'+group.map(t=>'<th>'+escapeHtml(t)+(cityTimes.get(t)?'<small class="chart-city-time">समय '+escapeHtml(cityTimes.get(t))+' IST</small>':'')+'</th>').join("")+'</tr>';
+    const head='<tr><th class="date-col">तारीख</th>'+group.map(t=>'<th>'+escapeHtml(t)+'</th>').join("")+'</tr>';
     const body=dayNumbers.map(day=>{
       const values=byDay.get(day)||{};
-      return '<tr><th class="date-col">'+String(day).padStart(2,"0")+'</th>'+group.map(t=>{const row=values[t];return '<td>'+(row?escapeHtml(row.resultText)+'<small class="result-updated">अपडेट: '+escapeHtml(formatUpdate(row.updatedAt||row.createdAt||row.resultDate))+'</small>':'—')+'</td>';}).join("")+'</tr>';
+      return '<tr><th class="date-col">'+String(day).padStart(2,"0")+'</th>'+group.map(t=>{const row=values[t];return '<td>'+(row?escapeHtml(row.resultText):'—')+'</td>';}).join("")+'</tr>';
     }).join("");
     return '<section class="market-chart"><h3>चार्ट '+(index+1)+' / '+groups.length+'</h3><div class="table-scroll"><table class="history-table"><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div></section>';
   }).join("");
