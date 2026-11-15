@@ -141,3 +141,55 @@ clearDate.addEventListener("click",()=>{historyDate.value="";renderCalendar();re
 document.getElementById("historyCalendar").addEventListener("click",event=>{const button=event.target.closest("[data-date]");if(!button)return;historyDate.value=button.dataset.date;renderCalendar();renderMonthTable();});
 loadMonth();
 loadResults();
+
+ 
+// Installable app, native share, QR code and print-to-PDF tools.
+let deferredInstallPrompt = null;
+const installButton = document.getElementById("installApp");
+window.addEventListener("beforeinstallprompt", event => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  if (installButton) installButton.hidden = false;
+});
+window.addEventListener("appinstalled", () => {
+  deferredInstallPrompt = null;
+  if (installButton) installButton.hidden = true;
+});
+if (installButton) installButton.addEventListener("click", async () => {
+  if (!deferredInstallPrompt) {
+    alert("Browser menu (⋮) खोलें और 'Add to Home screen' या 'Install app' चुनें।");
+    return;
+  }
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  installButton.hidden = true;
+});
+const shareButton = document.getElementById("shareSite");
+if (shareButton) shareButton.addEventListener("click", async () => {
+  const shareData = { title: "RK Bhai Results & Historical Archive", text: "RK Bhai Portal देखें", url: location.origin };
+  try {
+    if (navigator.share) await navigator.share(shareData);
+    else if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(location.origin); alert("Website link copy हो गया।"); }
+    else prompt("Website link copy करें:", location.origin);
+  } catch (error) { if (error.name !== "AbortError") alert("Share नहीं हो पाया। Link: " + location.origin); }
+});
+const qrDialog = document.getElementById("qrDialog");
+const qrImage = document.getElementById("qrImage");
+const qrOpen = document.getElementById("qrOpen");
+const showQrButton = document.getElementById("showQr");
+const closeQrButton = document.getElementById("closeQr");
+if (showQrButton && qrDialog && qrImage && qrOpen) showQrButton.addEventListener("click", () => {
+  const target = location.origin + "/";
+  const imageUrl = "https://api.qrserver.com/v1/create-qr-code/?size=280x280&format=png&data=" + encodeURIComponent(target);
+  qrImage.src = imageUrl;
+  qrOpen.href = imageUrl;
+  qrDialog.hidden = false;
+});
+if (closeQrButton && qrDialog) closeQrButton.addEventListener("click", () => { qrDialog.hidden = true; });
+if (qrDialog) qrDialog.addEventListener("click", event => { if (event.target === qrDialog) qrDialog.hidden = true; });
+const printButton = document.getElementById("printArchive");
+if (printButton) printButton.addEventListener("click", () => window.print());
+if ("serviceWorker" in navigator) window.addEventListener("load", () => {
+  navigator.serviceWorker.register("/sw.js").catch(error => console.warn("App offline setup unavailable:", error));
+});
