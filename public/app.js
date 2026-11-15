@@ -37,7 +37,7 @@ async function loadMonth(){
 }
 function renderMonthTable(rows,month){
   if(!rows.length){chartHost.innerHTML='<p class="muted empty-month">इस महीने के लिए अभी कोई प्रकाशित रिकॉर्ड उपलब्ध नहीं है।</p>';return;}
-  const titles=[...new Set(rows.map(r=>r.title))].sort((a,b)=>a.localeCompare(b,"hi"));
+  const titles=[...new Set(rows.map(r=>r.title))].sort((a,b)=>{const ac=/chandigarh/i.test(a),bc=/chandigarh/i.test(b);return ac!==bc?(ac?1:-1):a.localeCompare(b,"hi");});
   const byDay=new Map();
   rows.forEach(row=>{
     const raw=row.resultDate;
@@ -47,7 +47,7 @@ function renderMonthTable(rows,month){
   });
   const daysInMonth=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
   const groups=[];
-  for(let i=0;i<titles.length;i+=4) groups.push(titles.slice(i,i+4));
+  for(let i=0;i<titles.length;i+=5) groups.push(titles.slice(i,i+5));
   const summary='<div class="chart-summary"><strong>'+titles.length+' शहर/मार्केट</strong><span>'+rows.length+' प्रकाशित रिकॉर्ड</span></div>';
   const tables=groups.map((group,index)=>{
     const head='<tr><th class="date-col">तारीख</th>'+group.map(t=>'<th>'+escapeHtml(t)+'</th>').join("")+'</tr>';
