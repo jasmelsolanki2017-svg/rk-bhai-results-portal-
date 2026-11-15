@@ -5,6 +5,6 @@
 <section id="loginBox" class="admin-box"><h2>Admin Login</h2><form id="loginForm"><input name="username" autocomplete="username" placeholder="Username" required><input name="password" type="password" autocomplete="current-password" placeholder="Password" required><button type="submit">Login</button></form><p id="loginMsg" class="muted"></p></section>
 <div id="managePanel" hidden>
 <section class="admin-box"><h2>नया User बनाएं</h2><form id="createUserForm"><label>Username</label><input name="username" minlength="3" maxlength="40" pattern="[A-Za-z0-9._-]+" required><label>Mobile Number</label><input name="mobile" type="tel" inputmode="numeric" pattern="[6-9][0-9]{9}" maxlength="10" required placeholder="10 अंकों का मोबाइल नंबर"><label>Email ID</label><input name="email" type="email" maxlength="120" required placeholder="user@example.com"><p class="muted">Default password अपने आप <b>userlogin</b> रहेगा। पहली Login पर User को बदलना जरूरी होगा।</p><button type="submit">User Create करें</button></form><p id="userMsg" class="muted"></p></section>
-<section class="admin-box"><h2>सभी Users</h2><div id="usersList"></div></section>
+<section class="admin-box"><h2>सभी Users</h2><p class="muted">हर User की अवधि दिनों में या किसी तय तारीख तक रख सकते हैं। अवधि पूरी होने पर अकाउंट अपने आप बंद हो जाएगा।</p><div id="usersList"></div></section>
 <section class="admin-box"><h2>शहर Approval Requests</h2><div id="cityRequests"></div></section>
 </div></main><script src="/admin-users.js"></script></body></html>
