@@ -116,7 +116,7 @@ prevButton.addEventListener("click",()=>{selectedMonth=new Date(selectedMonth.ge
 nextButton.addEventListener("click",()=>{const candidate=new Date(selectedMonth.getFullYear(),selectedMonth.getMonth()+1,1);if(candidate<=new Date(new Date().getFullYear(),new Date().getMonth(),1)){selectedMonth=candidate;loadMonth();}});
 citySearch.addEventListener("input",renderRecent);
 chartCity.addEventListener("change",renderMonthTable);
-historyDate.addEventListener("change",renderMonthTable);
+historyDate.addEventListener("change",()=>{if(historyDate.value){const chosen=new Date(historyDate.value+"T00:00:00");selectedMonth=new Date(chosen.getFullYear(),chosen.getMonth(),1);loadMonth();}else renderMonthTable();});
 clearDate.addEventListener("click",()=>{historyDate.value="";renderMonthTable();});
 loadMonth();
 loadResults();
