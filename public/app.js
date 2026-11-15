@@ -32,7 +32,7 @@ async function loadResults(){
     const todayLabel=todayStart.toLocaleDateString("hi-IN",{day:"2-digit",month:"short"});
     host.innerHTML='<div class="recent-results-wrap"><table class="recent-results-table"><thead><tr><th>शहर / मार्केट</th><th>कल ('+yesterdayLabel+')</th><th>आज ('+todayLabel+')</th></tr></thead><tbody>'+
       [...byCity.entries()].sort((a,b)=>a[0].localeCompare(b[0],"hi")).map(([city,result])=>'<tr><th>'+escapeHtml(city)+'</th><td class="'+(result.yesterday==="XX"?"no-result":"")+'">'+escapeHtml(result.yesterday)+'</td><td class="'+(result.today==="XX"?"no-result":"")+'">'+escapeHtml(result.today)+'</td></tr>').join("")+
-      '</tbody></table></div><p class="muted recent-note">XX = अभी परिणाम प्रकाशित नहीं हुआ है।</p>';
+      '</tbody></table></div>';
   }catch(e){host.innerHTML='<p class="muted">अभी परिणाम लोड नहीं हो पाए। कृपया बाद में प्रयास करें।</p>';}
 }
 function monthKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;}
