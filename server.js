@@ -62,7 +62,7 @@ app.post("/api/admin/logout", adminOnly, (req, res) => {
 app.get("/api/results", async (req, res) => {
   const filter = { published: true };
   if (req.query.month) {
-    if (!/^\\d{4}-(0[1-9]|1[0-2])$/.test(req.query.month))
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(req.query.month))
       return res.status(400).json({ error: "Invalid month. Use YYYY-MM." });
     const [year, month] = req.query.month.split("-").map(Number);
     filter.resultDate = { $gte: new Date(Date.UTC(year, month - 1, 1)), $lt: new Date(Date.UTC(year, month, 1)) };
