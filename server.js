@@ -61,6 +61,14 @@ app.post("/api/admin/logout", adminOnly, (req, res) => {
 
 app.get("/api/results", async (req, res) => {
   const filter = { published: true };
+  if (req.query.today === "1") {
+    const today = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit"
+    }).format(new Date());
+    const start = new Date(today + "T00:00:00.000Z");
+    const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+    filter.resultDate = { $gte: start, $lt: end };
+  }
   if (req.query.month) {
     if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(req.query.month))
       return res.status(400).json({ error: "Invalid month. Use YYYY-MM." });
