@@ -14,6 +14,7 @@ async function getJson(url){
 async function loadResults(){
   try{
     const rows=await getJson("/api/results?today=1");
+    const todayStat=document.getElementById("statToday");if(todayStat)todayStat.textContent=rows.length;
     if(!rows.length){host.innerHTML='<p class="muted">आज अभी कोई प्रकाशित परिणाम उपलब्ध नहीं है।</p>';}
     else host.innerHTML=rows.map(row=>`
       <article class="result"><div><h2>${escapeHtml(row.title)}</h2><time>${new Date(row.resultDate).toLocaleDateString("hi-IN")}</time></div><div class="value">${escapeHtml(row.resultText)}</div></article>`).join("");
@@ -28,6 +29,9 @@ async function loadMonth(){
   chartHost.innerHTML='<p class="muted">रिकॉर्ड लोड हो रहे हैं…</p>';
   try{
     const rows=await getJson("/api/results?month="+encodeURIComponent(key));
+    const monthStat=document.getElementById("statMonth"),cityStat=document.getElementById("statCities");
+    if(monthStat)monthStat.textContent=rows.length;
+    if(cityStat)cityStat.textContent=new Set(rows.map(r=>r.title)).size;
     renderMonthTable(rows,selectedMonth);
   }catch(e){chartHost.innerHTML='<p class="muted">मासिक रिकॉर्ड लोड नहीं हो पाए।</p>';}
 }
