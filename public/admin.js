@@ -17,8 +17,6 @@ function monthKey(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(
 
 async function refresh(){
   allRows=await api("/api/admin/results");
-  $("#recordCount").textContent=allRows.length+" रिकॉर्ड";
-  renderRows();
   renderCityLinks();
   await loadMonth();
   await loadUsers();
@@ -26,15 +24,6 @@ async function refresh(){
 function renderCityLinks(){
  const cities=[...new Set(allRows.map(x=>String(x.title||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"hi"));
  $("#cityLinks").innerHTML=cities.map(city=>"<a class=\"city-link\" href=\"/city.html?name="+encodeURIComponent(city)+"\"><strong>"+esc(city)+"</strong><span>"+allRows.filter(x=>x.title===city).length+" रिकॉर्ड</span></a>").join("")||"<p class=\"muted\">अभी कोई शहर/मार्केट रिकॉर्ड नहीं है।</p>";
-}
-function renderRows(){
-  const q=$("#recordSearch").value.trim().toLocaleLowerCase();
-  const rows=allRows.filter(x=>(x.title+" "+x.resultText+" "+dateValue(x.resultDate)).toLocaleLowerCase().includes(q));
-  $("#adminRows").innerHTML=rows.map(x=>`
-    <article class="admin-row">
-      <div class="admin-row-info"><b>${esc(x.title)}</b><p>${esc(x.resultText)} · ${new Date(x.resultDate).toLocaleDateString("hi-IN")} · ${x.published?"Published":"Draft"}</p></div>
-      <div class="actions"><button type="button" data-edit="${x._id}">Edit</button><button type="button" data-pub="${x._id}">${x.published?"Unpublish":"Publish"}</button><button type="button" class="danger" data-del="${x._id}">Delete</button></div>
-    </article>`).join("")||"<p class='muted'>कोई रिकॉर्ड नहीं मिला।</p>";
 }
 async function loadMonth(){
   const key=monthKey(selectedMonth);
@@ -99,17 +88,6 @@ $("#resultForm").addEventListener("submit",async e=>{
     resetForm();await refresh();msg.textContent=id?"रिकॉर्ड अपडेट हो गया":"नया रिकॉर्ड सेव हो गया";
   }catch(err){msg.textContent=err.message;}
 });
-$("#adminRows").addEventListener("click",async e=>{
-  const edit=e.target.closest("[data-edit]")?.dataset.edit;
-  const pub=e.target.closest("[data-pub]")?.dataset.pub;
-  const del=e.target.closest("[data-del]")?.dataset.del;
-  try{
-    if(edit){editRecord(edit);return;}
-    if(pub){const row=allRows.find(x=>x._id===pub);await api("/api/admin/results/"+pub,{method:"PATCH",body:JSON.stringify({published:!row.published})});}
-    if(del){if(!confirm("क्या यह रिकॉर्ड हमेशा के लिए हटाना है?"))return;await api("/api/admin/results/"+del,{method:"DELETE"});}
-    await refresh();msg.textContent="बदलाव सेव हो गया";
-  }catch(err){msg.textContent=err.message;}
-});
 $("#adminChart").addEventListener("click",e=>{
   const edit=e.target.closest("[data-edit]")?.dataset.edit;if(edit)editRecord(edit);
 });
@@ -136,7 +114,6 @@ $("#adminUsers").addEventListener("click",async e=>{
  }catch(err){$("#userAdminMsg").textContent=err.message;}
 });
 
-$("#recordSearch").addEventListener("input",renderRows);
 $("#cancelEdit").addEventListener("click",resetForm);
 $("#prevMonth").addEventListener("click",()=>{selectedMonth=new Date(selectedMonth.getFullYear(),selectedMonth.getMonth()-1,1);loadMonth();});
 $("#nextMonth").addEventListener("click",()=>{const d=new Date(selectedMonth.getFullYear(),selectedMonth.getMonth()+1,1);if(d<=new Date(new Date().getFullYear(),new Date().getMonth(),1)){selectedMonth=d;loadMonth();}});
