@@ -19,6 +19,7 @@ const Result = mongoose.model("Result", new mongoose.Schema({
   resultText: { type: String, required: true, trim: true, maxlength: 300 },
   resultDate: { type: Date, required: true },
   published: { type: Boolean, default: false },
+  deleted: { type: Boolean, default: false },
   sourceUrl: { type: String, default: "" },
   createdAt: { type: Date, default: Date.now }
 }));
@@ -63,7 +64,7 @@ app.post("/api/admin/logout", adminOnly, (req, res) => {
 });
 
 app.get("/api/results", async (req, res) => {
-  const filter = { published: true };
+  const filter = { published: true, deleted: { $ne: true } };
   if (req.query.today === "1") {
     const today = new Intl.DateTimeFormat("en-CA", {
       timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit"
@@ -83,7 +84,7 @@ app.get("/api/results", async (req, res) => {
   res.json(rows);
 });
 app.get("/api/admin/results", adminOnly, async (req, res) => {
-  const filter = {};
+  const filter = { deleted: { $ne: true } };
   if (req.query.month) {
     if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(req.query.month))
       return res.status(400).json({ error: "Invalid month. Use YYYY-MM." });
@@ -108,7 +109,7 @@ app.patch("/api/admin/results/:id", adminOnly, async (req, res) => {
   res.json(row);
 });
 app.delete("/api/admin/results/:id", adminOnly, async (req, res) => {
-  const row = await Result.findByIdAndDelete(req.params.id);
+  const row = await Result.findByIdAndUpdate(req.params.id, { deleted: true }, { new: true });
   if (!row) return res.status(404).json({ error: "Record not found" });
   res.json({ ok: true });
 });
