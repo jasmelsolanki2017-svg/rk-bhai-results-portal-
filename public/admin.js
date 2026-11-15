@@ -1,6 +1,7 @@
 const $=s=>document.querySelector(s);
 const msg=$("#msg");
-let allRows=[];\nlet cityNames=[];
+let allRows=[];
+let cityNames=[];
 let selectedMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
 
 async function api(url,opts={}){
@@ -92,7 +93,8 @@ document.addEventListener("click",e=>{
  if(!e.target.closest(".city-picker"))suggestionBox.hidden=true;
 });
 titleInput.addEventListener("keydown",e=>{if(e.key==="Escape")suggestionBox.hidden=true;});
-\n$("#loginForm").addEventListener("submit",async e=>{
+
+$("#loginForm").addEventListener("submit",async e=>{
   e.preventDefault();msg.textContent="Login हो रहा है…";
   try{const f=new FormData(e.target);await api("/api/admin/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});showPanel(true);await refresh();msg.textContent="Login सफल";}
   catch(err){msg.textContent=err.message;}
