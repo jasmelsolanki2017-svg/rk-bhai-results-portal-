@@ -227,8 +227,13 @@ app.patch("/api/user/results/:id", userOnly, async (req, res) => {
     row.resultText = value;
   }
   if (req.body?.resultDate !== undefined) {
-    if (Number.isNaN(Date.parse(req.body.resultDate))) return res.status(400).json({ error: "सही तारीख चुनें।" });
-    row.resultDate = new Date(req.body.resultDate);
+    const nextDate = new Date(req.body.resultDate);
+    if (Number.isNaN(nextDate.getTime())) return res.status(400).json({ error: "सही तारीख चुनें।" });
+    const dayStart = new Date(Date.UTC(nextDate.getUTCFullYear(), nextDate.getUTCMonth(), nextDate.getUTCDate()));
+    const dayEnd = new Date(dayStart.getTime() + 86400000);
+    const duplicate = await Result.exists({ _id: { $ne: row._id }, cityId: city._id, deleted: { $ne: true }, resultDate: { $gte: dayStart, $lt: dayEnd } });
+    if (duplicate) return res.status(409).json({ error: "इस शहर की इस तारीख का परिणाम पहले से मौजूद है।" });
+    row.resultDate = nextDate;
   }
   if (req.body?.sourceUrl !== undefined) row.sourceUrl = String(req.body.sourceUrl).slice(0, 500);
   await row.save();
@@ -306,6 +311,13 @@ app.get("/api/results", async (req, res) => {
     const start = new Date(today + "T00:00:00.000Z");
     const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
     filter.resultDate = { $gte: start, $lt: end };
+  }
+  if (req.query.date) {
+    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(req.query.date))
+      return res.status(400).json({ error: "Invalid date. Use YYYY-MM-DD." });
+    const start = new Date(req.query.date + "T00:00:00.000Z");
+    if (Number.isNaN(start.getTime())) return res.status(400).json({ error: "Invalid date." });
+    filter.resultDate = { $gte: start, $lt: new Date(start.getTime() + 86400000) };
   }
   if (req.query.month) {
     if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(req.query.month))
