@@ -13,11 +13,26 @@ async function getJson(url){
 }
 async function loadResults(){
   try{
-    const rows=await getJson("/api/results?today=1");
-    const todayStat=document.getElementById("statToday");if(todayStat)todayStat.textContent=rows.length;
-    if(!rows.length){host.innerHTML='<p class="muted">आज अभी कोई प्रकाशित परिणाम उपलब्ध नहीं है।</p>';}
-    else host.innerHTML=rows.map(row=>`
-      <article class="result"><div><h2>${escapeHtml(row.title)}</h2><time>${new Date(row.resultDate).toLocaleDateString("hi-IN")}</time></div><div class="value">${escapeHtml(row.resultText)}</div></article>`).join("");
+    const [rows,cities]=await Promise.all([getJson("/api/results?recent=2"),getJson("/api/public/cities")]);
+    const todayKey=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+    const todayStart=new Date(todayKey+"T00:00:00.000Z");
+    const yesterdayKey=new Date(todayStart.getTime()-86400000).toISOString().slice(0,10);
+    const byCity=new Map();
+    rows.forEach(row=>{
+      const dayKey=new Date(row.resultDate).toISOString().slice(0,10);
+      if(!byCity.has(row.title))byCity.set(row.title,{today:"XX",yesterday:"XX"});
+      const item=byCity.get(row.title);
+      if(dayKey===todayKey)item.today=row.resultText;
+      if(dayKey===yesterdayKey)item.yesterday=row.resultText;
+    });
+    cities.forEach(city=>{if(!byCity.has(city.cityName))byCity.set(city.cityName,{today:"XX",yesterday:"XX"});});
+    const todayStat=document.getElementById("statToday");if(todayStat)todayStat.textContent=rows.filter(r=>new Date(r.resultDate).toISOString().slice(0,10)===todayKey).length;
+    if(!byCity.size){host.innerHTML='<p class="muted">अभी कोई प्रकाशित परिणाम उपलब्ध नहीं है।</p>';return;}
+    const yesterdayLabel=new Date(todayStart.getTime()-86400000).toLocaleDateString("hi-IN",{day:"2-digit",month:"short"});
+    const todayLabel=todayStart.toLocaleDateString("hi-IN",{day:"2-digit",month:"short"});
+    host.innerHTML='<div class="recent-results-wrap"><table class="recent-results-table"><thead><tr><th>शहर / मार्केट</th><th>कल ('+yesterdayLabel+')</th><th>आज ('+todayLabel+')</th></tr></thead><tbody>'+
+      [...byCity.entries()].sort((a,b)=>a[0].localeCompare(b[0],"hi")).map(([city,result])=>'<tr><th>'+escapeHtml(city)+'</th><td class="'+(result.yesterday==="XX"?"no-result":"")+'">'+escapeHtml(result.yesterday)+'</td><td class="'+(result.today==="XX"?"no-result":"")+'">'+escapeHtml(result.today)+'</td></tr>').join("")+
+      '</tbody></table></div><p class="muted recent-note">XX = अभी परिणाम प्रकाशित नहीं हुआ है।</p>';
   }catch(e){host.innerHTML='<p class="muted">अभी परिणाम लोड नहीं हो पाए। कृपया बाद में प्रयास करें।</p>';}
 }
 function monthKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;}
