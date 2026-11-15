@@ -14,12 +14,21 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 app.get("/admin", (req, res) => res.sendFile(path.join(__dirname, "public", "admin.html")));
 app.get("/user", (req, res) => res.sendFile(path.join(__dirname, "public", "user.html")));
+app.get("/admin/users", (req, res) => res.sendFile(path.join(__dirname, "public", "admin-users.html")));
 
 const User = mongoose.model("PortalUser", new mongoose.Schema({
   username: { type: String, required: true, unique: true, trim: true, lowercase: true, maxlength: 40 },
   passwordHash: { type: String, required: true },
   active: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }
+}));
+
+const City = mongoose.model("PortalCity", new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "PortalUser", required: true, unique: true },
+  cityName: { type: String, required: true, trim: true, maxlength: 60 },
+  status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
+  createdAt: { type: Date, default: Date.now },
+  reviewedAt: { type: Date, default: null }
 }));
 
 const Result = mongoose.model("Result", new mongoose.Schema({
@@ -29,6 +38,8 @@ const Result = mongoose.model("Result", new mongoose.Schema({
   published: { type: Boolean, default: false },
   deleted: { type: Boolean, default: false },
   sourceUrl: { type: String, default: "" },
+  ownerUserId: { type: mongoose.Schema.Types.ObjectId, ref: "PortalUser", default: null, index: true },
+  cityId: { type: mongoose.Schema.Types.ObjectId, ref: "PortalCity", default: null, index: true },
   createdAt: { type: Date, default: Date.now }
 }));
 
@@ -79,7 +90,9 @@ app.get("/api/admin/session", adminOnly, (req, res) => res.json({ ok: true, role
 
 app.get("/api/admin/users", adminOnly, async (req, res) => {
   const users = await User.find().select("username active createdAt").sort({ createdAt: -1 }).lean();
-  res.json(users);
+  const cities = await City.find().lean();
+  const cityByUser = new Map(cities.map(c => [String(c.userId), c]));
+  res.json(users.map(u => { const c = cityByUser.get(String(u._id)); return { ...u, city: c ? { id: c._id, name: c.cityName, status: c.status } : null }; }));
 });
 app.post("/api/admin/users", adminOnly, async (req, res) => {
   const username = String(req.body?.username || "").trim().toLowerCase();
@@ -107,6 +120,48 @@ app.delete("/api/admin/users/:id", adminOnly, async (req, res) => {
   if (!user) return res.status(404).json({ error: "User नहीं मिला।" });
   res.json({ ok: true });
 });
+app.get("/api/user/city", userOnly, async (req, res) => {
+  const city = await City.findOne({ userId: req.portalUserId }).lean();
+  res.json(city ? { id: city._id, cityName: city.cityName, status: city.status } : null);
+});
+app.post("/api/user/city", userOnly, async (req, res) => {
+  const cityName = String(req.body?.cityName || "").trim().replace(/\\s+/g, " ");
+  if (cityName.length < 2 || cityName.length > 60) return res.status(400).json({ error: "शहर का नाम 2 से 60 अक्षर का रखें।" });
+  if (await City.exists({ userId: req.portalUserId })) return res.status(409).json({ error: "आप एक ही शहर बना सकते हैं।" });
+  const city = await City.create({ userId: req.portalUserId, cityName, status: "pending" });
+  res.status(201).json({ id: city._id, cityName: city.cityName, status: city.status });
+});
+app.get("/api/user/results", userOnly, async (req, res) => {
+  const rows = await Result.find({ ownerUserId: req.portalUserId, deleted: { $ne: true } }).sort({ resultDate: -1 }).limit(500).lean();
+  res.json(rows);
+});
+app.post("/api/user/results", userOnly, async (req, res) => {
+  const city = await City.findOne({ userId: req.portalUserId, status: "approved" });
+  if (!city) return res.status(403).json({ error: "पहले अपने शहर की Admin approval करवाएँ।" });
+  const resultText = String(req.body?.resultText || "").trim();
+  const resultDate = req.body?.resultDate;
+  if (!resultText || resultText.length > 300 || !resultDate || Number.isNaN(Date.parse(resultDate)))
+    return res.status(400).json({ error: "सही परिणाम और तारीख भरें।" });
+  const row = await Result.create({ title: city.cityName, resultText, resultDate, sourceUrl: String(req.body?.sourceUrl || "").slice(0, 500), published: true, ownerUserId: req.portalUserId, cityId: city._id });
+  res.status(201).json(row);
+});
+app.patch("/api/user/results/:id", userOnly, async (req, res) => {
+  const row = await Result.findOne({ _id: req.params.id, ownerUserId: req.portalUserId, deleted: { $ne: true } });
+  if (!row) return res.status(404).json({ error: "आपका रिकॉर्ड नहीं मिला।" });
+  if (req.body?.resultText !== undefined) {
+    const value = String(req.body.resultText).trim();
+    if (!value || value.length > 300) return res.status(400).json({ error: "परिणाम 1 से 300 अक्षर का रखें।" });
+    row.resultText = value;
+  }
+  if (req.body?.resultDate !== undefined) {
+    if (Number.isNaN(Date.parse(req.body.resultDate))) return res.status(400).json({ error: "सही तारीख चुनें।" });
+    row.resultDate = new Date(req.body.resultDate);
+  }
+  if (req.body?.sourceUrl !== undefined) row.sourceUrl = String(req.body.sourceUrl).slice(0, 500);
+  await row.save();
+  res.json(row);
+});
+
 app.post("/api/user/login", async (req, res) => {
   const username = String(req.body?.username || "").trim().toLowerCase();
   const password = String(req.body?.password || "");
@@ -134,7 +189,8 @@ app.post("/api/admin/logout", adminOnly, (req, res) => {
 });
 
 app.get("/api/results", async (req, res) => {
-  const filter = { published: true, deleted: { $ne: true } };
+  const approvedCityIds = await City.find({ status: "approved" }).distinct("_id");
+  const filter = { published: true, deleted: { $ne: true }, $or: [{ ownerUserId: null }, { ownerUserId: { $exists: false } }, { cityId: { $in: approvedCityIds } }] };
   if (req.query.today === "1") {
     const today = new Intl.DateTimeFormat("en-CA", {
       timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit"
@@ -153,6 +209,21 @@ app.get("/api/results", async (req, res) => {
   const rows = req.query.month ? await query.limit(500).lean() : await query.limit(100).lean();
   res.json(rows);
 });
+app.get("/api/admin/cities", adminOnly, async (req, res) => {
+  const cities = await City.find().sort({ createdAt: -1 }).lean();
+  const users = await User.find({ _id: { $in: cities.map(c => c.userId) } }).select("username").lean();
+  const names = new Map(users.map(u => [String(u._id), u.username]));
+  res.json(cities.map(c => ({ ...c, username: names.get(String(c.userId)) || "Unknown" })));
+});
+app.patch("/api/admin/cities/:id", adminOnly, async (req, res) => {
+  const status = req.body?.status;
+  if (!["approved", "rejected"].includes(status)) return res.status(400).json({ error: "Invalid approval status" });
+  const city = await City.findByIdAndUpdate(req.params.id, { status, reviewedAt: new Date() }, { new: true });
+  if (!city) return res.status(404).json({ error: "City request नहीं मिली।" });
+  if (status === "rejected") await Result.updateMany({ cityId: city._id }, { $set: { published: false } });
+  res.json(city);
+});
+
 app.get("/api/admin/results", adminOnly, async (req, res) => {
   const filter = { deleted: { $ne: true } };
   if (req.query.month) {
