@@ -13,8 +13,8 @@ async function getJson(url){
 }
 async function loadResults(){
   try{
-    const rows=await getJson("/api/results");
-    if(!rows.length){host.innerHTML='<p class="muted">अभी कोई प्रकाशित रिकॉर्ड उपलब्ध नहीं है।</p>';}
+    const rows=await getJson("/api/results?today=1");
+    if(!rows.length){host.innerHTML='<p class="muted">आज अभी कोई प्रकाशित परिणाम उपलब्ध नहीं है।</p>';}
     else host.innerHTML=rows.map(row=>`
       <article class="result"><div><h2>${escapeHtml(row.title)}</h2><time>${new Date(row.resultDate).toLocaleDateString("hi-IN")}</time></div><div class="value">${escapeHtml(row.resultText)}</div></article>`).join("");
   }catch(e){host.innerHTML='<p class="muted">अभी परिणाम लोड नहीं हो पाए। कृपया बाद में प्रयास करें।</p>';}
