@@ -394,14 +394,14 @@ app.get("/api/public/export.csv", async (req, res) => {
   const rows = await Result.find(filter).select("title resultText resultDate sourceUrl").sort({ resultDate: -1, title: 1 }).limit(20000).lean();
   const cell = value => {
     let text = String(value ?? "");
-    if (/^[=+@\\-\\t\\r]/.test(text)) text = "'" + text;
+    if (/^[=+\-@\t\r]/.test(text)) text = "'" + text;
     return '"' + text.replace(/"/g, '""') + '"';
   };
   const lines = [["शहर / मार्केट", "परिणाम", "तारीख", "सोर्स लिंक"].map(cell).join(",")];
   for (const row of rows) lines.push([row.title, row.resultText, row.resultDate ? new Date(row.resultDate).toISOString().slice(0, 10) : "", row.sourceUrl || ""].map(cell).join(","));
   res.setHeader("Content-Type", "text/csv; charset=utf-8");
   res.setHeader("Content-Disposition", 'attachment; filename="rk-bhai-published-history.csv"');
-  res.send("\\uFEFF" + lines.join("\\r\\n"));
+  res.send("\uFEFF" + lines.join("\r\n"));
 });
 
 app.get("/api/results", async (req, res) => {
