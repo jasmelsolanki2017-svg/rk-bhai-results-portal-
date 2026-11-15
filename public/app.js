@@ -97,7 +97,7 @@ function renderMonthTable(){
   const chosenDate=historyDate.value;
   const dayNumbers=Array.from({length:daysInMonth},(_,i)=>i+1).filter(day=>!chosenDate||String(day).padStart(2,"0")===chosenDate.slice(8,10));
   const groups=[];for(let i=0;i<titles.length;i+=7)groups.push(titles.slice(i,i+7));
-  const summary='<div class="chart-summary"><strong>'+titles.length+' शहर/मार्केट</strong><span>'+rows.length+' प्रकाशित रिकॉर्ड</span>'+(chosenDate?'<span>तारीख: '+escapeHtml(new Date(chosenDate+"T00:00:00").toLocaleDateString("hi-IN"))+'</span>':'')+'</div>';
+  const summary='<div class="chart-summary"><strong>'+titles.length+' शहर/मार्केट</strong>'+(chosenDate?'<span>तारीख: '+escapeHtml(new Date(chosenDate+"T00:00:00").toLocaleDateString("hi-IN"))+'</span>':'')+'</div>';
   const tables=groups.map((group,index)=>{
     const head='<tr><th class="date-col">तारीख</th>'+group.map(t=>'<th>'+escapeHtml(t)+'</th>').join("")+'</tr>';
     const body=dayNumbers.map(day=>{
