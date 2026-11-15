@@ -32,22 +32,28 @@ async function loadMonth(){
   }catch(e){chartHost.innerHTML='<p class="muted">मासिक रिकॉर्ड लोड नहीं हो पाए।</p>';}
 }
 function renderMonthTable(rows,month){
-  if(!rows.length){chartHost.innerHTML='<p class="muted empty-month">इस महीने के लिए अभी कोई प्रकाशित रिकॉर्ड नहीं है।</p>';return;}
-  const titles=[...new Set(rows.map(r=>r.title))].sort((a,b)=>a.localeCompare(b));
+  if(!rows.length){chartHost.innerHTML='<p class="muted empty-month">इस महीने के लिए अभी कोई प्रकाशित रिकॉर्ड उपलब्ध नहीं है।</p>';return;}
+  const titles=[...new Set(rows.map(r=>r.title))].sort((a,b)=>a.localeCompare(b,"hi"));
   const byDay=new Map();
   rows.forEach(row=>{
-    const d=new Date(row.resultDate);
-    const day=d.getDate();
+    const raw=row.resultDate;
+    const day=new Date(raw).getUTCDate();
     if(!byDay.has(day)) byDay.set(day,{});
-    byDay.get(day)[row.title]=byDay.get(day)[row.title] ? byDay.get(day)[row.title]+", "+row.resultText : row.resultText;
+    byDay.get(day)[row.title]=row.resultText;
   });
   const daysInMonth=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
-  const head='<tr><th>तारीख</th>'+titles.map(t=>'<th>'+escapeHtml(t)+'</th>').join("")+'</tr>';
-  const body=Array.from({length:daysInMonth},(_,i)=>{
-    const day=i+1, values=byDay.get(day)||{};
-    return '<tr><th>'+day+'</th>'+titles.map(t=>'<td>'+(values[t]?escapeHtml(values[t]):'—')+'</td>').join("")+'</tr>';
+  const groups=[];
+  for(let i=0;i<titles.length;i+=4) groups.push(titles.slice(i,i+4));
+  const summary='<div class="chart-summary"><strong>'+titles.length+' शहर/मार्केट</strong><span>'+rows.length+' प्रकाशित रिकॉर्ड</span></div>';
+  const tables=groups.map((group,index)=>{
+    const head='<tr><th class="date-col">तारीख</th>'+group.map(t=>'<th>'+escapeHtml(t)+'</th>').join("")+'</tr>';
+    const body=Array.from({length:daysInMonth},(_,i)=>{
+      const day=i+1, values=byDay.get(day)||{};
+      return '<tr><th class="date-col">'+String(day).padStart(2,"0")+'</th>'+group.map(t=>'<td>'+(values[t]?escapeHtml(values[t]):'—')+'</td>').join("")+'</tr>';
+    }).join("");
+    return '<section class="market-chart"><h3>चार्ट '+(index+1)+' / '+groups.length+'</h3><div class="table-scroll"><table class="history-table"><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div></section>';
   }).join("");
-  chartHost.innerHTML='<div class="table-scroll"><table class="history-table"><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
+  chartHost.innerHTML=summary+tables;
 }
 prevButton.addEventListener("click",()=>{selectedMonth=new Date(selectedMonth.getFullYear(),selectedMonth.getMonth()-1,1);loadMonth();});
 nextButton.addEventListener("click",()=>{const candidate=new Date(selectedMonth.getFullYear(),selectedMonth.getMonth()+1,1);if(candidate<=new Date(new Date().getFullYear(),new Date().getMonth(),1)){selectedMonth=candidate;loadMonth();}});
