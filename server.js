@@ -18,8 +18,8 @@ app.get("/admin/users", (req, res) => res.sendFile(path.join(__dirname, "public"
 
 const User = mongoose.model("PortalUser", new mongoose.Schema({
   username: { type: String, required: true, unique: true, trim: true, lowercase: true, maxlength: 40 },
-  mobile: { type: String, required: true, unique: true, trim: true },
-  email: { type: String, required: true, unique: true, trim: true, lowercase: true },
+  mobile: { type: String, default: "", trim: true },
+  email: { type: String, default: "", trim: true, lowercase: true },
   passwordHash: { type: String, required: true },
   mustChangePassword: { type: Boolean, default: true },
   active: { type: Boolean, default: true },
