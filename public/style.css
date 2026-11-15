@@ -153,3 +153,14 @@ footer{text-align:center;padding:25px;color:#777;font-size:13px}@media(max-width
 .expiry-warning-card p{line-height:1.55}
 .expiry-warning-card #expiryRemaining{font-size:19px;font-weight:700;color:#fff}
 .expiry-warning-card button{margin-top:10px;padding:11px 22px;border:1px solid #b58a3b;border-radius:8px;background:#3a2b15;color:#f5d78e;font:inherit}
+
+
+/* Today and yesterday result comparison */
+.recent-results-wrap{width:100%;overflow-x:auto;border:1px solid #59451f;border-radius:10px;background:#100e0a}
+.recent-results-table{width:100%;min-width:330px;border-collapse:collapse;text-align:center}
+.recent-results-table th,.recent-results-table td{padding:11px 9px;border-bottom:1px solid #393027}
+.recent-results-table thead th{background:#211a10;color:#f5d78e;font-size:13px}
+.recent-results-table tbody th{color:#eee;text-align:left;font-size:13px;font-weight:600}
+.recent-results-table td{font-weight:700;color:#f5d78e;font-size:15px}
+.recent-results-table td.no-result{color:#999;font-weight:500}
+.recent-note{font-size:11px;margin-top:7px}
