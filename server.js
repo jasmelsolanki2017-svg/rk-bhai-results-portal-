@@ -23,6 +23,7 @@ const User = mongoose.model("PortalUser", new mongoose.Schema({
   passwordHash: { type: String, required: true },
   mustChangePassword: { type: Boolean, default: true },
   active: { type: Boolean, default: true },
+  expiresAt: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now }
 }));
 
@@ -96,7 +97,8 @@ app.post("/api/admin/login", async (req, res) => {
 app.get("/api/admin/session", adminOnly, (req, res) => res.json({ ok: true, role: "admin" }));
 
 app.get("/api/admin/users", adminOnly, async (req, res) => {
-  const users = await User.find().select("username mobile email active createdAt").sort({ createdAt: -1 }).lean();
+  await disableExpiredUsers();
+  const users = await User.find().select("username mobile email active expiresAt createdAt").sort({ createdAt: -1 }).lean();
   const cities = await City.find().lean();
   const cityByUser = new Map(cities.map(c => [String(c.userId), c]));
   res.json(users.map(u => { const c = cityByUser.get(String(u._id)); return { ...u, city: c ? { id: c._id, name: c.cityName, status: c.status } : null }; }));
@@ -115,6 +117,19 @@ app.post("/api/admin/users", adminOnly, async (req, res) => {
 app.patch("/api/admin/users/:id", adminOnly, async (req, res) => {
   const update = {};
   if (typeof req.body?.active === "boolean") update.active = req.body.active;
+  if (req.body?.clearExpiry === true) update.expiresAt = null;
+  if (req.body?.expiresInDays !== undefined) {
+    const days = Number(req.body.expiresInDays);
+    if (!Number.isInteger(days) || days < 1 || days > 3650) return res.status(400).json({ error: "दिन 1 से 3650 के बीच रखें।" });
+    update.expiresAt = new Date(Date.now() + days * 86400000);
+    update.active = true;
+  }
+  if (req.body?.expiresAt !== undefined) {
+    const date = new Date(req.body.expiresAt);
+    if (Number.isNaN(date.getTime()) || date.getTime() <= Date.now()) return res.status(400).json({ error: "भविष्य की सही तारीख चुनें।" });
+    update.expiresAt = date;
+    update.active = true;
+  }
   if (req.body?.resetPassword === true) {
     update.passwordHash = await bcrypt.hash("userlogin", 12);
     update.mustChangePassword = true;
@@ -124,7 +139,7 @@ app.patch("/api/admin/users/:id", adminOnly, async (req, res) => {
     update.passwordHash = await bcrypt.hash(password, 12);
     update.mustChangePassword = true;
   }
-  const user = await User.findByIdAndUpdate(req.params.id, update, { new: true }).select("username active createdAt");
+  const user = await User.findByIdAndUpdate(req.params.id, update, { new: true }).select("username active expiresAt createdAt");
   if (!user) return res.status(404).json({ error: "User नहीं मिला।" });
   res.json(user);
 });
@@ -191,7 +206,7 @@ app.patch("/api/user/results/:id", userOnly, async (req, res) => {
 app.post("/api/user/login", async (req, res) => {
   const username = String(req.body?.username || "").trim().toLowerCase();
   const password = String(req.body?.password || "");
-  const user = await User.findOne({ username, active: true });
+  const user = await User.findOne({ username, active: true, $or: [{ expiresAt: null }, { expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }] });
   if (!user || !(await bcrypt.compare(password, user.passwordHash)))
     return res.status(401).json({ error: "गलत username या password, या account बंद है।" });
   const token = jwt.sign({ role: "user", sub: String(user._id) }, process.env.JWT_SECRET, { expiresIn: "7d" });
@@ -202,8 +217,8 @@ app.get("/api/user/session", async (req, res) => {
   try {
     const payload = jwt.verify(req.cookies.user_session, process.env.JWT_SECRET);
     if (payload.role !== "user") throw new Error("Invalid role");
-    const user = await User.findById(payload.sub).select("username active mustChangePassword").lean();
-    if (!user || !user.active) return res.status(401).json({ error: "Account बंद है।" });
+    const user = await User.findById(payload.sub).select("username active mustChangePassword expiresAt").lean();
+    if (!user || !user.active || (user.expiresAt && user.expiresAt <= new Date())) return res.status(401).json({ error: "Account बंद है या इसकी अवधि समाप्त हो गई है। Admin से दोबारा approval लें।" });
     res.json({ ok: true, role: "user", username: user.username, mustChangePassword: !!user.mustChangePassword });
   } catch { return res.status(401).json({ error: "Login required" }); }
 });
@@ -341,11 +356,18 @@ async function seedHistoricalRecords() {
   console.log(`Historical archive records checked: ${records.length}`);
 }
 
+async function disableExpiredUsers() {
+  const result = await User.updateMany({ active: true, expiresAt: { $ne: null, $lte: new Date() } }, { $set: { active: false } });
+  if (result.modifiedCount) console.log("Expired user accounts disabled:", result.modifiedCount);
+}
+
 const port = process.env.PORT || 3000;
 mongoose.connect(process.env.MONGODB_URI)
   .then(async () => {
     await seedHistoricalRecords();
     await cleanupChandigarhDuplicates();
+    await disableExpiredUsers();
+    setInterval(() => disableExpiredUsers().catch(err => console.error("Expiry check failed:", err.message)), 60 * 1000);
     app.listen(port, () => console.log(`RK portal running on ${port}`));
   })
   .catch(err => { console.error("Database connection failed:", err.message); process.exit(1); });
