@@ -85,7 +85,7 @@ app.get("/api/results", async (req, res) => {
 app.get("/api/admin/results", adminOnly, async (req, res) => {
   const filter = {};
   if (req.query.month) {
-    if (!/^\\d{4}-(0[1-9]|1[0-2])$/.test(req.query.month))
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(req.query.month))
       return res.status(400).json({ error: "Invalid month. Use YYYY-MM." });
     const [year, month] = req.query.month.split("-").map(Number);
     filter.resultDate = { $gte: new Date(Date.UTC(year, month - 1, 1)), $lt: new Date(Date.UTC(year, month, 1)) };
@@ -93,10 +93,10 @@ app.get("/api/admin/results", adminOnly, async (req, res) => {
   res.json(await Result.find(filter).sort({ resultDate: -1, title: 1 }).limit(2000).lean());
 });
 app.post("/api/admin/results", adminOnly, async (req, res) => {
-  const { title, resultText, resultDate, published } = req.body || {};
+  const { title, resultText, resultDate, published, sourceUrl } = req.body || {};
   if (!title || !resultText || !resultDate || Number.isNaN(Date.parse(resultDate)))
     return res.status(400).json({ error: "Title, result and valid date are required" });
-  const row = await Result.create({ title, resultText, resultDate, published: published === true });
+  const row = await Result.create({ title, resultText, resultDate, published: published === true, sourceUrl: sourceUrl || "" });
   res.status(201).json(row);
 });
 app.patch("/api/admin/results/:id", adminOnly, async (req, res) => {
