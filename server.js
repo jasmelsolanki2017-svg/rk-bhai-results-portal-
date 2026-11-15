@@ -59,8 +59,8 @@ async function userOnly(req, res, next) {
     if (!token) return res.status(401).json({ error: "Login required" });
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     if (payload.role !== "user") return res.status(403).json({ error: "Forbidden" });
-    const user = await User.findById(payload.sub).select("active mustChangePassword").lean();
-    if (!user || !user.active) return res.status(403).json({ error: "आपका account बंद है।" });
+    const user = await User.findById(payload.sub).select("active mustChangePassword expiresAt").lean();
+    if (!user || !user.active || (user.expiresAt && user.expiresAt <= new Date())) return res.status(403).json({ error: "आपका account बंद है या अवधि समाप्त हो गई है। Admin approval जरूरी है।" });
     if (user.mustChangePassword) return res.status(403).json({ error: "पहले अपना default password बदलें।" });
     req.portalUserId = payload.sub;
     next();
@@ -251,11 +251,13 @@ app.post("/api/admin/logout", adminOnly, (req, res) => {
 });
 
 app.get("/api/public/cities", async (req, res) => {
-  const cities = await City.find({ status: "approved" }).select("cityName expectedTime").sort({ cityName: 1 }).lean();
+  const activeUsers = await User.find({ active: true, $or: [{ expiresAt: null }, { expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }] }).distinct("_id");
+  const cities = await City.find({ status: "approved", userId: { $in: activeUsers } }).select("cityName expectedTime").sort({ cityName: 1 }).lean();
   res.json(cities.map(c => ({ cityName: c.cityName, expectedTime: c.expectedTime || "" })));
 });
 app.get("/api/results", async (req, res) => {
-  const approvedCityIds = await City.find({ status: "approved" }).distinct("_id");
+  const activeUsers = await User.find({ active: true, $or: [{ expiresAt: null }, { expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }] }).distinct("_id");
+  const approvedCityIds = await City.find({ status: "approved", userId: { $in: activeUsers } }).distinct("_id");
   const filter = { published: true, deleted: { $ne: true }, $or: [{ ownerUserId: null }, { ownerUserId: { $exists: false } }, { cityId: { $in: approvedCityIds } }] };
   if (req.query.today === "1") {
     const today = new Intl.DateTimeFormat("en-CA", {
