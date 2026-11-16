@@ -150,6 +150,19 @@ app.use("/api", (req, res, next) => {
   next();
 });
 
+// Mirror public results to a static GitHub JSON file after successful admin/user changes.
+// This lets the public GitHub Pages frontend keep showing the last published data while Render sleeps.
+app.use((req, res, next) => {
+  res.on("finish", () => {
+    const writeMethod = ["POST", "PATCH", "PUT", "DELETE"].includes(req.method);
+    const publicDataWrite = /^\\/api\\/(admin|user)\\/(results|cities|users|restore)(\\/|$)/.test(req.path);
+    if (writeMethod && publicDataWrite && res.statusCode >= 200 && res.statusCode < 300) {
+      syncPublicSnapshot().catch(err => console.error("Public snapshot sync failed:", err.message));
+    }
+  });
+  next();
+});
+
 app.post("/api/admin/login", async (req, res) => {
   const { username, password } = req.body || {};
   if (!username || !password || !process.env.ADMIN_USERNAME || !adminPasswordHash || !process.env.JWT_SECRET)
@@ -589,6 +602,83 @@ app.delete("/api/admin/results/:id", adminOnly, async (req, res) => {
   const row = await Result.findByIdAndUpdate(req.params.id, { deleted: true }, { new: true });
   if (!row) return res.status(404).json({ error: "Record not found" });
   res.json({ ok: true });
+});
+async function syncPublicSnapshot() {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) {
+    console.warn("GITHUB_TOKEN is not configured; public static snapshot was not updated.");
+    return false;
+  }
+  const repo = process.env.GITHUB_REPO || "jasmelsolanki2017-svg/rk-bhai-results-portal-";
+  const activeUsers = await User.find({
+    active: true,
+    $or: [{ expiresAt: null }, { expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }]
+  }).distinct("_id");
+  const cities = await City.find({ status: "approved", userId: { $in: activeUsers } })
+    .select("cityName expectedTime").sort({ cityName: 1 }).lean();
+  const approvedCityIds = cities.map(c => c._id);
+  const filter = {
+    published: true,
+    deleted: { $ne: true },
+    $or: [{ ownerUserId: null }, { ownerUserId: { $exists: false } }, { cityId: { $in: approvedCityIds } }]
+  };
+  const results = await Result.find(filter)
+    .select("title resultText resultDate sourceUrl createdAt")
+    .sort({ resultDate: -1, title: 1 }).limit(20000).lean();
+  const snapshot = {
+    app: "rk-bhai-results-portal",
+    updatedAt: new Date().toISOString(),
+    results: results.map(r => ({
+      _id: String(r._id),
+      title: r.title,
+      resultText: r.resultText,
+      resultDate: r.resultDate,
+      sourceUrl: r.sourceUrl || "",
+      createdAt: r.createdAt || null
+    })),
+    cities: cities.map(c => ({ cityName: c.cityName, expectedTime: c.expectedTime || "" }))
+  };
+  const apiUrl = "https://api.github.com/repos/" + repo + "/contents/data/public-results.json";
+  const headers = {
+    "Authorization": "Bearer " + token,
+    "Accept": "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28"
+  };
+  const currentResponse = await fetch(apiUrl, { headers });
+  let sha;
+  if (currentResponse.ok) {
+    const current = await currentResponse.json();
+    sha = current.sha;
+  } else if (currentResponse.status !== 404) {
+    throw new Error("GitHub file lookup returned " + currentResponse.status);
+  }
+  const payload = {
+    message: "Update public results snapshot",
+    content: Buffer.from(JSON.stringify(snapshot, null, 2) + "\\n", "utf8").toString("base64")
+  };
+  if (sha) payload.sha = sha;
+  const writeResponse = await fetch(apiUrl, {
+    method: "PUT",
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  if (!writeResponse.ok) {
+    const detail = await writeResponse.text();
+    throw new Error("GitHub snapshot update returned " + writeResponse.status + ": " + detail.slice(0, 300));
+  }
+  console.log("Public results snapshot updated on GitHub:", results.length, "results");
+  return true;
+}
+
+app.post("/api/admin/sync-public-snapshot", adminOnly, async (req, res) => {
+  try {
+    const synced = await syncPublicSnapshot();
+    if (!synced) return res.status(503).json({ error: "Render में GITHUB_TOKEN सेट करना बाकी है।" });
+    res.json({ ok: true, message: "Public results snapshot updated." });
+  } catch (err) {
+    console.error("Manual public snapshot sync failed:", err.message);
+    res.status(502).json({ error: "GitHub पर public snapshot अपडेट नहीं हो पाया।" });
+  }
 });
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 
