@@ -206,3 +206,33 @@ if (moreToolsButton && moreToolsBackdrop && moreToolsMenu) {
     if (event.key === "Escape") closeMoreTools();
   });
 }
+
+
+// Mobile bottom navigation shortcuts and active-section indicator.
+const mobileMenuButton = document.getElementById("mobileMenuButton");
+if (mobileMenuButton && moreToolsButton) {
+  mobileMenuButton.addEventListener("click", () => moreToolsButton.click());
+}
+const mobileNavItems = [...document.querySelectorAll("[data-mobile-nav]")];
+const setMobileNavActive = key => mobileNavItems.forEach(item => {
+  const active = item.dataset.mobileNav === key;
+  item.classList.toggle("is-active", active);
+  if (active) item.setAttribute("aria-current", "page");
+  else item.removeAttribute("aria-current");
+});
+mobileNavItems.forEach(item => item.addEventListener("click", () => {
+  if (item.dataset.mobileNav) setMobileNavActive(item.dataset.mobileNav);
+}));
+if ("IntersectionObserver" in window && mobileNavItems.length) {
+  const mobileNavObserver = new IntersectionObserver(entries => {
+    const visible = entries.filter(entry => entry.isIntersecting).sort((a,b) => b.intersectionRatio-a.intersectionRatio)[0];
+    if (!visible) return;
+    const key = visible.target.id === "archive" ? "archive" :
+      (visible.target.id === "resultsHeading" || visible.target.id === "results" ? "results" : "home");
+    setMobileNavActive(key);
+  }, {rootMargin:"-18% 0px -62% 0px",threshold:[0,.15,.35,.6]});
+  ["top","resultsHeading","archive"].forEach(id => {
+    const target=document.getElementById(id);
+    if(target) mobileNavObserver.observe(target);
+  });
+}
