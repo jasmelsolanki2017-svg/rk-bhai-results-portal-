@@ -440,3 +440,22 @@ body>footer{border-top:1px solid #332817;background:#090909;color:#9b8d70}
 .dashboard-side-menu>[data-dashboard-logout]{margin-top:auto;border-color:#743333;background:#321919;color:#ffdada;cursor:pointer}
 body.dashboard-menu-open{overflow:hidden}
 @media(max-width:600px){.pro-header-right{gap:7px}.dashboard-menu-trigger{width:40px;height:40px}.user-dashboard-header .dashboard-menu-trigger{top:18px}}
+
+
+/* Make the homepage hero (परिणाम और पुराने रिकॉर्ड) more compact */
+.public-hero{min-height:190px;padding:clamp(18px,3vw,32px);margin-bottom:16px}
+.hero-copy{max-width:720px}
+.public-hero h1{font-size:clamp(25px,3.8vw,36px);margin:8px 0 7px}
+.public-hero p{font-size:14px;line-height:1.55}
+.hero-cta{margin-top:14px;padding:9px 14px}
+.hero-art{width:170px;height:150px}
+.hero-emblem{width:96px;height:96px}
+.hero-emblem span{font-size:35px}
+.orbit-one{width:150px;height:100px}.orbit-two{width:115px;height:150px}
+@media(max-width:600px){
+ .public-hero{min-height:160px;padding:17px 15px;margin-bottom:15px}
+ .public-hero h1{font-size:24px;margin:7px 0 6px}
+ .public-hero p{font-size:12px;line-height:1.45;max-width:285px}
+ .hero-cta{margin-top:11px;padding:8px 11px;font-size:12px}
+ .hero-art{right:-58px;bottom:-55px;width:125px;height:125px}
+}
