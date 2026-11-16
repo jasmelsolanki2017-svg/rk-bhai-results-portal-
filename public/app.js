@@ -96,7 +96,10 @@ function renderMonthTable(){
   });
   const daysInMonth=new Date(selectedMonth.getFullYear(),selectedMonth.getMonth()+1,0).getDate();
   const chosenDate=historyDate.value;
-  const dayNumbers=Array.from({length:daysInMonth},(_,i)=>i+1).filter(day=>!chosenDate||String(day).padStart(2,"0")===chosenDate.slice(8,10));
+  const todayKey=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+  const currentMonthKey=todayKey.slice(0,7);
+  const visibleDays=monthKey(selectedMonth)===currentMonthKey?Math.min(daysInMonth,Number(todayKey.slice(8,10))):daysInMonth;
+  const dayNumbers=Array.from({length:visibleDays},(_,i)=>i+1).filter(day=>!chosenDate||String(day).padStart(2,"0")===chosenDate.slice(8,10));
   const groups=[];for(let i=0;i<titles.length;i+=7)groups.push(titles.slice(i,i+7));
   const summary='<div class="chart-summary"><strong>'+titles.length+' शहर/मार्केट</strong>'+(chosenDate?'<span>तारीख: '+escapeHtml(new Date(chosenDate+"T00:00:00").toLocaleDateString("hi-IN"))+'</span>':'')+'</div>';
   const tables=groups.map((group,index)=>{
