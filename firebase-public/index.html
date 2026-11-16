@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="RK Bhai - प्रकाशित परिणाम और पुराने रिकॉर्ड"><meta name="theme-color" content="#090909"><link rel="manifest" href="/manifest.json"><link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <title>RK Bhai | Results & Archive</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body id="top">
+  <header class="public-header"><div class="public-header-inner"><a class="public-brand" href="/" aria-label="RK Bhai Home"><span class="public-brand-mark">RK</span><span><strong>RK <b>BHAI</b></strong><small>RESULTS & HISTORICAL ARCHIVE</small></span></a><nav class="public-nav" aria-label="मुख्य नेविगेशन"><a href="#results">आज के परिणाम</a><a href="#archive">मासिक चार्ट</a></nav><div class="live-clock"><span>भारत का समय</span><strong id="liveClock">--:--:--</strong><small id="liveDate">लोड हो रहा है…</small></div><button type="button" id="moreToolsButton" class="header-menu-trigger" aria-label="मेन्यू खोलें" aria-expanded="false" aria-controls="moreToolsMenu"><span>⋮</span></button></div></header>
+  <div id="moreToolsBackdrop" class="side-menu-backdrop" hidden>
+    <aside id="moreToolsMenu" class="side-tools-menu" role="dialog" aria-modal="true" aria-label="वेबसाइट विकल्प" hidden>
+      <div class="side-tools-heading"><div><small>RK BHAI</small><h2>त्वरित विकल्प</h2></div><button type="button" id="closeMoreTools" aria-label="मेन्यू बंद करें">×</button></div>
+      <button type="button" id="installApp" class="more-tools-item" hidden><span>＋</span>ऐप इंस्टॉल करें</button>
+      <button type="button" id="shareSite" class="more-tools-item"><span>↗</span>शेयर करें</button>
+      <button type="button" id="showQr" class="more-tools-item"><span>▦</span>QR Code</button>
+      <a class="more-tools-item" href="https://rk-bhai-results-portal.onrender.com/api/public/export.csv"><span>⇩</span>CSV डाउनलोड</a>
+      <button type="button" id="printArchive" class="more-tools-item"><span>▤</span>PDF / प्रिंट</button>
+    </aside>
+  </div>
+  <main class="public-main">
+    <section class="homepage-overview-shell" aria-label="RK Bhai परिणाम और सारांश"><section class="intro public-hero"><div class="hero-copy"><span class="hero-kicker">WELCOME TO RK BHAI PORTAL</span><h1>परिणाम और पुराने रिकॉर्ड</h1><p>सभी प्रकाशित परिणाम और उनका ऐतिहासिक रिकॉर्ड एक ही जगह पर आसानी से देखें।</p><a class="hero-cta" href="#results">परिणाम देखें <span>↓</span></a></div><div class="hero-art" aria-hidden="true"><div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div><div class="hero-emblem"><span>RK</span><small>RESULTS</small></div></div></section>
+    <section class="summary-panel public-summary" aria-label="वेबसाइट सारांश"><div class="summary-top"><div><span class="summary-kicker">RK BHAI OVERVIEW</span><h2>रिकॉर्ड का एक नज़र में सारांश</h2></div><span class="live-pill"><i></i> लाइव डेटा</span></div><div class="summary-grid"><article class="summary-card"><span>आज के परिणाम</span><strong id="statToday">—</strong><small>आज प्रकाशित</small></article><article class="summary-card"><span>शहर / मार्केट</span><strong id="statCities">—</strong><small>इस महीने सक्रिय</small></article></div></section></section>
+    <div id="qrDialog" class="qr-dialog" role="dialog" aria-modal="true" aria-labelledby="qrTitle" hidden>
+      <div class="qr-card"><button type="button" id="closeQr" class="qr-close" aria-label="बंद करें">×</button><h2 id="qrTitle">RK Bhai Website QR</h2><p>इस QR को स्कैन करके वेबसाइट खोलें।</p><img id="qrImage" alt="RK Bhai website QR code"><a id="qrOpen" href="#" target="_blank" rel="noopener">QR Code खोलें</a></div>
+    </div>
+    
+    <section id="resultsHeading" class="list-heading public-section-heading"><div><span class="section-eyebrow">LATEST UPDATES</span><h2>हाल के प्रकाशित परिणाम</h2></div><span class="section-chip">LIVE FEED</span></section><div class="public-filters"><label for="citySearch">शहर खोजें</label><input id="citySearch" type="search" placeholder="शहर / मार्केट का नाम लिखें…"></div>
+    <section id="results" class="results"><p class="muted">परिणाम लोड हो रहे हैं…</p></section>
+    <section id="archive" class="chart-panel public-chart-panel" aria-labelledby="chartTitle"><div class="chart-heading"><h2 id="chartTitle">मासिक रिकॉर्ड चार्ट</h2><p>तारीख के अनुसार प्रकाशित रिकॉर्ड का पूरा इतिहास</p></div><div class="archive-filters"><label for="chartCity">शहर के अनुसार चार्ट</label><select id="chartCity"><option value="">सभी शहर / मार्केट</option></select><label for="historyDate">किसी तारीख का रिकॉर्ड देखें</label><input id="historyDate" type="date"><button id="clearDate" type="button" class="filter-clear">तारीख हटाएँ</button></div><div id="historyChart" class="history-chart"><p class="muted">चार्ट लोड हो रहा है…</p></div>
+    <div class="month-nav"><button id="prevMonth" type="button" aria-label="पिछला महीना">‹ पिछला</button><strong id="monthLabel">लोड हो रहा है…</strong><button id="nextMonth" type="button" aria-label="अगला महीना" disabled>अगला ›</button></div><p class="chart-note">यह केवल पहले से प्रकाशित रिकॉर्ड का ऐतिहासिक विवरण है।</p></section>
+    <section class="notice">सूचना: यह वेबसाइट केवल जानकारी के लिए है। यहाँ दांव, भुगतान या भागीदारी की सुविधा उपलब्ध नहीं है।</section>
+  </main>
+  <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="मोबाइल नेविगेशन">
+    <a class="mobile-nav-item is-active" href="#top" data-mobile-nav="home"><span class="mobile-nav-icon" aria-hidden="true">⌂</span><span>होम</span></a>
+    <a class="mobile-nav-item" href="#resultsHeading" data-mobile-nav="results"><span class="mobile-nav-icon" aria-hidden="true">▤</span><span>परिणाम</span></a>
+    <a class="mobile-nav-item" href="#archive" data-mobile-nav="archive"><span class="mobile-nav-icon" aria-hidden="true">▥</span><span>चार्ट</span></a>
+    <button class="mobile-nav-item" type="button" id="mobileMenuButton"><span class="mobile-nav-icon" aria-hidden="true">⋯</span><span>मेन्यू</span></button>
+  </nav>
+  <footer>© <span id="year"></span> RK Bhai</footer>
+  <script src="/clock.js"></script>
+  <script src="/app.js"></script>
+</body></html>
