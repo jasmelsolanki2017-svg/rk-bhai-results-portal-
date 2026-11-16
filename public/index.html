@@ -6,7 +6,7 @@
   <title>RK Bhai | Results & Archive</title>
   <link rel="stylesheet" href="/style.css">
 </head>
-<body>
+<body id="top">
   <header class="public-header"><div class="public-header-inner"><a class="public-brand" href="/" aria-label="RK Bhai Home"><span class="public-brand-mark">RK</span><span><strong>RK <b>BHAI</b></strong><small>RESULTS & HISTORICAL ARCHIVE</small></span></a><nav class="public-nav" aria-label="मुख्य नेविगेशन"><a href="#results">आज के परिणाम</a><a href="#archive">मासिक चार्ट</a></nav><div class="live-clock"><span>भारत का समय</span><strong id="liveClock">--:--:--</strong><small id="liveDate">लोड हो रहा है…</small></div><button type="button" id="moreToolsButton" class="header-menu-trigger" aria-label="मेन्यू खोलें" aria-expanded="false" aria-controls="moreToolsMenu"><span>⋮</span></button></div></header>
   <div id="moreToolsBackdrop" class="side-menu-backdrop" hidden>
     <aside id="moreToolsMenu" class="side-tools-menu" role="dialog" aria-modal="true" aria-label="वेबसाइट विकल्प" hidden>
@@ -31,6 +31,12 @@
     <div class="month-nav"><button id="prevMonth" type="button" aria-label="पिछला महीना">‹ पिछला</button><strong id="monthLabel">लोड हो रहा है…</strong><button id="nextMonth" type="button" aria-label="अगला महीना" disabled>अगला ›</button></div><p class="chart-note">यह केवल पहले से प्रकाशित रिकॉर्ड का ऐतिहासिक विवरण है।</p></section>
     <section class="notice">सूचना: यह वेबसाइट केवल जानकारी के लिए है। यहाँ दांव, भुगतान या भागीदारी की सुविधा उपलब्ध नहीं है।</section>
   </main>
+  <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="मोबाइल नेविगेशन">
+    <a class="mobile-nav-item is-active" href="#top" data-mobile-nav="home"><span class="mobile-nav-icon" aria-hidden="true">⌂</span><span>होम</span></a>
+    <a class="mobile-nav-item" href="#resultsHeading" data-mobile-nav="results"><span class="mobile-nav-icon" aria-hidden="true">▤</span><span>परिणाम</span></a>
+    <a class="mobile-nav-item" href="#archive" data-mobile-nav="archive"><span class="mobile-nav-icon" aria-hidden="true">▥</span><span>चार्ट</span></a>
+    <button class="mobile-nav-item" type="button" id="mobileMenuButton"><span class="mobile-nav-icon" aria-hidden="true">⋯</span><span>मेन्यू</span></button>
+  </nav>
   <footer>© <span id="year"></span> RK Bhai</footer>
   <script src="/clock.js"></script>
   <script src="/app.js"></script>
