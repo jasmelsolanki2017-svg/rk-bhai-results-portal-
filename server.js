@@ -471,7 +471,12 @@ app.patch("/api/admin/cities/:id", adminOnly, async (req, res) => {
   }
   const city = await City.findByIdAndUpdate(req.params.id, update, { new: true, runValidators: true });
   if (!city) return res.status(404).json({ error: "City request नहीं मिली।" });
-  if (req.body?.status && req.body.status !== "approved") await Result.updateMany({ cityId: city._id }, { $set: { published: false } });
+  if (req.body?.status === "approved") {
+    // Approving or unhiding a city must restore its non-deleted historical results to the public archive.
+    await Result.updateMany({ cityId: city._id, deleted: { $ne: true } }, { $set: { published: true } });
+  } else if (req.body?.status) {
+    await Result.updateMany({ cityId: city._id }, { $set: { published: false } });
+  }
   if (req.body?.cityName) await Result.updateMany({ cityId: city._id }, { $set: { title: city.cityName } });
   res.json(city);
 });
