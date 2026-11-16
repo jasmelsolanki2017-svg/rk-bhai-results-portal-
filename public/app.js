@@ -47,7 +47,7 @@ function renderRecent(){
   if(!entries.length){host.innerHTML='<p class="muted">इस खोज से कोई शहर नहीं मिला।</p>';return;}
   const yesterdayLabel=new Date(todayStart.getTime()-86400000).toLocaleDateString("hi-IN",{day:"2-digit",month:"short"});
   const todayLabel=todayStart.toLocaleDateString("hi-IN",{day:"2-digit",month:"short"});
-  const cell=(row,isToday=false)=>row?'<span'+(isToday?' class="result-blink"':'')+'>'+escapeHtml(row.resultText)+'</span>'+(isToday?' <span class="new-result-badge">NEW</span>':'')+"":(isToday?'<span class="wait-badge">WAIT</span>':'<span class="no-result">XX</span>');
+  const cell=(row,isToday=false)=>{if(!row)return isToday?'<span class="wait-badge">WAIT</span>':'<span class="no-result">XX</span>';const addedAt=new Date(row.createdAt||0).getTime();const age=Date.now()-addedAt;const isNew=Number.isFinite(addedAt)&&addedAt>0&&age>=0&&age<2*60*60*1000;return '<span'+(isNew?' class="result-blink"':'')+'>'+escapeHtml(row.resultText)+'</span>'+(isNew?' <span class="new-result-badge">NEW</span>':'');};
   host.innerHTML='<div class="recent-results-wrap"><table class="recent-results-table"><thead><tr><th>शहर / मार्केट</th><th>कल ('+yesterdayLabel+')</th><th>आज ('+todayLabel+')</th></tr></thead><tbody>'+
     entries.map(([city,result])=>'<tr><th>'+escapeHtml(city)+'</th><td>'+cell(result.yesterday)+'</td><td>'+cell(result.today,true)+'</td></tr>').join("")+
     '</tbody></table></div>';
@@ -124,6 +124,7 @@ clearDate.addEventListener("click",()=>{historyDate.value="";renderMonthTable();
 
 loadMonth();
 loadResults();
+setInterval(renderRecent,30000);
 
  
 // Installable app, native share, QR code and print-to-PDF tools.
