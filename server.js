@@ -979,6 +979,10 @@ async function connectDatabaseWithRetry() {
         await seedHistoricalRecords();
         await cleanupChandigarhDuplicates();
         await disableExpiredUsers();
+        if (process.env.GITHUB_TOKEN) {
+          try { await syncPublicSnapshot(); }
+          catch (snapshotError) { console.error("Initial public snapshot sync failed:", snapshotError.message); }
+        }
         setInterval(() => disableExpiredUsers().catch(err => console.error("Expiry check failed:", err.message)), 60 * 1000);
         databaseStartupTasksDone = true;
       } catch (startupTaskError) {
