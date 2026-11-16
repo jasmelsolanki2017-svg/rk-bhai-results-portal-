@@ -12,6 +12,32 @@ const app = express();
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json({ limit: "25mb" }));
 app.use(cookieParser());
+
+// Allow the Firebase-hosted public frontend to read only the public GET APIs.
+const firebasePublicOrigins = new Set([
+  "https://rk-bhai-results-portal.web.app",
+  "https://rk-bhai-results-portal.firebaseapp.com"
+]);
+const firebasePublicApiPaths = new Set([
+  "/api/results",
+  "/api/public/cities",
+  "/api/public/export.csv"
+]);
+app.use((req, res, next) => {
+  if (!firebasePublicApiPaths.has(req.path)) return next();
+  const origin = req.get("Origin");
+  if (origin && firebasePublicOrigins.has(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  }
+  if (req.method === "OPTIONS") {
+    if (origin && firebasePublicOrigins.has(origin)) return res.sendStatus(204);
+    return res.sendStatus(403);
+  }
+  next();
+});
 app.use(express.static(path.join(__dirname, "public")));
 app.get("/admin", (req, res) => res.sendFile(path.join(__dirname, "public", "admin.html")));
 app.get("/user", (req, res) => res.sendFile(path.join(__dirname, "public", "user.html")));
