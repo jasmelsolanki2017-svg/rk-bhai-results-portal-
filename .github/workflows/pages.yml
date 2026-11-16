@@ -1,0 +1,56 @@
+name: Deploy public website to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "public/index.html"
+      - "public/app.js"
+      - "public/clock.js"
+      - "public/style.css"
+      - "public/icon.svg"
+      - "public/manifest.json"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare public-only site
+        run: |
+          mkdir -p _site
+          cp public/index.html public/app.js public/clock.js public/style.css public/icon.svg public/manifest.json _site/
+          touch _site/.nojekyll
+          sed -i 's|href="/|href="./|g; s|src="/|src="./|g' _site/index.html
+          sed -i 's|"/|"./|g' _site/manifest.json
+          sed -i 's|location.origin|location.origin + "/rk-bhai-results-portal-"|g' _site/app.js
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
