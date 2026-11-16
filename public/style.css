@@ -480,3 +480,28 @@ body.dashboard-menu-open{overflow:hidden}
  .hero-cta{margin-top:8px;padding:6px 9px;font-size:10px}
  .hero-art{right:-65px;bottom:-65px;width:105px;height:105px;opacity:.25}
 }
+
+
+/* Compact homepage overview summary panel */
+.public-summary{padding:12px 15px;margin:0 0 18px;border-radius:13px}
+.public-summary .summary-top{margin-bottom:9px;gap:8px}
+.public-summary .summary-kicker{font-size:8px;letter-spacing:1.3px}
+.public-summary .summary-top h2{font-size:15px;margin:2px 0 0}
+.public-summary .live-pill{padding:4px 8px;font-size:9px}
+.public-summary .summary-grid{gap:8px}
+.public-summary .summary-card{padding:9px 10px;border-radius:9px}
+.public-summary .summary-card span{font-size:10px}
+.public-summary .summary-card strong{font-size:21px;margin:3px 0}
+.public-summary .summary-card small{font-size:9px}
+@media(max-width:600px){
+ .public-summary{padding:10px 9px;margin-bottom:15px;border-radius:11px}
+ .public-summary .summary-top{margin-bottom:7px}
+ .public-summary .summary-top h2{font-size:13px}
+ .public-summary .summary-kicker{font-size:7px}
+ .public-summary .live-pill{padding:3px 6px;font-size:8px}
+ .public-summary .summary-grid{gap:6px}
+ .public-summary .summary-card{padding:8px 7px}
+ .public-summary .summary-card span{font-size:9px}
+ .public-summary .summary-card strong{font-size:18px;margin:2px 0}
+ .public-summary .summary-card small{font-size:8px}
+}
