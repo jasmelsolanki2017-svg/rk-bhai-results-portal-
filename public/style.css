@@ -354,3 +354,11 @@ body>footer{border-top:1px solid #332817;background:#090909;color:#9b8d70}
   .public-chart-panel .history-table .date-col{width:auto!important}
   .market-chart{break-inside:avoid}
 }
+
+
+/* Red blinking highlight for newly published result */
+.result-blink{color:#ff4545!important;font-weight:950;text-shadow:0 0 10px rgba(255,35,35,.55)!important;animation:newResultRedBlink .9s ease-in-out infinite!important}
+.new-result-badge{display:inline-flex;align-items:center;margin-left:6px;padding:3px 7px;border:1px solid #ff6868;border-radius:5px;background:#8f1010;color:#fff;font-size:9px;font-weight:1000;letter-spacing:1px;vertical-align:middle;animation:newBadgeBlink .9s ease-in-out infinite;box-shadow:0 0 9px rgba(255,30,30,.35)}
+@keyframes newResultRedBlink{0%,100%{opacity:1;text-shadow:0 0 10px rgba(255,35,35,.65)}50%{opacity:.3;text-shadow:none}}
+@keyframes newBadgeBlink{0%,100%{opacity:1;background:#a51010}50%{opacity:.35;background:#4b0808}}
+@media(prefers-reduced-motion:reduce){.result-blink,.new-result-badge{animation:none!important;opacity:1}}
