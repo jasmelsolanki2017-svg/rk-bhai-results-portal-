@@ -155,7 +155,7 @@ app.use("/api", (req, res, next) => {
 app.use((req, res, next) => {
   res.on("finish", () => {
     const writeMethod = ["POST", "PATCH", "PUT", "DELETE"].includes(req.method);
-    const publicDataWrite = /^\/api\/(admin|user)\/(results|cities|users|restore)(\/|$)/.test(req.path);
+    const publicDataWrite = /^\/api\/(admin|user)\/(results|cities|city|users|restore)(\/|$)/.test(req.path);
     if (writeMethod && publicDataWrite && res.statusCode >= 200 && res.statusCode < 300) {
       syncPublicSnapshot().catch(err => console.error("Public snapshot sync failed:", err.message));
     }
@@ -603,7 +603,30 @@ app.delete("/api/admin/results/:id", adminOnly, async (req, res) => {
   if (!row) return res.status(404).json({ error: "Record not found" });
   res.json({ ok: true });
 });
-async function syncPublicSnapshot() {
+let snapshotSyncPromise = null;
+let snapshotSyncRequested = false;
+
+// Serialize snapshot writes so rapid edits cannot race and overwrite a newer JSON copy.
+function syncPublicSnapshot() {
+  snapshotSyncRequested = true;
+  if (snapshotSyncPromise) return snapshotSyncPromise;
+  snapshotSyncPromise = (async () => {
+    let synced = false;
+    while (snapshotSyncRequested) {
+      snapshotSyncRequested = false;
+      synced = await syncPublicSnapshotOnce();
+    }
+    return synced;
+  })().finally(() => {
+    snapshotSyncPromise = null;
+    if (snapshotSyncRequested) {
+      syncPublicSnapshot().catch(err => console.error("Queued public snapshot sync failed:", err.message));
+    }
+  });
+  return snapshotSyncPromise;
+}
+
+async function syncPublicSnapshotOnce() {
   const token = process.env.GITHUB_TOKEN;
   if (!token) {
     console.warn("GITHUB_TOKEN is not configured; public static snapshot was not updated.");
