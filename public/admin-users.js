@@ -21,7 +21,7 @@ document.addEventListener("click",async e=>{
   if(city)await api("/api/admin/cities/"+city.dataset.city,{method:"PATCH",body:JSON.stringify({status:city.dataset.status})});
   if(editcity){const cityName=prompt("शहर का नया नाम लिखें:",editcity.dataset.name);if(cityName===null)return;await api("/api/admin/cities/"+editcity.dataset.editcity,{method:"PATCH",body:JSON.stringify({cityName})});}
   if(returncity){if(!confirm("शहर User के पास वापस भेजें? User नाम edit करके दोबारा approval भेज सकेगा।"))return;await api("/api/admin/cities/"+returncity.dataset.returncity,{method:"PATCH",body:JSON.stringify({status:"returned"})});}
-  if(hidecity)await api("/api/admin/cities/"+hidecity.dataset.hidecity,{method:"PATCH",body:JSON.stringify({status:hidecity.textContent==="Unhide"?"pending":"hidden"})});
+  if(hidecity)await api("/api/admin/cities/"+hidecity.dataset.hidecity,{method:"PATCH",body:JSON.stringify({status:hidecity.textContent.trim()==="Unhide"?"approved":"hidden"})});
   if(deletecity){if(!confirm("शहर हटाएँ? इससे उसके पुराने public records भी hide हो जाएंगे।"))return;await api("/api/admin/cities/"+deletecity.dataset.deletecity,{method:"DELETE"});}
   if(toggle)await api("/api/admin/users/"+toggle.dataset.toggle,{method:"PATCH",body:JSON.stringify(toggle.dataset.active==="true"?{active:false}:{active:true,clearExpiry:true})});
   if(del){if(!confirm("इस User को हटाएँ?"))return;await api("/api/admin/users/"+del.dataset.delete,{method:"DELETE"});}
