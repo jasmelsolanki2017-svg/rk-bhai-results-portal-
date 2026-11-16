@@ -45,6 +45,7 @@ jobs:
           html = html.replace('href="/manifest.json"', 'href="./manifest.json"')
           html = html.replace('href="/icon.svg"', 'href="./icon.svg"')
           html = html.replace('href="/style.css"', 'href="./style.css"')
+          html = html.replace('href="/"', 'href="./"')
           html = html.replace('href="/api/public/export.csv"', 'href="https://rk-bhai-results-portal.onrender.com/api/public/export.csv"')
           html = html.replace('src="/clock.js"', 'src="./clock.js"')
           html = html.replace('src="/app.js"', 'src="./app.js"')
