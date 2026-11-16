@@ -51,7 +51,7 @@ jobs:
           (output / "index.html").write_text(html, encoding="utf-8")
 
           js = (source / "app.js").read_text(encoding="utf-8")
-          js = 'const API_BASE = "https://rk-bhai-results-portal.onrender.com";\\nconst PUBLIC_SITE_URL = new URL("./", location.href).href;\\n' + js
+          js = 'const API_BASE = "https://rk-bhai-results-portal.onrender.com";\nconst PUBLIC_SITE_URL = new URL("./", location.href).href;\n' + js
           js = js.replace('fetch(url)', 'fetch(new URL(url, API_BASE), { mode: "cors", credentials: "omit" })')
           js = js.replace('location.origin', 'PUBLIC_SITE_URL')
           js = js.replace('navigator.serviceWorker.register("/sw.js")', 'navigator.serviceWorker.register("./sw.js")')
