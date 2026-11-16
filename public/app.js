@@ -175,25 +175,29 @@ if ("serviceWorker" in navigator) window.addEventListener("load", () => {
 });
 
 
-// Compact three-dot menu for secondary sharing and export actions.
+// Header three-dot button opens a full-height side drawer.
 const moreToolsButton = document.getElementById("moreToolsButton");
+const moreToolsBackdrop = document.getElementById("moreToolsBackdrop");
 const moreToolsMenu = document.getElementById("moreToolsMenu");
-if (moreToolsButton && moreToolsMenu) {
+const closeMoreToolsButton = document.getElementById("closeMoreTools");
+if (moreToolsButton && moreToolsBackdrop && moreToolsMenu) {
   const closeMoreTools = () => {
+    moreToolsBackdrop.hidden = true;
     moreToolsMenu.hidden = true;
     moreToolsButton.setAttribute("aria-expanded", "false");
   };
-  moreToolsButton.addEventListener("click", event => {
-    event.stopPropagation();
-    const willOpen = moreToolsMenu.hidden;
-    moreToolsMenu.hidden = !willOpen;
-    moreToolsButton.setAttribute("aria-expanded", String(willOpen));
+  const openMoreTools = () => {
+    moreToolsBackdrop.hidden = false;
+    moreToolsMenu.hidden = false;
+    moreToolsButton.setAttribute("aria-expanded", "true");
+  };
+  moreToolsButton.addEventListener("click", openMoreTools);
+  if (closeMoreToolsButton) closeMoreToolsButton.addEventListener("click", closeMoreTools);
+  moreToolsBackdrop.addEventListener("click", event => {
+    if (event.target === moreToolsBackdrop) closeMoreTools();
   });
   moreToolsMenu.addEventListener("click", event => {
-    if (event.target.closest("a, button")) closeMoreTools();
-  });
-  document.addEventListener("click", event => {
-    if (!event.target.closest(".more-tools")) closeMoreTools();
+    if (event.target.closest("a, button") && event.target.id !== "installApp") closeMoreTools();
   });
   document.addEventListener("keydown", event => {
     if (event.key === "Escape") closeMoreTools();
