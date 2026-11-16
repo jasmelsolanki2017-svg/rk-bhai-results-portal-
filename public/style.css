@@ -362,3 +362,21 @@ body>footer{border-top:1px solid #332817;background:#090909;color:#9b8d70}
 @keyframes newResultRedBlink{0%,100%{opacity:1;text-shadow:0 0 10px rgba(255,35,35,.65)}50%{opacity:.3;text-shadow:none}}
 @keyframes newBadgeBlink{0%,100%{opacity:1;background:#a51010}50%{opacity:.35;background:#4b0808}}
 @media(prefers-reduced-motion:reduce){.result-blink,.new-result-badge{animation:none!important;opacity:1}}
+
+
+/* Three-dot menu keeps secondary actions out of the homepage toolbar. */
+.quick-tools{display:flex;align-items:center;justify-content:flex-end;gap:10px;min-height:50px}
+.more-tools{position:relative;z-index:30}
+.more-tools-trigger{min-width:132px}
+.more-tools-trigger>span{font-size:25px;font-weight:900}
+.more-tools-menu{position:absolute;top:calc(100% + 8px);right:0;z-index:50;min-width:190px;padding:7px;border:1px solid #80612d;border-radius:13px;background:linear-gradient(145deg,#211a10,#101010);box-shadow:0 14px 35px #000b}
+.more-tools-menu[hidden]{display:none}
+.more-tools-item{display:flex;align-items:center;gap:11px;width:100%;min-height:43px;padding:10px 12px;border:0;border-radius:8px;background:transparent;color:#f4dfb0;text-align:left;text-decoration:none;font:inherit;font-size:13px;cursor:pointer}
+.more-tools-item:hover{background:#3a2b15;color:#fff}
+.more-tools-item span{width:22px;color:#e1bb68;font-size:18px;text-align:center}
+@media(max-width:650px){
+ .quick-tools{justify-content:flex-end;gap:8px;margin:10px 0 18px}
+ .quick-tools .tool-button{min-height:44px;padding:8px 12px}
+ .more-tools-trigger{min-width:118px}
+ .quick-tools #printArchive{margin-left:auto}
+}
