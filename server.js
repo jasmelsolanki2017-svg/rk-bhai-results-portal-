@@ -558,12 +558,30 @@ async function disableExpiredUsers() {
 }
 
 const port = process.env.PORT || 3000;
-mongoose.connect(process.env.MONGODB_URI)
-  .then(async () => {
-    await seedHistoricalRecords();
-    await cleanupChandigarhDuplicates();
-    await disableExpiredUsers();
-    setInterval(() => disableExpiredUsers().catch(err => console.error("Expiry check failed:", err.message)), 60 * 1000);
-    app.listen(port, () => console.log(`RK portal running on ${port}`));
-  })
-  .catch(err => { console.error("Database connection failed:", err.message); process.exit(1); });
+
+// Start HTTP immediately so public pages remain reachable during a database outage.
+app.listen(port, () => console.log(`RK portal running on ${port}`));
+
+let databaseStartupTasksDone = false;
+async function connectDatabaseWithRetry() {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 10000 });
+    console.log("MongoDB connected");
+    if (!databaseStartupTasksDone) {
+      try {
+        await seedHistoricalRecords();
+        await cleanupChandigarhDuplicates();
+        await disableExpiredUsers();
+        setInterval(() => disableExpiredUsers().catch(err => console.error("Expiry check failed:", err.message)), 60 * 1000);
+        databaseStartupTasksDone = true;
+      } catch (startupTaskError) {
+        console.error("Database startup task failed:", startupTaskError.message);
+      }
+    }
+  } catch (err) {
+    console.error("Database connection failed; HTTP server remains available. Retrying in 15 seconds:", err.message);
+    const retry = setTimeout(connectDatabaseWithRetry, 15000);
+    if (retry.unref) retry.unref();
+  }
+}
+connectDatabaseWithRetry();
