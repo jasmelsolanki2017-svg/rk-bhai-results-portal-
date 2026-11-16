@@ -39,6 +39,31 @@ app.use((req, res, next) => {
   }
   next();
 });
+function hasAdminSession(req) {
+  try {
+    const token = req.cookies.admin_session;
+    if (!token) return false;
+    return jwt.verify(token, process.env.JWT_SECRET).role === "admin";
+  } catch {
+    return false;
+  }
+}
+
+// Admin HTML routes are gated before static files are served. Without a valid
+// admin cookie, only the standalone username/password page is returned.
+app.use((req, res, next) => {
+  const adminPages = new Set(["/admin", "/admin/", "/admin/users", "/admin.html", "/admin-users.html"]);
+  if (!adminPages.has(req.path)) return next();
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  res.setHeader("Pragma", "no-cache");
+  if (!hasAdminSession(req)) {
+    return res.sendFile(path.join(__dirname, "public", "admin-login.html"));
+  }
+  if (req.path === "/admin.html") return res.sendFile(path.join(__dirname, "public", "admin.html"));
+  if (req.path === "/admin-users.html") return res.sendFile(path.join(__dirname, "public", "admin-users.html"));
+  next();
+});
+
 app.use(express.static(path.join(__dirname, "public")));
 app.get("/admin", (req, res) => res.sendFile(path.join(__dirname, "public", "admin.html")));
 app.get("/user", (req, res) => res.sendFile(path.join(__dirname, "public", "user.html")));
