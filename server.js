@@ -155,7 +155,7 @@ app.use("/api", (req, res, next) => {
 app.use((req, res, next) => {
   res.on("finish", () => {
     const writeMethod = ["POST", "PATCH", "PUT", "DELETE"].includes(req.method);
-    const publicDataWrite = /^\\/api\\/(admin|user)\\/(results|cities|users|restore)(\\/|$)/.test(req.path);
+    const publicDataWrite = /^\/api\/(admin|user)\/(results|cities|users|restore)(\/|$)/.test(req.path);
     if (writeMethod && publicDataWrite && res.statusCode >= 200 && res.statusCode < 300) {
       syncPublicSnapshot().catch(err => console.error("Public snapshot sync failed:", err.message));
     }
@@ -654,7 +654,7 @@ async function syncPublicSnapshot() {
   }
   const payload = {
     message: "Update public results snapshot",
-    content: Buffer.from(JSON.stringify(snapshot, null, 2) + "\\n", "utf8").toString("base64")
+    content: Buffer.from(JSON.stringify(snapshot, null, 2) + "\n", "utf8").toString("base64")
   };
   if (sha) payload.sha = sha;
   const writeResponse = await fetch(apiUrl, {
