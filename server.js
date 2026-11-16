@@ -29,6 +29,13 @@ const User = mongoose.model("PortalUser", new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 }));
 
+const HistoricalImport = mongoose.model("HistoricalImport", new mongoose.Schema({
+  key: { type: String, required: true, unique: true },
+  importedAt: { type: Date, default: Date.now },
+  recordCount: { type: Number, default: 0 },
+  declaredCount: { type: Number, default: 0 }
+}));
+
 const City = mongoose.model("PortalCity", new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "PortalUser", required: true, unique: true },
   cityName: { type: String, required: true, trim: true, maxlength: 60 },
@@ -552,6 +559,135 @@ async function cleanupChandigarhDuplicates() {
   console.log("Chandigarh duplicate records hidden:", removed);
 }
 
+async function importHistoricalArchive() {
+  const importKey = "verified-yearly-archive-2024-2025-v1";
+  if (await HistoricalImport.findOne({ key: importKey }).lean()) {
+    console.log("Historical 2024-2025 archive import already completed");
+    return;
+  }
+
+  const sources = [
+    { title: "Disawar", year: 2024, expected: 352, url: "https://satta-klng.com/satta-king-result-of-disawar-2024" },
+    { title: "Disawar", year: 2025, expected: 349, url: "https://satta-klng.com/satta-king-result-of-disawar-2025" },
+    { title: "Faridabad", year: 2024, expected: 354, url: "https://satta-klng.com/satta-king-result-of-faridabad-2024" },
+    { title: "Faridabad", year: 2025, expected: 351, url: "https://satta-klng.com/satta-king-result-of-faridabad-2025" },
+    { title: "Ghaziabad", year: 2024, expected: 354, url: "https://satta-klng.com/satta-king-result-of-ghaziabad-2024" },
+    { title: "Ghaziabad", year: 2025, expected: 353, url: "https://satta-klng.com/satta-king-result-of-ghaziabad-2025" },
+    { title: "Gali", year: 2024, expected: 354, url: "https://satta-klng.com/satta-king-result-of-gali-2024" },
+    { title: "Gali", year: 2025, expected: 346, url: "https://satta-klng.com/satta-king-result-of-gali-2025" },
+    { title: "Shree Ganesh", year: 2024, expected: 353, url: "https://satta-klng.com/satta-king-result-of-shree-ganesh-2024" },
+    { title: "Shree Ganesh", year: 2025, expected: 353, url: "https://satta-klng.com/satta-king-result-of-shree-ganesh-2025" }
+  ];
+
+  function cleanCell(html) {
+    return html
+      .replace(/<script\b[\s\S]*?<\/script>/gi, "")
+      .replace(/<style\b[\s\S]*?<\/style>/gi, "")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;|&#160;/gi, " ")
+      .replace(/&amp;/gi, "&")
+      .replace(/&lt;/gi, "<")
+      .replace(/&gt;/gi, ">")
+      .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+      .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16)))
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function parseChart(html, source) {
+    const rows = [...html.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)];
+    const monthRows = new Map();
+    for (const match of rows) {
+      const cells = [...match[1].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(cell => cleanCell(cell[1]));
+      if (cells.length < 13 || !/^\d{1,2}$/.test(cells[0] || "")) continue;
+      const day = Number(cells[0]);
+      if (day < 1 || day > 31) continue;
+      monthRows.set(day, cells.slice(1, 13));
+    }
+    if (monthRows.size < 28) throw new Error("Could not parse complete date rows for " + source.title + " " + source.year);
+
+    const records = [];
+    let declared = 0;
+    for (let month = 0; month < 12; month++) {
+      const daysInMonth = new Date(Date.UTC(source.year, month + 1, 0)).getUTCDate();
+      for (let day = 1; day <= daysInMonth; day++) {
+        const values = monthRows.get(day);
+        if (!values) throw new Error("Missing date row " + day + " for " + source.title + " " + source.year);
+        const raw = (values[month] || "").trim();
+        const resultText = /^\d{2}$/.test(raw) ? raw : "XX";
+        if (resultText !== "XX") declared++;
+        records.push({
+          title: source.title,
+          resultText,
+          resultDate: new Date(Date.UTC(source.year, month, day, 12, 0, 0)),
+          published: true,
+          sourceUrl: source.url
+        });
+      }
+    }
+    if (declared !== source.expected) {
+      throw new Error("Declared-result validation failed for " + source.title + " " + source.year + ": expected " + source.expected + ", parsed " + declared);
+    }
+    return { records, declared };
+  }
+
+  const parsed = await Promise.all(sources.map(async source => {
+    const response = await fetch(source.url, { headers: { "User-Agent": "RKBhaiHistoricalArchive/1.0 (+informational historical records)" }, signal: AbortSignal.timeout(20000) });
+    if (!response.ok) throw new Error("Source fetch failed for " + source.title + " " + source.year + ": HTTP " + response.status);
+    return parseChart(await response.text(), source);
+  }));
+
+  const operations = [];
+  let declaredCount = 0;
+  for (const item of parsed) {
+    declaredCount += item.declared;
+    for (const record of item.records) {
+      const start = new Date(Date.UTC(record.resultDate.getUTCFullYear(), record.resultDate.getUTCMonth(), record.resultDate.getUTCDate()));
+      const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+      operations.push({
+        updateOne: {
+          filter: { title: record.title, resultDate: { $gte: start, $lt: end } },
+          update: { $setOnInsert: record },
+          upsert: true
+        }
+      });
+    }
+  }
+
+  // No verified yearly archive exists for these two labels in the source archive.
+  for (const title of ["Delhi Bazar", "Chandigarh City"]) {
+    for (const year of [2024, 2025]) {
+      for (let month = 0; month < 12; month++) {
+        const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+        for (let day = 1; day <= daysInMonth; day++) {
+          const start = new Date(Date.UTC(year, month, day));
+          const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+          operations.push({
+            updateOne: {
+              filter: { title, resultDate: { $gte: start, $lt: end } },
+              update: { $setOnInsert: { title, resultText: "XX", resultDate: new Date(Date.UTC(year, month, day, 12)), published: true, sourceUrl: "" } },
+              upsert: true
+            }
+          });
+        }
+      }
+    }
+  }
+
+  const result = await Result.bulkWrite(operations, { ordered: false });
+  await HistoricalImport.create({
+    key: importKey,
+    recordCount: operations.length,
+    declaredCount
+  });
+  console.log("Historical 2024-2025 import complete:", JSON.stringify({
+    attempted: operations.length,
+    inserted: result.upsertedCount || 0,
+    declaredActualsVerified: declaredCount,
+    placeholders: operations.length - declaredCount
+  }));
+}
+
 async function seedHistoricalRecords() {
   const recordsPath = path.join(__dirname, "data", "historical-records.json");
   const records = JSON.parse(require("fs").readFileSync(recordsPath, "utf8"));
@@ -584,6 +720,7 @@ async function connectDatabaseWithRetry() {
     console.log("MongoDB connected");
     if (!databaseStartupTasksDone) {
       try {
+        await importHistoricalArchive();
         await seedHistoricalRecords();
         await cleanupChandigarhDuplicates();
         await disableExpiredUsers();
