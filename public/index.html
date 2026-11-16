@@ -12,9 +12,14 @@
     <section class="intro public-hero"><div class="hero-copy"><span class="hero-kicker">WELCOME TO RK BHAI PORTAL</span><h1>परिणाम और पुराने रिकॉर्ड</h1><p>सभी प्रकाशित परिणाम और उनका ऐतिहासिक रिकॉर्ड एक ही जगह पर आसानी से देखें।</p><a class="hero-cta" href="#results">परिणाम देखें <span>↓</span></a></div><div class="hero-art" aria-hidden="true"><div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div><div class="hero-emblem"><span>RK</span><small>RESULTS</small></div></div></section>
     <section class="quick-tools" aria-label="वेबसाइट सुविधाएँ">
       <button type="button" id="installApp" class="tool-button" hidden><span>＋</span><b>ऐप इंस्टॉल करें</b></button>
-      <button type="button" id="shareSite" class="tool-button"><span>↗</span><b>शेयर करें</b></button>
-      <button type="button" id="showQr" class="tool-button"><span>▦</span><b>QR Code</b></button>
-      <a class="tool-button" href="/api/public/export.csv"><span>⇩</span><b>CSV डाउनलोड</b></a>
+      <div class="more-tools">
+        <button type="button" id="moreToolsButton" class="tool-button more-tools-trigger" aria-label="और विकल्प" aria-expanded="false" aria-controls="moreToolsMenu"><span>⋮</span><b>और विकल्प</b></button>
+        <div id="moreToolsMenu" class="more-tools-menu" hidden>
+          <button type="button" id="shareSite" class="more-tools-item"><span>↗</span>शेयर करें</button>
+          <button type="button" id="showQr" class="more-tools-item"><span>▦</span>QR Code</button>
+          <a class="more-tools-item" href="/api/public/export.csv"><span>⇩</span>CSV डाउनलोड</a>
+        </div>
+      </div>
       <button type="button" id="printArchive" class="tool-button"><span>▤</span><b>PDF / प्रिंट</b></button>
     </section>
     <div id="qrDialog" class="qr-dialog" role="dialog" aria-modal="true" aria-labelledby="qrTitle" hidden>
