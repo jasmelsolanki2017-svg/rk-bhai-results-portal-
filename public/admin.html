@@ -2,7 +2,8 @@
 <html lang="hi">
 <head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RK Bhai Admin</title><link rel="stylesheet" href="/style.css"></head>
 <body>
-<header class="pro-header"><div class="pro-brand"><div class="brand-mark">RK</div><div><div class="brand">RK <span>BHAI</span></div><p>PORTAL CONTROL CENTER</p></div></div><div class="pro-header-right"><span class="admin-live-dot">ADMIN WORKSPACE</span><a class="pro-nav-link" href="/">View Website ↗</a></div></header>
+<header class="pro-header"><div class="pro-brand"><div class="brand-mark">RK</div><div><div class="brand">RK <span>BHAI</span></div><p>PORTAL CONTROL CENTER</p></div></div><div class="pro-header-right"><span class="admin-live-dot">ADMIN WORKSPACE</span><a class="pro-nav-link" href="/">View Website ↗</a><button class="dashboard-menu-trigger" id="dashboardMenuOpen" type="button" aria-label="Open menu" aria-expanded="false">⋮</button></div></header>
+<div class="dashboard-menu-backdrop" id="dashboardMenuBackdrop" hidden></div><aside class="dashboard-side-menu" id="dashboardSideMenu" aria-label="Admin menu" aria-hidden="true"><div class="dashboard-menu-head"><strong>ADMIN MENU</strong><button type="button" id="dashboardMenuClose" aria-label="Close menu">×</button></div><a href="#chartSection">Monthly Records</a><a href="#recordSection">नया रिकॉर्ड जोड़ें</a><a href="/admin/users">User Management</a><a href="#dataSection">Data & Backup</a><a href="/">Public Website</a><button type="button" data-dashboard-logout>Logout</button></aside>
 <main class="pro-main">
 <section class="pro-welcome"><div><span class="eyebrow">DASHBOARD OVERVIEW</span><h1>Admin Dashboard</h1><p>Portal के रिकॉर्ड, users और database को एक जगह से manage करें।</p></div><div class="pro-welcome-icon">⌘</div></section>
 <section id="loginBox" class="admin-box pro-login"><h2>Admin Login</h2><form id="loginForm"><input name="username" autocomplete="username" placeholder="Username" required><input name="password" type="password" autocomplete="current-password" placeholder="Password" required><button type="submit">Login</button></form></section>
@@ -45,5 +46,5 @@
 </section>
 <p id="msg" class="muted" role="status"></p>
 </main>
-<script src="/admin.js"></script>
+<script src="/admin.js"></script><script src="/dashboard-menu.js"></script>
 </body></html>
