@@ -695,6 +695,111 @@ async function importHistoricalArchive() {
   }));
 }
 
+async function importEarly2026Archive() {
+  const importKey = "verified-monthly-archive-2026-jan-may-v1";
+  if (await HistoricalImport.findOne({ key: importKey }).lean()) {
+    console.log("Historical January-May 2026 import already completed");
+    return;
+  }
+
+  const months = [
+    { month: 1, expected: 181, url: "https://satta-klng.com/satta-king-result-of-january-2026" },
+    { month: 2, expected: 162, url: "https://satta-klng.com/satta-king-result-of-february-2026" },
+    { month: 3, expected: 180, url: "https://satta-klng.com/satta-king-result-of-march-2026" },
+    { month: 4, expected: 174, url: "https://satta-klng.com/satta-king-result-of-april-2026" },
+    { month: 5, expected: 180, url: "https://satta-klng.com/satta-king-result-of-may-2026" }
+  ];
+  const titles = ["Disawar", "Delhi Bazar", "Shree Ganesh", "Faridabad", "Ghaziabad", "Gali"];
+
+  function cleanMonthlyCell(html) {
+    return html.replace(/<script\b[\s\S]*?<\/script>/gi, "")
+      .replace(/<style\b[\s\S]*?<\/style>/gi, "")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;|&#160;/gi, " ")
+      .replace(/&amp;/gi, "&")
+      .replace(/\s+/g, " ").trim();
+  }
+
+  const parsed = await Promise.all(months.map(async item => {
+    console.log("Fetching 2026 monthly archive:", item.month);
+    const response = await fetch(item.url, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; RKBhaiArchive/1.0)" },
+      signal: AbortSignal.timeout(15000)
+    });
+    if (!response.ok) throw new Error("2026 monthly source failed for month " + item.month + ": HTTP " + response.status);
+    const html = await response.text();
+    const rows = [...html.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)];
+    const dayRows = new Map();
+    for (const match of rows) {
+      const cells = [...match[1].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(cell => cleanMonthlyCell(cell[1]));
+      if (cells.length < 7 || !/^\d{2}-\d{2}-2026$/.test(cells[0] || "")) continue;
+      const [day, month, year] = cells[0].split("-").map(Number);
+      if (month !== item.month || year !== 2026) continue;
+      dayRows.set(day, cells.slice(1, 7));
+    }
+    const daysInMonth = new Date(Date.UTC(2026, item.month, 0)).getUTCDate();
+    if (dayRows.size !== daysInMonth) throw new Error("2026 monthly date validation failed for month " + item.month + ": parsed " + dayRows.size + " of " + daysInMonth);
+
+    const records = [];
+    let declared = 0;
+    for (let day = 1; day <= daysInMonth; day++) {
+      const values = dayRows.get(day);
+      for (let i = 0; i < titles.length; i++) {
+        const raw = (values[i] || "").trim();
+        const resultText = /^\d{2}$/.test(raw) ? raw : "XX";
+        if (resultText !== "XX") declared++;
+        records.push({
+          title: titles[i],
+          resultText,
+          resultDate: new Date(Date.UTC(2026, item.month - 1, day, 12)),
+          published: true,
+          sourceUrl: item.url
+        });
+      }
+    }
+    if (declared !== item.expected) throw new Error("2026 monthly declared-count validation failed for month " + item.month + ": expected " + item.expected + ", parsed " + declared);
+    console.log("2026 monthly chart validated:", item.month, declared);
+    return records;
+  }));
+
+  const operations = [];
+  for (const record of parsed.flat()) {
+    const start = new Date(Date.UTC(record.resultDate.getUTCFullYear(), record.resultDate.getUTCMonth(), record.resultDate.getUTCDate()));
+    operations.push({
+      updateOne: {
+        filter: { title: record.title, resultDate: { $gte: start, $lt: new Date(start.getTime() + 86400000) } },
+        update: { $setOnInsert: record },
+        upsert: true
+      }
+    });
+  }
+
+  // Chandigarh City has no verified source chart for this period.
+  for (let month = 0; month < 5; month++) {
+    const daysInMonth = new Date(Date.UTC(2026, month + 1, 0)).getUTCDate();
+    for (let day = 1; day <= daysInMonth; day++) {
+      const start = new Date(Date.UTC(2026, month, day));
+      operations.push({
+        updateOne: {
+          filter: { title: "Chandigarh City", resultDate: { $gte: start, $lt: new Date(start.getTime() + 86400000) } },
+          update: { $setOnInsert: { title: "Chandigarh City", resultText: "XX", resultDate: new Date(Date.UTC(2026, month, day, 12)), published: true, sourceUrl: "" } },
+          upsert: true
+        }
+      });
+    }
+  }
+
+  console.log("Writing early-2026 historical records:", operations.length);
+  const result = await Result.bulkWrite(operations, { ordered: false });
+  await HistoricalImport.create({ key: importKey, recordCount: operations.length, declaredCount: 877 });
+  console.log("Historical January-May 2026 import complete:", JSON.stringify({
+    attempted: operations.length,
+    inserted: result.upsertedCount || 0,
+    declaredActualsVerified: 877,
+    placeholders: operations.length - 877
+  }));
+}
+
 async function seedHistoricalRecords() {
   const recordsPath = path.join(__dirname, "data", "historical-records.json");
   const records = JSON.parse(require("fs").readFileSync(recordsPath, "utf8"));
@@ -728,6 +833,7 @@ async function connectDatabaseWithRetry() {
     if (!databaseStartupTasksDone) {
       try {
         await importHistoricalArchive();
+        await importEarly2026Archive();
         await seedHistoricalRecords();
         await cleanupChandigarhDuplicates();
         await disableExpiredUsers();
