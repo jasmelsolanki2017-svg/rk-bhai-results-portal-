@@ -1,0 +1,108 @@
+name: Deploy public site to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Build public-only website
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+
+          source = Path("public")
+          output = Path("_site")
+          output.mkdir(exist_ok=True)
+
+          # Copy only public-facing assets. Admin and user panel files stay on Render.
+          for name in ("style.css", "clock.js", "icon.svg"):
+              (output / name).write_bytes((source / name).read_bytes())
+
+          html = (source / "index.html").read_text(encoding="utf-8")
+          html = html.replace('href="/manifest.json"', 'href="./manifest.json"')
+          html = html.replace('href="/icon.svg"', 'href="./icon.svg"')
+          html = html.replace('href="/style.css"', 'href="./style.css"')
+          html = html.replace('href="/api/public/export.csv"', 'href="https://rk-bhai-results-portal.onrender.com/api/public/export.csv"')
+          html = html.replace('src="/clock.js"', 'src="./clock.js"')
+          html = html.replace('src="/app.js"', 'src="./app.js"')
+          (output / "index.html").write_text(html, encoding="utf-8")
+
+          js = (source / "app.js").read_text(encoding="utf-8")
+          js = 'const API_BASE = "https://rk-bhai-results-portal.onrender.com";\\nconst PUBLIC_SITE_URL = new URL("./", location.href).href;\\n' + js
+          js = js.replace('fetch(url)', 'fetch(new URL(url, API_BASE), { mode: "cors", credentials: "omit" })')
+          js = js.replace('location.origin', 'PUBLIC_SITE_URL')
+          js = js.replace('navigator.serviceWorker.register("/sw.js")', 'navigator.serviceWorker.register("./sw.js")')
+          (output / "app.js").write_text(js, encoding="utf-8")
+
+          manifest = json.loads((source / "manifest.json").read_text(encoding="utf-8"))
+          manifest["id"] = "./"
+          manifest["start_url"] = "./"
+          manifest["scope"] = "./"
+          for icon in manifest.get("icons", []):
+              icon["src"] = "./icon.svg"
+          (output / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+
+          sw = """const CACHE_NAME = "rk-bhai-pages-shell-v1";
+          const BASE_URL = new URL("./", self.location.href);
+          const APP_SHELL = ["./", "./index.html", "./style.css", "./app.js", "./clock.js", "./manifest.json", "./icon.svg"].map(path => new URL(path, BASE_URL).href);
+
+          self.addEventListener("install", event => {
+            event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
+          });
+          self.addEventListener("activate", event => {
+            event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))).then(() => self.clients.claim()));
+          });
+          self.addEventListener("fetch", event => {
+            const request = event.request;
+            if (request.method !== "GET") return;
+            const url = new URL(request.url);
+            if (url.origin !== self.location.origin) return;
+            if (request.mode === "navigate") {
+              event.respondWith(fetch(request).then(response => {
+                if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(new URL("./", BASE_URL).href, response.clone()));
+                return response;
+              }).catch(() => caches.match(new URL("./", BASE_URL).href)));
+              return;
+            }
+            if (APP_SHELL.includes(request.url)) {
+              event.respondWith(fetch(request).then(response => {
+                if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
+                return response;
+              }).catch(() => caches.match(request)));
+            }
+          });
+          """
+          (output / "sw.js").write_text(sw, encoding="utf-8")
+          PY
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
