@@ -15,9 +15,40 @@ let monthRows=[];
 let monthCities=[];
 
 async function getJson(url){
-  const response=await fetch(url);
-  if(!response.ok) throw new Error("Request failed");
-  return response.json();
+  try{
+    const response=await fetch(url);
+    if(!response.ok) throw new Error("Request failed");
+    return await response.json();
+  }catch(error){
+    // Public pages can fall back to the last GitHub snapshot while the free Render API sleeps.
+    if(!url.startsWith("/api/results")&&!url.startsWith("/api/public/cities"))throw error;
+    const snapshotUrl="https://raw.githubusercontent.com/jasmelsolanki2017-svg/rk-bhai-results-portal-/main/data/public-results.json?ts="+Date.now();
+    const response=await fetch(snapshotUrl,{cache:"no-store"});
+    if(!response.ok)throw error;
+    const snapshot=await response.json();
+    if(url.startsWith("/api/public/cities"))return snapshot.cities||[];
+    const params=new URLSearchParams(url.split("?")[1]||"");
+    let rows=Array.isArray(snapshot.results)?snapshot.results:[];
+    if(params.get("recent")==="2"){
+      const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+      const start=new Date(today+"T00:00:00.000Z");
+      const from=new Date(start.getTime()-86400000);
+      const to=new Date(start.getTime()+86400000);
+      rows=rows.filter(row=>new Date(row.resultDate)>=from&&new Date(row.resultDate)<to);
+    }else if(params.get("month")){
+      const [year,month]=params.get("month").split("-").map(Number);
+      const from=new Date(Date.UTC(year,month-1,1)),to=new Date(Date.UTC(year,month,1));
+      rows=rows.filter(row=>new Date(row.resultDate)>=from&&new Date(row.resultDate)<to);
+    }else if(params.get("today")==="1"){
+      const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+      const from=new Date(today+"T00:00:00.000Z"),to=new Date(from.getTime()+86400000);
+      rows=rows.filter(row=>new Date(row.resultDate)>=from&&new Date(row.resultDate)<to);
+    }else if(params.get("date")){
+      const from=new Date(params.get("date")+"T00:00:00.000Z"),to=new Date(from.getTime()+86400000);
+      rows=rows.filter(row=>new Date(row.resultDate)>=from&&new Date(row.resultDate)<to);
+    }
+    return rows;
+  }
 }
 function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function dateKey(value){return new Date(value).toISOString().slice(0,10);}
