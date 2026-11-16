@@ -560,6 +560,7 @@ async function cleanupChandigarhDuplicates() {
 }
 
 async function importHistoricalArchive() {
+  console.log("Starting verified 2024-2025 historical archive import");
   const importKey = "verified-yearly-archive-2024-2025-v1";
   if (await HistoricalImport.findOne({ key: importKey }).lean()) {
     console.log("Historical 2024-2025 archive import already completed");
@@ -632,9 +633,14 @@ async function importHistoricalArchive() {
   }
 
   const parsed = await Promise.all(sources.map(async source => {
-    const response = await fetch(source.url, { headers: { "User-Agent": "RKBhaiHistoricalArchive/1.0 (+informational historical records)" }, signal: AbortSignal.timeout(20000) });
+    console.log("Fetching historical chart:", source.title, source.year);
+    const response = await fetch(source.url, { headers: { "User-Agent": "Mozilla/5.0 (compatible; RKBhaiArchive/1.0)" }, signal: AbortSignal.timeout(15000) });
     if (!response.ok) throw new Error("Source fetch failed for " + source.title + " " + source.year + ": HTTP " + response.status);
-    return parseChart(await response.text(), source);
+    const html = await response.text();
+    console.log("Historical chart downloaded:", source.title, source.year, html.length);
+    const parsedChart = parseChart(html, source);
+    console.log("Historical chart validated:", source.title, source.year, parsedChart.declared);
+    return parsedChart;
   }));
 
   const operations = [];
@@ -674,6 +680,7 @@ async function importHistoricalArchive() {
     }
   }
 
+  console.log("Writing verified historical records to MongoDB:", operations.length);
   const result = await Result.bulkWrite(operations, { ordered: false });
   await HistoricalImport.create({
     key: importKey,
