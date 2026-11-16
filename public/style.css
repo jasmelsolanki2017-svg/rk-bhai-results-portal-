@@ -417,3 +417,8 @@ body>footer{border-top:1px solid #332817;background:#090909;color:#9b8d70}
  .public-brand small{font-size:7px;letter-spacing:.8px}
  .side-tools-menu{padding:21px 15px}
 }
+
+
+/* Improve prominence of today's blinking result; keep NEW label compact */
+.recent-results-table td .result-blink{font-size:1.22em;line-height:1.25;font-weight:1000}
+.recent-results-table td .new-result-badge{font-size:8px;padding:2px 5px;margin-left:4px;letter-spacing:.7px;line-height:1.2}
