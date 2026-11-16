@@ -322,23 +322,6 @@ body>footer{border-top:1px solid #332817;background:#090909;color:#9b8d70}
 @media(prefers-reduced-motion:reduce){.result-blink{animation:none;opacity:1}}
 
 
-/* Interactive public archive calendar */
-.history-calendar{margin:14px 0 18px;padding:15px;border:1px solid #59451f;border-radius:13px;background:linear-gradient(145deg,#19150f,#101010)}
-.calendar-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
-.calendar-title strong{color:#f4d58b;font-size:15px}
-.calendar-title span{color:#c7b58e;font-size:13px;text-transform:capitalize}
-.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
-.calendar-weekday{padding:7px 2px;text-align:center;color:#b9a77f;font-size:11px;font-weight:800}
-.calendar-empty{min-height:39px}
-.calendar-day{position:relative;min-height:39px;border:1px solid #393027;border-radius:8px;background:#171512;color:#eee;font:600 13px system-ui;cursor:pointer;touch-action:manipulation}
-.calendar-day:hover{border-color:#d7ad55;background:#292114}
-.calendar-day.has-record{border-color:#80632d;color:#f5d78e;background:linear-gradient(145deg,#302414,#1a160f)}
-.calendar-day.has-record i{position:absolute;bottom:4px;left:50%;width:5px;height:5px;border-radius:50%;background:#e4bd69;transform:translateX(-50%)}
-.calendar-day.selected{outline:2px solid #e4bd69;outline-offset:1px;background:#59401d;color:#fff}
-.calendar-help{margin:12px 0 0;color:#9f947e;font-size:11px;line-height:1.5}
-@media(max-width:420px){.history-calendar{padding:11px 8px}.calendar-grid{gap:4px}.calendar-day{min-height:36px;font-size:12px;border-radius:6px}.calendar-empty{min-height:36px}.calendar-weekday{font-size:10px;padding:6px 0}}
-
-
 /* App tools: install, share, QR and archive export */
 .quick-tools{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin:18px 0 24px}
 .tool-button{display:flex;align-items:center;justify-content:center;gap:8px;min-height:54px;padding:10px 8px;border:1px solid #70552a;border-radius:12px;background:linear-gradient(145deg,#2c2112,#15120d);color:#f4d58b;text-decoration:none;font:inherit;font-size:13px;cursor:pointer;box-shadow:0 5px 16px #0003}
@@ -361,7 +344,7 @@ body>footer{border-top:1px solid #332817;background:#090909;color:#9b8d70}
   .public-main>.public-chart-panel{display:block!important;margin:0!important;padding:0!important;border:0!important;box-shadow:none!important;background:#fff!important;color:#111!important}
   .public-chart-panel .chart-heading{border:0!important}
   .public-chart-panel .chart-heading h2,.public-chart-panel .chart-heading p,.public-chart-panel .chart-note,.public-chart-panel .month-nav strong{color:#111!important}
-  .public-chart-panel .archive-filters,.public-chart-panel .history-calendar,.public-chart-panel .month-nav button{display:none!important}
+  .public-chart-panel .archive-filters,.public-chart-panel .month-nav button{display:none!important}
   .public-chart-panel .chart-summary,.public-chart-panel .chart-summary strong{color:#111!important}
   .public-chart-panel .market-chart h3{color:#333!important}
   .public-chart-panel .table-scroll{overflow:visible!important;border:0!important}
