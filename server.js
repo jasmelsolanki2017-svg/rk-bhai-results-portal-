@@ -81,6 +81,16 @@ function adminOnly(req, res, next) {
   }
 }
 
+// Keep API requests from querying MongoDB while Atlas is disconnected.
+// This prevents async route failures from restarting the web process during outages.
+app.use("/api", (req, res, next) => {
+  if (req.path === "/health") return next();
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({ error: "Database is temporarily unavailable. Please try again shortly." });
+  }
+  next();
+});
+
 app.post("/api/admin/login", async (req, res) => {
   const { username, password } = req.body || {};
   if (!username || !password || !process.env.ADMIN_USERNAME || !adminPasswordHash || !process.env.JWT_SECRET)
