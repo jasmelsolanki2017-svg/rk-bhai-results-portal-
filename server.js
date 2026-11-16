@@ -287,10 +287,10 @@ app.post("/api/user/city", userOnly, async (req, res) => {
   res.status(201).json({ id: city._id, cityName: city.cityName, expectedTime: city.expectedTime, status: city.status });
 });
 app.patch("/api/user/city/name", userOnly, async (req, res) => {
-  const cityName = String(req.body?.cityName || "").trim().replace(/\\s+/g, " ");
+  const cityName = String(req.body?.cityName || "").trim().replace(/\s+/g, " ");
   const expectedTime = String(req.body?.expectedTime || "");
   if (cityName.length < 2 || cityName.length > 60) return res.status(400).json({ error: "शहर का नाम 2 से 60 अक्षर का रखें।" });
-  if (!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(expectedTime)) return res.status(400).json({ error: "परिणाम आने का सही समय चुनें।" });
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(expectedTime)) return res.status(400).json({ error: "परिणाम आने का सही समय चुनें।" });
   const city = await City.findOneAndUpdate({ userId: req.portalUserId, status: "returned" }, { cityName, expectedTime, status: "pending", reviewedAt: null }, { new: true });
   if (!city) return res.status(403).json({ error: "नाम edit करने के लिए Admin का Send Back जरूरी है।" });
   res.json({ id: city._id, cityName: city.cityName, expectedTime: city.expectedTime, status: city.status });
@@ -435,7 +435,7 @@ app.get("/api/results", async (req, res) => {
     filter.resultDate = { $gte: start, $lt: end };
   }
   if (req.query.date) {
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(req.query.date))
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(req.query.date))
       return res.status(400).json({ error: "Invalid date. Use YYYY-MM-DD." });
     const start = new Date(req.query.date + "T00:00:00.000Z");
     if (Number.isNaN(start.getTime())) return res.status(400).json({ error: "Invalid date." });
@@ -465,7 +465,7 @@ app.patch("/api/admin/cities/:id", adminOnly, async (req, res) => {
     update.reviewedAt = new Date();
   }
   if (req.body?.cityName !== undefined) {
-    const cityName = String(req.body.cityName).trim().replace(/\\s+/g, " ");
+    const cityName = String(req.body.cityName).trim().replace(/\s+/g, " ");
     if (cityName.length < 2 || cityName.length > 60) return res.status(400).json({ error: "शहर का नाम 2 से 60 अक्षर का रखें।" });
     update.cityName = cityName;
   }
