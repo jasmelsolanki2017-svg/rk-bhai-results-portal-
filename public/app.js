@@ -173,3 +173,29 @@ if (printButton) printButton.addEventListener("click", () => window.print());
 if ("serviceWorker" in navigator) window.addEventListener("load", () => {
   navigator.serviceWorker.register("/sw.js").catch(error => console.warn("App offline setup unavailable:", error));
 });
+
+
+// Compact three-dot menu for secondary sharing and export actions.
+const moreToolsButton = document.getElementById("moreToolsButton");
+const moreToolsMenu = document.getElementById("moreToolsMenu");
+if (moreToolsButton && moreToolsMenu) {
+  const closeMoreTools = () => {
+    moreToolsMenu.hidden = true;
+    moreToolsButton.setAttribute("aria-expanded", "false");
+  };
+  moreToolsButton.addEventListener("click", event => {
+    event.stopPropagation();
+    const willOpen = moreToolsMenu.hidden;
+    moreToolsMenu.hidden = !willOpen;
+    moreToolsButton.setAttribute("aria-expanded", String(willOpen));
+  });
+  moreToolsMenu.addEventListener("click", event => {
+    if (event.target.closest("a, button")) closeMoreTools();
+  });
+  document.addEventListener("click", event => {
+    if (!event.target.closest(".more-tools")) closeMoreTools();
+  });
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") closeMoreTools();
+  });
+}
