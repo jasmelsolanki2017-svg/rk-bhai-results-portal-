@@ -17,16 +17,16 @@ function dateValue(v){return new Date(v).toISOString().slice(0,10);}
 function monthKey(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");}
 
 async function refresh(){
-  // Load the selected month independently so a slow full-history request
-  // cannot leave the monthly chart stuck on its loading message.
-  const monthLoad = loadMonth();
+  // Load the full admin dataset first, then render the month. This avoids
+  // two simultaneous MongoDB reads competing during dashboard startup.
   try {
     allRows = await api("/api/admin/results");
     renderCityLinks();
   } catch (e) {
+    allRows = [];
     $("#cityLinks").innerHTML = '<p class="muted">शहरों की सूची लोड नहीं हुई: '+esc(e.message)+'</p>';
   }
-  await monthLoad;
+  await loadMonth();
 }
 function renderCityLinks(){
  const cities=[...new Set(allRows.map(x=>String(x.title||"").trim()).filter(Boolean))].sort((a,b)=>{const ac=/chandigarh/i.test(a),bc=/chandigarh/i.test(b);return ac!==bc?(ac?1:-1):a.localeCompare(b,"hi");});
@@ -39,9 +39,22 @@ async function loadMonth(){
   $("#nextMonth").disabled=key>=monthKey(new Date());
   $("#adminChart").innerHTML='<p class="muted">चार्ट लोड हो रहा है…</p>';
   try{
-    const rows=await api("/api/admin/results?month="+encodeURIComponent(key),{signal:AbortSignal.timeout(20000)});
+    const rows=await api("/api/admin/results?month="+encodeURIComponent(key),{signal:AbortSignal.timeout(12000)});
     renderMonthChart(rows,selectedMonth);
-  }catch(e){$("#adminChart").innerHTML='<p class="muted">चार्ट लोड नहीं हुआ: '+esc(e.message)+'</p>';}
+  }catch(e){
+    // If the month-filtered query fails but the full admin list loaded,
+    // keep the chart usable from that already-fetched data.
+    const fallback=allRows.filter(row=>{
+      const d=new Date(row.resultDate);
+      return d.getFullYear()===selectedMonth.getFullYear() && d.getMonth()===selectedMonth.getMonth();
+    });
+    if(fallback.length || allRows.length){
+      renderMonthChart(fallback,selectedMonth);
+      $("#adminChart").insertAdjacentHTML("afterbegin",'<p class="muted">मासिक API धीमा था; उपलब्ध रिकॉर्ड से चार्ट दिखाया गया है।</p>');
+    }else{
+      $("#adminChart").innerHTML='<p class="muted">चार्ट लोड नहीं हुआ: '+esc(e.message)+'</p>';
+    }
+  }
 }
 function renderMonthChart(rows,month){
   if(!rows.length){$("#adminChart").innerHTML='<p class="muted empty-month">इस महीने का कोई रिकॉर्ड नहीं है।</p>';return;}
