@@ -675,7 +675,7 @@ async function syncPublicSnapshotOnce() {
     const current = await currentResponse.json();
     sha = current.sha;
     try {
-      const currentText = Buffer.from(String(current.content || "").replace(/\\n/g, ""), "base64").toString("utf8");
+      const currentText = Buffer.from(String(current.content || "").replace(/\n/g, ""), "base64").toString("utf8");
       const currentSnapshot = JSON.parse(currentText);
       const samePublicData =
         JSON.stringify({ app: currentSnapshot.app, results: currentSnapshot.results, cities: currentSnapshot.cities }) ===
@@ -692,7 +692,7 @@ async function syncPublicSnapshotOnce() {
   }
   const payload = {
     message: "Update public results snapshot",
-    content: Buffer.from(JSON.stringify(snapshot, null, 2) + "\\n", "utf8").toString("base64"),
+    content: Buffer.from(JSON.stringify(snapshot, null, 2) + "\n", "utf8").toString("base64"),
     branch: snapshotBranch
   };
   if (sha) payload.sha = sha;
