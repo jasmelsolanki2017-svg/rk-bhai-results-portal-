@@ -399,12 +399,8 @@ app.get("/api/user/results", userOnly, async (req, res) => {
   // Backfill older admin-entered rows for this user's approved city.
   const city = await City.findOne({ userId: req.portalUserId, status: "approved" }).lean();
   if (city) {
-    const escapedCity = String(city.cityName).replace(/[.*+?^${}()|[\]\\]/g, "\\app.get("/api/user/results", userOnly, async (req, res) => {
-  const rows = await Result.find({ ownerUserId: req.portalUserId, deleted: { $ne: true } }).sort({ resultDate: -1 }).limit(500).lean();
-  res.json(rows);
-});");
     await Result.updateMany({
-      title: { $regex: "^" + escapedCity + "$", $options: "i" },
+      title: city.cityName,
       deleted: { $ne: true },
       $or: [{ ownerUserId: null }, { ownerUserId: { $exists: false } }]
     }, { $set: { ownerUserId: req.portalUserId, cityId: city._id } });
@@ -672,18 +668,14 @@ app.post("/api/admin/results", adminOnly, async (req, res) => {
   const submittedDate = new Date(resultDate);
   const dayStart = new Date(Date.UTC(submittedDate.getUTCFullYear(), submittedDate.getUTCMonth(), submittedDate.getUTCDate()));
   const dayEnd = new Date(dayStart.getTime() + 86400000);
-  const duplicate = await Result.exists({ title: String(title).trim(), deleted: { $ne: true }, resultDate: { $gte: dayStart, $lt: dayEnd } });
+  const cleanTitle = String(title).trim();
+  const duplicate = await Result.exists({ title: cleanTitle, deleted: { $ne: true }, resultDate: { $gte: dayStart, $lt: dayEnd } });
   if (duplicate) return res.status(409).json({ error: "इस शहर/मार्केट का इस तारीख का रिकॉर्ड पहले से मौजूद है। पुराने रिकॉर्ड को edit करें।" });
-  // If this market belongs to an approved user, attach the admin-entered result
-  // to that user's dashboard as well as the public/admin chart.
-  const escapedTitle = String(title).trim().replace(/[.*+?^${}()|[\]\\]/g, "\\  const row = await Result.create({ title, resultText, resultDate, published: published === true, sourceUrl: sourceUrl || "" });
-  res.status(201).json(row);");
-  const ownerCity = await City.findOne({
-    status: "approved",
-    cityName: { $regex: "^" + escapedTitle + "$", $options: "i" }
-  }).lean();
+  // Automatically attach the result to the user who owns this approved city.
+  const approvedCities = await City.find({ status: "approved" }).select("_id userId cityName").lean();
+  const ownerCity = approvedCities.find(city => String(city.cityName).trim().toLocaleLowerCase("en") === cleanTitle.toLocaleLowerCase("en"));
   const row = await Result.create({
-    title: String(title).trim(), resultText, resultDate,
+    title: cleanTitle, resultText, resultDate,
     published: published === true, sourceUrl: sourceUrl || "",
     ...(ownerCity ? { ownerUserId: ownerCity.userId, cityId: ownerCity._id } : {})
   });
@@ -702,14 +694,9 @@ app.patch("/api/admin/results/:id", adminOnly, async (req, res) => {
   const dayEnd = new Date(dayStart.getTime() + 86400000);
   const duplicate = await Result.exists({ _id: { $ne: existing._id }, title: nextTitle, deleted: { $ne: true }, resultDate: { $gte: dayStart, $lt: dayEnd } });
   if (duplicate) return res.status(409).json({ error: "इस शहर/मार्केट का इस तारीख का रिकॉर्ड पहले से मौजूद है।" });
-  // Link a previously unowned admin row when its market matches an approved user city.
-  const escapedTitle = nextTitle.replace(/[.*+?^${}()|[\]\\]/g, "\\  const row = await Result.findByIdAndUpdate(req.params.id, allowed, { new: true, runValidators: true });
-  if (!row) return res.status(404).json({ error: "Record not found" });
-  res.json(row);");
-  const ownerCity = await City.findOne({
-    status: "approved",
-    cityName: { $regex: "^" + escapedTitle + "$", $options: "i" }
-  }).lean();
+  // Also repair older admin rows when they are edited.
+  const approvedCities = await City.find({ status: "approved" }).select("_id userId cityName").lean();
+  const ownerCity = approvedCities.find(city => String(city.cityName).trim().toLocaleLowerCase("en") === nextTitle.toLocaleLowerCase("en"));
   if (ownerCity) {
     allowed.ownerUserId = ownerCity.userId;
     allowed.cityId = ownerCity._id;
