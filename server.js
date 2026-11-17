@@ -89,7 +89,7 @@ const HistoricalImport = mongoose.model("HistoricalImport", new mongoose.Schema(
 }));
 
 const City = mongoose.model("PortalCity", new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "PortalUser", required: true, unique: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "PortalUser", required: true, index: true },
   cityName: { type: String, required: true, trim: true, maxlength: 60 },
   expectedTime: { type: String, default: "" },
   status: { type: String, enum: ["pending", "approved", "rejected", "returned", "hidden"], default: "pending" },
@@ -278,8 +278,13 @@ app.get("/api/admin/users", adminOnly, async (req, res) => {
   await disableExpiredUsers();
   const users = await User.find().select("name username mobile email active expiresAt createdAt").sort({ createdAt: -1 }).lean();
   const cities = await City.find().lean();
-  const cityByUser = new Map(cities.map(c => [String(c.userId), c]));
-  res.json(users.map(u => { const c = cityByUser.get(String(u._id)); return { ...u, city: c ? { id: c._id, name: c.cityName, status: c.status } : null }; }));
+  const citiesByUser = new Map();
+  for (const c of cities) {
+    const key = String(c.userId);
+    if (!citiesByUser.has(key)) citiesByUser.set(key, []);
+    citiesByUser.get(key).push({ id: c._id, name: c.cityName, status: c.status });
+  }
+  res.json(users.map(u => ({ ...u, cities: citiesByUser.get(String(u._id)) || [], city: (citiesByUser.get(String(u._id)) || [])[0] || null })));
 });
 app.post("/api/admin/users", adminOnly, async (req, res) => {
   const name = String(req.body?.name || "").trim();
@@ -341,8 +346,12 @@ app.patch("/api/admin/users/:id", adminOnly, async (req, res) => {
 app.delete("/api/admin/users/:id", adminOnly, async (req, res) => {
   const user = await User.findByIdAndDelete(req.params.id);
   if (!user) return res.status(404).json({ error: "User नहीं मिला।" });
-  const city = await City.findOneAndDelete({ userId: user._id });
-  if (city) await Result.updateMany({ cityId: city._id }, { $set: { deleted: true, published: false } });
+  const cities = await City.find({ userId: user._id }).select("_id").lean();
+  const cityIds = cities.map(c => c._id);
+  if (cityIds.length) {
+    await City.deleteMany({ userId: user._id });
+    await Result.updateMany({ cityId: { $in: cityIds } }, { $set: { deleted: true, published: false } });
+  }
   res.json({ ok: true });
 });
 app.get("/api/user/city", userOnly, async (req, res) => {
@@ -549,8 +558,6 @@ app.post("/api/admin/chart-city/assign-any", adminOnly, async (req, res) => {
   const matchingCities = await City.find({ cityName: matchedTitles[0] });
   if (matchingCities.length > 1) return res.status(409).json({ error: "इस City के एक से अधिक owner records मिले। पहले जाँच जरूरी है।" });
   const city = matchingCities[0] || null;
-  const otherCity = await City.findOne({ userId: target._id, ...(city ? { _id: { $ne: city._id } } : {}) }).select("cityName").lean();
-  if (otherCity) return res.status(409).json({ error: "इस User के पास पहले से " + otherCity.cityName + " assigned है। पहले उसे अलग करें।" });
   const assignedCity = city || new City({ userId: target._id, cityName: matchedTitles[0], expectedTime: "", status: "approved" });
   assignedCity.userId = target._id; assignedCity.status = "approved"; assignedCity.reviewedAt = new Date();
   await assignedCity.save();
@@ -575,8 +582,6 @@ app.post("/api/admin/cities/:id/assign", adminOnly, async (req, res) => {
   if (!target.active || (target.expiresAt && target.expiresAt <= new Date())) {
     return res.status(403).json({ error: "Sandeep का account बंद है या अवधि समाप्त है। पहले account चालू करें।" });
   }
-  const otherCity = await City.findOne({ userId: target._id, _id: { $ne: city._id } }).select("cityName").lean();
-  if (otherCity) return res.status(409).json({ error: "इस User के पास पहले से " + otherCity.cityName + " assigned है। पहले उसे अलग करें।" });
   city.userId = target._id;
   city.status = "approved";
   city.reviewedAt = new Date();
@@ -1071,6 +1076,17 @@ async function connectDatabaseWithRetry() {
     console.log("MongoDB connected");
     if (!databaseStartupTasksDone) {
       try {
+        // Remove the legacy one-city-per-user unique index so one account can own multiple cities.
+        try {
+          const indexes = await City.collection.indexes();
+          const legacyUniqueUserIndex = indexes.find(index => index.unique && index.key && index.key.userId === 1);
+          if (legacyUniqueUserIndex) {
+            await City.collection.dropIndex(legacyUniqueUserIndex.name);
+            console.log("Removed legacy unique city-owner index:", legacyUniqueUserIndex.name);
+          }
+        } catch (indexError) {
+          if (indexError.code !== 27 && indexError.codeName !== "IndexNotFound") throw indexError;
+        }
         await importHistoricalArchive();
         await importEarly2026Archive();
         await seedHistoricalRecords();
