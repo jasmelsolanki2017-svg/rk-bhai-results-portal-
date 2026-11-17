@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-17T09:54:50.129Z",
+  "updatedAt": "2026-11-17T09:55:03.797Z",
   "results": [
     {
       "_id": "6afbafd73c4398211e8ad14a",
@@ -129,6 +129,14 @@
       "resultDate": "2026-11-15T00:00:00.000Z",
       "sourceUrl": "",
       "createdAt": "2026-11-16T02:40:19.679Z"
+    },
+    {
+      "_id": "6afc2476202ca974211808b7",
+      "title": "Metro city",
+      "resultText": "95",
+      "resultDate": "2026-11-15T00:00:00.000Z",
+      "sourceUrl": "",
+      "createdAt": "2026-11-17T09:55:02.175Z"
     },
     {
       "_id": "6af9ddd1a042f3afe7528b48",
