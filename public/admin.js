@@ -20,10 +20,10 @@ function monthKey(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(
 async function refresh(){
   // Start the month chart immediately; the larger all-results request must
   // never block the chart from appearing.
-  const monthTask = loadMonth();
   const hiddenTask = api("/api/admin/users", {signal:AbortSignal.timeout(12000)}).then(users=>{
     hiddenCityNames = new Set((users||[]).flatMap(user=>user.cities||[]).filter(city=>city.status==="hidden").map(city=>String(city.name||"").trim()).filter(Boolean));
   }).catch(error=>{ console.warn("Hidden city status could not be loaded:",error.message); hiddenCityNames=new Set(); });
+  const monthTask = hiddenTask.then(()=>loadMonth());
   try {
     allRows = await api("/api/admin/results", {signal:AbortSignal.timeout(15000)});
     await hiddenTask;
