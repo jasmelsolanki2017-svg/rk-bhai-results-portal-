@@ -599,6 +599,7 @@ body.dashboard-menu-open{overflow:hidden}
 .new-result-toast.is-visible{animation:resultToastIn .25s ease-out}
 @keyframes resultToastIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 #enableNotifications{cursor:pointer}
+.table-scroll{-webkit-overflow-scrolling:touch;scrollbar-width:thin}
 @media(max-width:600px){
  .new-result-toast{top:6px;margin:8px 2px;padding:10px 11px;font-size:12px;line-height:1.45}
 }
