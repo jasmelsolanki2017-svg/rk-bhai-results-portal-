@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="hi">
+<head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RK Bhai Admin Tools</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<header class="pro-header"><div class="pro-brand"><div class="brand-mark">RK</div><div><div class="brand">RK <span>BHAI</span></div><p>PORTAL CONTROL CENTER</p></div></div><div class="pro-header-right"><span class="admin-live-dot">ADMIN WORKSPACE</span><a class="pro-nav-link" href="/admin">Dashboard</a><button class="dashboard-menu-trigger" id="dashboardMenuOpen" type="button" aria-label="Open menu" aria-expanded="false">⋮</button></div></header>
+<div class="dashboard-menu-backdrop" id="dashboardMenuBackdrop" hidden></div><aside class="dashboard-side-menu" id="dashboardSideMenu" aria-label="Admin menu" aria-hidden="true"><div class="dashboard-menu-head"><strong>ADMIN MENU</strong><button type="button" id="dashboardMenuClose" aria-label="Close menu">×</button></div><a href="/admin">Admin Dashboard</a><a href="/admin/users">User Management</a><a href="/admin/export.html">Excel Export</a><a href="/admin/backup.html">Database Backup & Restore</a><a href="/">Public Website</a><button type="button" data-dashboard-logout>Logout</button></aside>
+<main class="pro-main"><section class="pro-welcome"><div><span class="eyebrow">ADMIN TOOLS</span><h1>ADMIN TOOLS</h1><p>यह पेज केवल Admin Login के बाद खुलेगा।</p></div><div class="pro-welcome-icon">⌘</div></section>
+<section id="panel" class="pro-dashboard" hidden>
+<section class="admin-box pro-card" style="max-width:680px;margin:0 auto 18px">
+<div class="section-kicker">REPORTS & EXPORT</div><h2>Excel Export</h2>
+<p class="muted">एक Excel file में Results, Users और Cities की अलग-अलग sheets डाउनलोड करें। इसमें password या password hash शामिल नहीं होंगे।</p>
+<button id="downloadExcel" type="button">Excel Download करें</button><p id="excelMsg" class="muted" role="status"></p>
+</section>
+</section><script>
+document.getElementById("downloadExcel").addEventListener("click",async()=>{const status=document.getElementById("excelMsg");status.textContent="Excel file तैयार हो रही है…";try{const r=await fetch("/api/admin/export.xlsx",{credentials:"same-origin"});if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.error||"Excel download नहीं हुआ");}const blob=await r.blob(),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="rk-bhai-portal-export.xlsx";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);status.textContent="Excel file download शुरू हो गया।";}catch(e){status.textContent=e.message;}});
+</script><script src="/dashboard-menu.js"></script></body></html>
