@@ -616,3 +616,47 @@ body.dashboard-menu-open{overflow:hidden}
 .user-month-bar-row b{text-align:right;color:#f5d78e}
 .user-month-select{width:100%;margin:8px 0 12px;padding:11px;border:1px solid #70552a;border-radius:8px;background:#090909;color:#fff;font:inherit}
 #myRecordsByMonth h4{margin:12px 0;color:#f5d78e}
+
+
+/* Compact admin record entry panel */
+#recordSection.pro-card{
+  padding:12px 14px;
+  margin-bottom:12px;
+  border-radius:12px;
+}
+#recordSection .section-kicker{font-size:9px;letter-spacing:1.4px}
+#recordSection.pro-card h2{
+  font-size:16px;
+  margin:4px 0 8px;
+}
+#recordSection #resultForm{
+  gap:5px;
+}
+#recordSection #resultForm label{
+  font-size:12px;
+  line-height:1.25;
+  margin-top:2px;
+}
+#recordSection.pro-card input:not([type=checkbox]):not([type=file]){
+  padding:9px 10px;
+  margin:2px 0 5px;
+  border-radius:8px;
+  font-size:14px;
+  min-height:38px;
+}
+#recordSection .city-picker{margin:0 0 4px}
+#recordSection .form-actions{gap:7px;margin-top:3px}
+#recordSection .form-actions button{
+  padding:8px 11px;
+  font-size:13px;
+}
+@media(max-width:600px){
+  #recordSection.pro-card{padding:10px 11px;margin-bottom:10px}
+  #recordSection.pro-card h2{font-size:15px;margin:3px 0 7px}
+  #recordSection #resultForm{gap:4px}
+  #recordSection.pro-card input:not([type=checkbox]):not([type=file]){
+    padding:8px 9px;
+    min-height:36px;
+    margin:1px 0 4px;
+  }
+}
