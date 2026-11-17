@@ -21,7 +21,8 @@
 <label>तारीख</label><input name="resultDate" type="date" required>
 <label>सोर्स लिंक (वैकल्पिक)</label><input name="sourceUrl" type="url" placeholder="https://...">
 <button type="submit">रिकॉर्ड सेव करें</button></form>
-<p id="recordMessage" class="muted" role="status"></p><h3>मेरे रिकॉर्ड — महीने के अनुसार</h3><div id="myRecordsChart" class="user-month-chart"></div><label for="myRecordsMonth">महीना चुनें</label><select id="myRecordsMonth" class="user-month-select"></select><div id="myRecordsByMonth"></div>
+<p id="recordMessage" class="muted" role="status"></p></section>
+<section class="admin-box user-records-panel" id="myRecordsPanel" hidden><div class="user-records-heading"><h2>मेरे जोड़े हुए रिकॉर्ड</h2><div class="user-record-month-nav"><button id="myRecordsPrev" type="button" aria-label="पिछला महीना">‹</button><strong id="myRecordsMonthLabel">नवंबर 2026</strong><button id="myRecordsNext" type="button" aria-label="अगला महीना">›</button></div></div><div id="myRecordsByMonth" class="my-record-columns"></div></section>
 </section>
 <section class="intro"><h2>हाल के प्रकाशित रिकॉर्ड</h2><p>यहाँ प्रकाशित रिकॉर्ड देख सकते हैं।</p></section>
 <section id="results" class="results"><p class="muted">लोड हो रहा है…</p></section>
