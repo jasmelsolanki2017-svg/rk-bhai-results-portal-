@@ -3,12 +3,42 @@
 <head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RK Bhai Admin</title><link rel="stylesheet" href="/style.css"></head>
 <body>
 <header class="pro-header"><div class="pro-brand"><div class="brand-mark">RK</div><div><div class="brand">RK <span>BHAI</span></div><p>PORTAL CONTROL CENTER</p></div></div><div class="pro-header-right"><span class="admin-live-dot">ADMIN WORKSPACE</span><a class="pro-nav-link" href="/">View Website ↗</a><button class="dashboard-menu-trigger" id="dashboardMenuOpen" type="button" aria-label="Open menu" aria-expanded="false">⋮</button></div></header>
-<div class="dashboard-menu-backdrop" id="dashboardMenuBackdrop" hidden></div><aside class="dashboard-side-menu" id="dashboardSideMenu" aria-label="Admin menu" aria-hidden="true"><div class="dashboard-menu-head"><strong>ADMIN MENU</strong><button type="button" id="dashboardMenuClose" aria-label="Close menu">×</button></div><a href="#chartSection">Monthly Records</a><a href="#recordSection">नया रिकॉर्ड जोड़ें</a><a href="/admin/users">User Management</a><a href="#dataSection">Data & Backup</a><a href="/">Public Website</a><button type="button" data-dashboard-logout>Logout</button></aside>
+<div class="dashboard-menu-backdrop" id="dashboardMenuBackdrop" hidden></div><aside class="dashboard-side-menu" id="dashboardSideMenu" aria-label="Admin menu" aria-hidden="true"><div class="dashboard-menu-head"><strong>ADMIN MENU</strong><button type="button" id="dashboardMenuClose" aria-label="Close menu">×</button></div><a href="#chartSection">Monthly Records</a><a href="#recordSection">नया रिकॉर्ड जोड़ें</a><a href="/admin/users">User Management</a><a href="/admin/export.html">Excel Export</a><a href="/admin/backup.html">Database Backup & Restore</a><a href="/">Public Website</a><button type="button" data-dashboard-logout>Logout</button></aside>
 <main class="pro-main">
 <section class="pro-welcome"><div><span class="eyebrow">DASHBOARD OVERVIEW</span><h1>Admin Dashboard</h1><p>Portal के रिकॉर्ड, users और database को एक जगह से manage करें।</p></div><div class="pro-welcome-icon">⌘</div></section>
 <section id="loginBox" class="admin-box pro-login" hidden><h2>Admin Login</h2><form id="loginForm"><input name="username" autocomplete="username" placeholder="Username" required><input name="password" type="password" autocomplete="current-password" placeholder="Password" required><button type="submit">Login</button></form></section>
 <section id="panel" hidden class="pro-dashboard">
-  <nav class="pro-shortcuts"><a href="#chartSection"><span>▦</span> Monthly Records</a><a href="#recordSection"><span>＋</span> Add Record</a><a href="/admin/users"><span>♙</span> User Management</a><a href="#dataSection"><span>⇩</span> Data & Backup</a></nav>
+  <nav class="pro-shortcuts"><a href="#chartSection"><span>▦</span> Monthly Records</a><a href="#recordSection"><span>＋</span> Add Record</a><a href="/admin/users"><span>♙</span> User Management</a></nav>
+  <div class="pro-content-grid">
+  <section class="admin-box pro-card pro-chart" id="chartSection">
+    <div class="admin-top"><h2>पूरा मासिक चार्ट</h2><div class="actions"><a class="back-link" href="/admin/users">User Management</a><button id="logout" type="button" class="secondary">Logout</button></div></div>
+    <p class="muted">किसी भी चार्ट एंट्री पर टैप करके उसे एडिट कर सकते हैं।</p>
+    <div class="month-nav"><button id="prevMonth" type="button">‹ पिछला</button><strong id="monthLabel">लोड हो रहा है…</strong><button id="nextMonth" type="button">अगला ›</button></div>
+    <div id="adminChart" class="history-chart"><p class="muted">चार्ट लोड हो रहा है…</p></div>
+  </section>
+  <section class="admin-box pro-card pro-form" id="recordSection">
+    <div class="section-kicker">RECORD MANAGEMENT</div><h2 id="formTitle">नया रिकॉर्ड जोड़ें</h2>
+    <form id="resultForm">
+      <input name="editId" type="hidden">
+      <label>शहर / मार्केट / शीर्षक</label><div class="city-picker"><input name="title" id="resultTitle" placeholder="शहर का नाम लिखें या यहाँ टैप करें" maxlength="100" autocomplete="off" required aria-autocomplete="list" aria-controls="titleSuggestions"><div id="titleSuggestions" class="city-suggestions" hidden></div></div>
+      <label>परिणाम / रिकॉर्ड</label><input name="resultText" placeholder="परिणाम / सूचना" maxlength="300" required>
+      <label>तारीख</label><input name="resultDate" type="date" required>
+      <label>सोर्स लिंक (वैकल्पिक)</label><input name="sourceUrl" type="url" placeholder="https://...">
+      <label class="check"><input name="published" type="checkbox"> प्रकाशित करें</label>
+      <div class="form-actions"><button id="saveRecord" type="submit">रिकॉर्ड सेव करें</button><button id="cancelEdit" type="button" class="secondary" hidden>एडिट रद्द करें</button></div>
+    </form>
+  </section>
+ml>
+<html lang="hi">
+<head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RK Bhai Admin</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<header class="pro-header"><div class="pro-brand"><div class="brand-mark">RK</div><div><div class="brand">RK <span>BHAI</span></div><p>PORTAL CONTROL CENTER</p></div></div><div class="pro-header-right"><span class="admin-live-dot">ADMIN WORKSPACE</span><a class="pro-nav-link" href="/">View Website ↗</a><button class="dashboard-menu-trigger" id="dashboardMenuOpen" type="button" aria-label="Open menu" aria-expanded="false">⋮</button></div></header>
+<div class="dashboard-menu-backdrop" id="dashboardMenuBackdrop" hidden></div><aside class="dashboard-side-menu" id="dashboardSideMenu" aria-label="Admin menu" aria-hidden="true"><div class="dashboard-menu-head"><strong>ADMIN MENU</strong><button type="button" id="dashboardMenuClose" aria-label="Close menu">×</button></div><a href="#chartSection">Monthly Records</a><a href="#recordSection">नया रिकॉर्ड जोड़ें</a><a href="/admin/users">User Management</a><a href="/admin/export.html">Excel Export</a><a href="/admin/backup.html">Database Backup & Restore</a><a href="/">Public Website</a><button type="button" data-dashboard-logout>Logout</button></aside>
+<main class="pro-main">
+<section class="pro-welcome"><div><span class="eyebrow">DASHBOARD OVERVIEW</span><h1>Admin Dashboard</h1><p>Portal के रिकॉर्ड, users और database को एक जगह से manage करें।</p></div><div class="pro-welcome-icon">⌘</div></section>
+<section id="loginBox" class="admin-box pro-login" hidden><h2>Admin Login</h2><form id="loginForm"><input name="username" autocomplete="username" placeholder="Username" required><input name="password" type="password" autocomplete="current-password" placeholder="Password" required><button type="submit">Login</button></form></section>
+<section id="panel" hidden class="pro-dashboard">
+  <nav class="pro-shortcuts"><a href="#chartSection"><span>▦</span> Monthly Records</a><a href="#recordSection"><span>＋</span> Add Record</a><a href="/admin/users"><span>♙</span> User Management</a></nav>
   <div class="pro-content-grid">
   <section class="admin-box pro-card pro-chart" id="chartSection">
     <div class="admin-top"><h2>पूरा मासिक चार्ट</h2><div class="actions"><a class="back-link" href="/admin/users">User Management</a><button id="logout" type="button" class="secondary">Logout</button></div></div>
