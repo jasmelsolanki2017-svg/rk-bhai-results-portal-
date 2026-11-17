@@ -79,7 +79,7 @@ const User = mongoose.model("PortalUser", new mongoose.Schema({
   active: { type: Boolean, default: true },
   expiresAt: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now }
-});
+}));
 
 const HistoricalImport = mongoose.model("HistoricalImport", new mongoose.Schema({
   key: { type: String, required: true, unique: true },
