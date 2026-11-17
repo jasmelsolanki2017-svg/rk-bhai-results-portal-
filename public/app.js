@@ -116,7 +116,10 @@ function renderRecent(){
   const todayStat=document.getElementById("statToday");
   if(todayStat)todayStat.textContent=recentRows.filter(r=>dateKey(r.resultDate)===todayKey).length;
   const query=(citySearch.value||"").trim().toLocaleLowerCase("hi");
-  const entries=[...byCity.entries()].filter(([city])=>city.toLocaleLowerCase("hi").includes(query)).sort((a,b)=>a[0].localeCompare(b[0],"hi"));
+  const entries=[...byCity.entries()].filter(([city])=>city.toLocaleLowerCase("hi").includes(query)).sort((a,b)=>{
+    const latestTime=item=>Math.max(...[item[1].today,item[1].yesterday].filter(Boolean).map(row=>new Date(row.createdAt||row.updatedAt||row.resultDate||0).getTime()),0);
+    return latestTime(b)-latestTime(a);
+  });
   if(!entries.length){host.innerHTML='<p class="muted">इस खोज से कोई शहर नहीं मिला।</p>';return;}
   const yesterdayLabel=new Date(todayStart.getTime()-86400000).toLocaleDateString("hi-IN",{day:"2-digit",month:"short"});
   const todayLabel=todayStart.toLocaleDateString("hi-IN",{day:"2-digit",month:"short"});
