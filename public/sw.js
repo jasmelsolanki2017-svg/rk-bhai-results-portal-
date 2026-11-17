@@ -1,4 +1,4 @@
-const CACHE_NAME = "rk-bhai-shell-v3";
+const CACHE_NAME = "rk-bhai-shell-v4";
 const APP_SHELL = ["/", "/index.html", "/style.css", "/app.js", "/clock.js", "/manifest.json", "/icon.svg"];
 
 self.addEventListener("install", event => {
