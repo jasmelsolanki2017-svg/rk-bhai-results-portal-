@@ -94,10 +94,10 @@ async function loadMyRecords(){
  rows.forEach(row=>{const key=userMonthKey(row.resultDate);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(row);});
  const list=$("#myRecordsByMonth"),label=$("#myRecordsMonthLabel"),prev=$("#myRecordsPrev"),next=$("#myRecordsNext");
  if(!groups.has(selectedMyRecordsMonth)&&groups.size===1&&groups.has("unknown"))selectedMyRecordsMonth="unknown";
- label.textContent=userMonthLabel(selectedMyRecordsMonth);
  prev.disabled=selectedMyRecordsMonth==="unknown";
  next.disabled=selectedMyRecordsMonth==="unknown"||selectedMyRecordsMonth>=currentUserMonthKey();
  const monthRows=(groups.get(selectedMyRecordsMonth)||[]).slice().sort((a,b)=>new Date(a.resultDate)-new Date(b.resultDate));
+ label.textContent=userMonthLabel(selectedMyRecordsMonth)+" के रिकॉर्ड ("+monthRows.length+")";
  const firstHalf=monthRows.filter(r=>{const d=new Date(r.resultDate);return !Number.isNaN(d.getTime())&&d.getUTCDate()<=16;});
  const secondHalf=monthRows.filter(r=>{const d=new Date(r.resultDate);return !Number.isNaN(d.getTime())&&d.getUTCDate()>=17;});
  const renderRows=(items,empty)=>items.length?items.map(r=>{
