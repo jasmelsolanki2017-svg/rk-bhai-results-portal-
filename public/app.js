@@ -14,18 +14,20 @@ let recentCities=[];
 let monthRows=[];
 let monthCities=[];
 
+let publicSnapshotPromise=null;
+function loadPublicSnapshot(){
+  if(!publicSnapshotPromise){
+    const snapshotUrl="https://raw.githubusercontent.com/jasmelsolanki2017-svg/rk-bhai-results-portal-/public-data/data/public-results.json";
+    publicSnapshotPromise=fetch(snapshotUrl,{cache:"default"})
+      .then(response=>{if(!response.ok)throw new Error("Public results snapshot unavailable");return response.json();})
+      .catch(error=>{publicSnapshotPromise=null;throw error;});
+  }
+  return publicSnapshotPromise;
+}
 async function getJson(url){
-  try{
-    const response=await fetch(url);
-    if(!response.ok) throw new Error("Request failed");
-    return await response.json();
-  }catch(error){
-    // Public pages can fall back to the last GitHub snapshot while the free Render API sleeps.
-    if(!url.startsWith("/api/results")&&!url.startsWith("/api/public/cities"))throw error;
-    const snapshotUrl="https://raw.githubusercontent.com/jasmelsolanki2017-svg/rk-bhai-results-portal-/public-data/data/public-results.json?ts="+Date.now();
-    const response=await fetch(snapshotUrl,{cache:"no-store"});
-    if(!response.ok)throw error;
-    const snapshot=await response.json();
+  // GitHub Pages is static: read one shared snapshot instead of waiting for the sleeping Render API.
+  if(url.startsWith("/api/results")||url.startsWith("/api/public/cities")){
+    const snapshot=await loadPublicSnapshot();
     if(url.startsWith("/api/public/cities"))return snapshot.cities||[];
     const params=new URLSearchParams(url.split("?")[1]||"");
     let rows=Array.isArray(snapshot.results)?snapshot.results:[];
@@ -49,6 +51,9 @@ async function getJson(url){
     }
     return rows;
   }
+  const response=await fetch(url);
+  if(!response.ok)throw new Error("Request failed");
+  return response.json();
 }
 function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function dateKey(value){return new Date(value).toISOString().slice(0,10);}
