@@ -13,6 +13,43 @@ let recentRows=[];
 let recentCities=[];
 let monthRows=[];
 let monthCities=[];
+let knownResultKeys=new Set();
+let notificationBaselineReady=false;
+let notificationToastTimer=null;
+function resultKey(row){return String(row.id||row._id||[row.title,row.resultDate,row.resultText].join("|"));}
+function showNewResultNotice(rows){
+  if(!rows.length)return;
+  const toast=document.getElementById("newResultToast");
+  if(toast){
+    const first=rows[0];
+    toast.textContent=rows.length===1
+      ? "नया रिजल्ट प्रकाशित: "+(first.title||"नया परिणाम")+" — "+(first.resultText||"देखने के लिए खोलें")
+      : rows.length+" नए रिजल्ट प्रकाशित हुए हैं।";
+    toast.hidden=false;
+    toast.classList.add("is-visible");
+    clearTimeout(notificationToastTimer);
+    notificationToastTimer=setTimeout(()=>{toast.classList.remove("is-visible");toast.hidden=true;},9000);
+  }
+  if("Notification" in window && Notification.permission==="granted"){
+    const first=rows[0];
+    try{
+      new Notification("RK Bhai पर नया रिजल्ट",{
+        body:rows.length===1?(first.title+" : "+first.resultText):rows.length+" नए रिजल्ट प्रकाशित हुए हैं।",
+        icon:"/icon.svg",
+        tag:"rk-bhai-new-results"
+      });
+    }catch(error){console.warn("Browser notification unavailable:",error);}
+  }
+}
+function updateKnownResults(rows,notify=false){
+  const nextKeys=new Set(rows.map(resultKey));
+  if(notificationBaselineReady&&notify){
+    const added=rows.filter(row=>!knownResultKeys.has(resultKey(row)));
+    if(added.length)showNewResultNotice(added);
+  }
+  knownResultKeys=nextKeys;
+  notificationBaselineReady=true;
+}
 
 let publicSnapshotPromise=null;
 function loadPublicSnapshot(){
@@ -88,11 +125,39 @@ function renderRecent(){
     entries.map(([city,result])=>'<tr><th>'+escapeHtml(city)+'</th><td>'+cell(result.yesterday)+'</td><td>'+cell(result.today,true)+'</td></tr>').join("")+
     '</tbody></table></div>';
 }
-async function loadResults(){
+async function loadResults({notify=false}={}){
   try{
     const [rows,cities]=await Promise.all([getJson("/api/results?recent=2"),getJson("/api/public/cities")]);
-    recentRows=rows;recentCities=cities;renderRecent();
+    recentRows=rows;recentCities=cities;updateKnownResults(rows,notify);renderRecent();
   }catch(e){host.innerHTML='<p class="muted">अभी परिणाम लोड नहीं हो पाए। कृपया बाद में प्रयास करें।</p>';}
+}
+async function checkForNewResults(){
+  // Refresh the static GitHub snapshot in the background; Render is not required.
+  publicSnapshotPromise=null;
+  try{
+    await loadResults({notify:true});
+    await loadMonth();
+  }catch(error){console.warn("Background result refresh failed:",error);}
+}
+const notificationButton=document.getElementById("enableNotifications");
+if(notificationButton){
+  const refreshNotificationButton=()=>{
+    notificationButton.textContent=("Notification" in window&&Notification.permission==="granted")
+      ?"✓ रिजल्ट नोटिफिकेशन चालू हैं":"🔔 रिजल्ट नोटिफिकेशन चालू करें";
+  };
+  refreshNotificationButton();
+  notificationButton.addEventListener("click",async()=>{
+    if(!("Notification" in window)){
+      alert("इस ब्राउज़र में नोटिफिकेशन उपलब्ध नहीं हैं। नए रिजल्ट वेबसाइट खोलने पर दिखेंगे।");
+      return;
+    }
+    try{
+      const permission=await Notification.requestPermission();
+      refreshNotificationButton();
+      if(permission==="granted")alert("नोटिफिकेशन चालू हो गए। वेबसाइट खुली रहने पर नए रिजल्ट की सूचना मिलेगी।");
+      else alert("नोटिफिकेशन की अनुमति नहीं मिली। वेबसाइट पर नए रिजल्ट की सूचना फिर भी दिखेगी।");
+    }catch(error){alert("नोटिफिकेशन चालू नहीं हो पाए।");}
+  });
 }
 function monthKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;}
 function populateCityFilter(cities,rows){
@@ -161,6 +226,7 @@ clearDate.addEventListener("click",()=>{historyDate.value="";renderMonthTable();
 loadMonth();
 loadResults();
 setInterval(renderRecent,30000);
+setInterval(checkForNewResults,60000);
 
  
 // Installable app, native share, QR code and print-to-PDF tools.
