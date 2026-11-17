@@ -79,7 +79,10 @@ const User = mongoose.model("PortalUser", new mongoose.Schema({
   active: { type: Boolean, default: true },
   expiresAt: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now }
-}));
+});
+// Keep the monthly admin chart query and sort responsive on larger result collections.
+ResultSchema.index({ resultDate: -1, title: 1 });
+const Result = mongoose.model("Result", ResultSchema);
 
 const HistoricalImport = mongoose.model("HistoricalImport", new mongoose.Schema({
   key: { type: String, required: true, unique: true },
@@ -97,7 +100,7 @@ const City = mongoose.model("PortalCity", new mongoose.Schema({
   reviewedAt: { type: Date, default: null }
 }));
 
-const Result = mongoose.model("Result", new mongoose.Schema({
+const ResultSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true, maxlength: 100 },
   resultText: { type: String, required: true, trim: true, maxlength: 300 },
   resultDate: { type: Date, required: true },
@@ -623,14 +626,21 @@ app.delete("/api/admin/cities/:id", adminOnly, async (req, res) => {
 });
 
 app.get("/api/admin/results", adminOnly, async (req, res) => {
-  const filter = { deleted: { $ne: true } };
-  if (req.query.month) {
-    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(req.query.month))
-      return res.status(400).json({ error: "Invalid month. Use YYYY-MM." });
-    const [year, month] = req.query.month.split("-").map(Number);
-    filter.resultDate = { $gte: new Date(Date.UTC(year, month - 1, 1)), $lt: new Date(Date.UTC(year, month, 1)) };
+  try {
+    const filter = { deleted: { $ne: true } };
+    if (req.query.month) {
+      if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(req.query.month))
+        return res.status(400).json({ error: "Invalid month. Use YYYY-MM." });
+      const [year, month] = req.query.month.split("-").map(Number);
+      filter.resultDate = { $gte: new Date(Date.UTC(year, month - 1, 1)), $lt: new Date(Date.UTC(year, month, 1)) };
+    }
+    const rows = await Result.find(filter).sort({ resultDate: -1, title: 1 }).limit(2000).maxTimeMS(15000).lean();
+    res.setHeader("Cache-Control", "no-store");
+    res.json(rows);
+  } catch (err) {
+    console.error("Admin results load failed:", err.message);
+    res.status(503).json({ error: "रिकॉर्ड लोड नहीं हो पाए। कुछ देर बाद Refresh करें।" });
   }
-  res.json(await Result.find(filter).sort({ resultDate: -1, title: 1 }).limit(2000).lean());
 });
 app.post("/api/admin/results", adminOnly, async (req, res) => {
   const { title, resultText, resultDate, published, sourceUrl } = req.body || {};
