@@ -529,6 +529,32 @@ app.get("/api/admin/cities", adminOnly, async (req, res) => {
   const names = new Map(users.map(u => [String(u._id), u.username]));
   res.json(cities.map(c => ({ ...c, username: names.get(String(c.userId)) || "Unknown" })));
 });
+app.post("/api/admin/chart-city/assign-any", adminOnly, async (req, res) => {
+  const cityName = String(req.body?.cityName || "").trim().replace(/\s+/g, " ");
+  const identifier = String(req.body?.username || req.body?.name || "").trim();
+  if (cityName.length < 2 || cityName.length > 60) return res.status(400).json({ error: "Chart में दिखने वाला सही City/Market नाम लिखें।" });
+  if (!identifier || identifier.length > 80) return res.status(400).json({ error: "User का नाम या Username लिखें।" });
+  const lookup = identifier.toLowerCase();
+  const matches = await User.find({ $or: [{ username: lookup }, { $expr: { $eq: [{ $toLower: "$name" }, lookup] } }] }).select("_id name username active expiresAt").limit(2).lean();
+  if (!matches.length) return res.status(404).json({ error: "इस नाम/Username से कोई User नहीं मिला।" });
+  if (matches.length > 1) return res.status(409).json({ error: "एक से अधिक User मिले। कृपया exact Username डालें।" });
+  const target = matches[0];
+  if (!target.active || (target.expiresAt && target.expiresAt <= new Date())) return res.status(403).json({ error: "इस User का account बंद है या अवधि समाप्त है।" });
+  const escaped = cityName.replace(/[.*+?^${}()|[\]\\]/g, "\\app.post("/api/admin/chart-city/assign", adminOnly, async (req, res) => {");
+  const resultFilter = { title: new RegExp("^" + escaped + "$", "i"), deleted: { $ne: true } };
+  const matchedResults = await Result.countDocuments(resultFilter);
+  if (!matchedResults) return res.status(404).json({ error: "इस नाम से Chart में कोई पुराना Result नहीं मिला। नाम की spelling जाँचें।" });
+  const matchingCities = await City.find({ cityName: new RegExp("^" + escaped + "$", "i") });
+  if (matchingCities.length > 1) return res.status(409).json({ error: "इस City के एक से अधिक owner records मिले। पहले जाँच जरूरी है।" });
+  const city = matchingCities[0] || null;
+  const otherCity = await City.findOne({ userId: target._id, ...(city ? { _id: { $ne: city._id } } : {}) }).select("cityName").lean();
+  if (otherCity) return res.status(409).json({ error: "इस User के पास पहले से " + otherCity.cityName + " assigned है। पहले उसे अलग करें।" });
+  const assignedCity = city || new City({ userId: target._id, cityName, expectedTime: "", status: "approved" });
+  assignedCity.userId = target._id; assignedCity.cityName = cityName; assignedCity.status = "approved"; assignedCity.reviewedAt = new Date();
+  await assignedCity.save();
+  const moved = await Result.updateMany(resultFilter, { $set: { cityId: assignedCity._id, ownerUserId: target._id, published: true, title: assignedCity.cityName } });
+  res.json({ ok: true, cityName: assignedCity.cityName, name: target.name || target.username, username: target.username, movedResults: moved.modifiedCount || 0, matchedResults });
+});
 app.post("/api/admin/chart-city/assign", adminOnly, async (req, res) => {
   const identifier = String(req.body?.username || req.body?.name || "").trim();
   if (!identifier || identifier.length > 80) return res.status(400).json({ error: "Sandeep का सही नाम या Username भरें।" });
