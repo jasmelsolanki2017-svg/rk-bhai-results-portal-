@@ -1,0 +1,15 @@
+{
+  "id": "/user.html",
+  "name": "RK Bhai User Panel",
+  "short_name": "RK User",
+  "description": "RK Bhai का निजी User Dashboard",
+  "start_url": "/user.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#090909",
+  "theme_color": "#090909",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/user-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
