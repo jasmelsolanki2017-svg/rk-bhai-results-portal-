@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-17T02:27:19.616Z",
+  "updatedAt": "2026-11-17T02:28:16.792Z",
   "results": [
     {
       "_id": "6afbafd73c4398211e8ad14a",
@@ -851,14 +851,6 @@
       "createdAt": "2026-11-15T16:25:58.790Z"
     },
     {
-      "_id": "6af9ddcba042f3afe7528b3b",
-      "title": "Chandigarh City",
-      "resultText": "16",
-      "resultDate": "2026-11-01T12:00:00.000Z",
-      "sourceUrl": "https://live-satta-king.com/chandigarh-city.php/satta-result-chart/cc/cc-nov-2026.php",
-      "createdAt": "2026-11-15T16:28:59.642Z"
-    },
-    {
       "_id": "6af9dd16a042f3afe7528ac1",
       "title": "Delhi Bazar",
       "resultText": "30",
@@ -897,6 +889,14 @@
       "resultDate": "2026-11-01T12:00:00.000Z",
       "sourceUrl": "https://satta-klng.com/satta-king-result-of-november-2026",
       "createdAt": "2026-11-15T16:25:58.391Z"
+    },
+    {
+      "_id": "6af9ddcba042f3afe7528b3b",
+      "title": "Chandigarh City",
+      "resultText": "Ok",
+      "resultDate": "2026-11-01T00:00:00.000Z",
+      "sourceUrl": "https://live-satta-king.com/chandigarh-city.php/satta-result-chart/cc/cc-nov-2026.php",
+      "createdAt": "2026-11-15T16:28:59.642Z"
     },
     {
       "_id": "6af9dd16a042f3afe7528ac0",
