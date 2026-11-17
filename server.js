@@ -661,23 +661,39 @@ async function syncPublicSnapshotOnce() {
     })),
     cities: cities.map(c => ({ cityName: c.cityName, expectedTime: c.expectedTime || "" }))
   };
+  // Keep public data on its own branch so snapshot updates do not redeploy this Render service.
+  const snapshotBranch = "public-data";
   const apiUrl = "https://api.github.com/repos/" + repo + "/contents/data/public-results.json";
   const headers = {
     "Authorization": "Bearer " + token,
     "Accept": "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28"
   };
-  const currentResponse = await fetch(apiUrl, { headers });
+  const currentResponse = await fetch(apiUrl + "?ref=" + snapshotBranch, { headers });
   let sha;
   if (currentResponse.ok) {
     const current = await currentResponse.json();
     sha = current.sha;
+    try {
+      const currentText = Buffer.from(String(current.content || "").replace(/\\n/g, ""), "base64").toString("utf8");
+      const currentSnapshot = JSON.parse(currentText);
+      const samePublicData =
+        JSON.stringify({ app: currentSnapshot.app, results: currentSnapshot.results, cities: currentSnapshot.cities }) ===
+        JSON.stringify({ app: snapshot.app, results: snapshot.results, cities: snapshot.cities });
+      if (samePublicData) {
+        console.log("Public results snapshot unchanged; GitHub commit skipped:", results.length, "results");
+        return true;
+      }
+    } catch (compareError) {
+      console.warn("Could not compare existing public snapshot; replacing it:", compareError.message);
+    }
   } else if (currentResponse.status !== 404) {
     throw new Error("GitHub file lookup returned " + currentResponse.status);
   }
   const payload = {
     message: "Update public results snapshot",
-    content: Buffer.from(JSON.stringify(snapshot, null, 2) + "\n", "utf8").toString("base64")
+    content: Buffer.from(JSON.stringify(snapshot, null, 2) + "\\n", "utf8").toString("base64"),
+    branch: snapshotBranch
   };
   if (sha) payload.sha = sha;
   const writeResponse = await fetch(apiUrl, {
