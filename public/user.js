@@ -67,9 +67,33 @@ async function loadMyCity(){
  box.hidden=city.status!=="approved";
  if(city.status==="approved") await loadMyRecords();
 }
+function userMonthKey(value){
+ const d=new Date(value);return Number.isNaN(d.getTime())?"unknown":d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0");
+}
+function userMonthLabel(key){
+ if(key==="unknown")return "तारीख उपलब्ध नहीं";
+ const [year,month]=key.split("-").map(Number);
+ return new Date(Date.UTC(year,month-1,1)).toLocaleDateString("hi-IN",{month:"long",year:"numeric",timeZone:"UTC"});
+}
 async function loadMyRecords(){
  const rows=await userApi("/api/user/results");
- $("#myRecords").innerHTML=rows.map(r=>'<article class="admin-row"><div class="admin-row-info"><b>'+userEsc(r.resultText)+'</b><p>'+new Date(r.resultDate).toLocaleDateString("hi-IN")+'</p></div><button type="button" data-my-edit="'+r._id+'">Edit</button></article>').join("")||'<p class="muted">अभी कोई रिकॉर्ड नहीं जोड़ा।</p>';
+ const groups=new Map();
+ rows.forEach(row=>{const key=userMonthKey(row.resultDate);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(row);});
+ const keys=[...groups.keys()].sort((a,b)=>b.localeCompare(a));
+ const monthSelect=$("#myRecordsMonth"),chart=$("#myRecordsChart"),list=$("#myRecordsByMonth");
+ if(!rows.length){
+  monthSelect.innerHTML='<option value="">कोई रिकॉर्ड नहीं</option>';
+  chart.innerHTML='<p class="muted">चार्ट के लिए अभी डेटा नहीं है।</p>';
+  list.innerHTML='<p class="muted">अभी कोई रिकॉर्ड नहीं जोड़ा।</p>';
+  return;
+ }
+ const selected=monthSelect.value&&groups.has(monthSelect.value)?monthSelect.value:keys[0];
+ monthSelect.innerHTML=keys.map(key=>'<option value="'+userEsc(key)+'">'+userEsc(userMonthLabel(key))+' ('+groups.get(key).length+')</option>').join("");
+ monthSelect.value=selected;
+ const max=Math.max(1,...keys.map(key=>groups.get(key).length));
+ chart.innerHTML='<div class="user-month-bars">'+keys.map(key=>'<div class="user-month-bar-row"><span>'+userEsc(userMonthLabel(key))+'</span><div class="user-month-bar-track"><i style="width:'+Math.max(4,groups.get(key).length/max*100)+'%"></i></div><b>'+groups.get(key).length+'</b></div>').join("")+'</div>';
+ const monthRows=groups.get(selected)||[];
+ list.innerHTML='<h4>'+userEsc(userMonthLabel(selected))+' के रिकॉर्ड ('+monthRows.length+')</h4>'+monthRows.map(r=>'<article class="admin-row"><div class="admin-row-info"><b>'+userEsc(r.resultText)+'</b><p>'+new Date(r.resultDate).toLocaleDateString("hi-IN",{timeZone:"UTC"})+'</p></div><button type="button" data-my-edit="'+userEsc(r._id)+'">Edit</button></article>').join("");
 }
 function userEsc(v){return String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 $("#cityForm").addEventListener("submit",async e=>{
