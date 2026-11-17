@@ -89,7 +89,7 @@ const HistoricalImport = mongoose.model("HistoricalImport", new mongoose.Schema(
 }));
 
 const City = mongoose.model("PortalCity", new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "PortalUser", required: true, index: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "PortalUser", required: true },
   cityName: { type: String, required: true, trim: true, maxlength: 60 },
   expectedTime: { type: String, default: "" },
   status: { type: String, enum: ["pending", "approved", "rejected", "returned", "hidden"], default: "pending" },
