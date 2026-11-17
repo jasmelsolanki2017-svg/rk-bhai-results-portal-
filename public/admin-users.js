@@ -5,10 +5,49 @@ function show(on){$("#loginBox").hidden=on;$("#managePanel").hidden=!on;}
 function indiaToday(){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());}
 async function refresh(){
  const users=await api("/api/admin/users");
+ await loadAssignableChartCities();
  $("#usersList").innerHTML=users.map((u,i)=>'<article class="user-manage-card"><div class="user-card-head"><div class="user-identity"><span class="user-number">USER '+(i+1)+'</span><h3>'+esc(u.name||"नाम उपलब्ध नहीं")+'</h3><span class="username-tag">@'+esc(u.username)+'</span></div><span class="account-status '+(u.active?"is-active":"is-disabled")+'">'+(u.active?"ACTIVE":"DISABLED")+'</span></div><div class="user-details-grid"><div><small>मोबाइल नंबर</small><b>'+esc(u.mobile||"—")+'</b></div><div><small>Email ID</small><b>'+esc(u.email||"—")+'</b></div><div><small>अंतिम तारीख</small><b>'+(u.expiresAt?esc(new Date(u.expiresAt).toLocaleDateString("en-IN")):"तय नहीं")+'</b></div><div><small>शहर</small><b>'+(u.city?esc(u.city.name)+" ("+esc(u.city.status)+")":"अभी नहीं")+'</b></div></div><div class="expiry-controls"><div class="expiry-field"><label for="days-'+u._id+'">कितने अतिरिक्त दिन बढ़ाने हैं?</label><input id="days-'+u._id+'" type="text" inputmode="numeric" pattern="[0-9]{1,4}" maxlength="4" autocomplete="off" placeholder="जैसे 30" data-days="'+u._id+'"><button type="button" data-setdays="'+u._id+'">दिन बढ़ाएँ</button></div><div class="expiry-field"><label for="date-'+u._id+'">किस तारीख तक चालू रखना है?</label><input id="date-'+u._id+'" type="date" min="'+indiaToday()+'" data-date="'+u._id+'"><button type="button" data-setdate="'+u._id+'">तारीख लागू करें</button></div><div class="actions"><button type="button" data-reset="'+u._id+'">Reset Password</button><button type="button" data-toggle="'+u._id+'" data-active="'+u.active+'">'+(u.active?"Disable":"Enable")+'</button><button type="button" class="danger" data-delete="'+u._id+'">Delete</button></div></div></article>').join("")||'<p class="muted">कोई User नहीं है।</p>';
+ renderAssignmentOptions(users);
  const cities=await api("/api/admin/cities");
  $("#cityRequests").innerHTML='<article class="admin-row"><div class="admin-row-info"><b>Chart की पुरानी City / Market Assign करें</b><p>Chart में पहले से मौजूद किसी भी City का नाम और किसी भी active User का Username डालें। पुराने Results उसी User को मिलेंगे।</p></div><div class="actions"><button type="button" data-assignanychartcity>City Assign करें</button></div></article>'+cities.map(c=>'<article class="admin-row"><div class="admin-row-info"><b>'+esc(c.cityName)+'</b><p>User: '+esc(c.username)+' · समय: '+esc(c.expectedTime||"नहीं दिया")+' IST · '+esc(c.status)+'</p></div><div class="actions">'+(c.status==="pending"?'<button type="button" data-city="'+c._id+'" data-status="approved">Approve</button>':'')+'<button type="button" data-editcity="'+c._id+'" data-name="'+esc(c.cityName)+'">Name Edit</button><button type="button" data-returncity="'+c._id+'">Send Back</button><button type="button" data-hidecity="'+c._id+'">'+(c.status==="hidden"?"Unhide":"Hide")+'</button><button type="button" class="danger" data-deletecity="'+c._id+'">Remove</button></div></article>').join("")||'<p class="muted">कोई शहर नहीं है।</p>';
 }
+let assignableChartCities=[];
+function renderAssignmentOptions(users){
+ const citySelect=$("#assignCitySelect"),userSelect=$("#assignUserSelect"),button=$("#assignSelectedCity");
+ if(!citySelect||!userSelect||!button)return;
+ const previous=citySelect.value;
+ citySelect.innerHTML='<option value="">City / Market चुनें</option>';
+ assignableChartCities.forEach(name=>{const o=document.createElement("option");o.value=name;o.textContent=name;citySelect.appendChild(o);});
+ if(assignableChartCities.includes(previous))citySelect.value=previous;
+ const chosen=citySelect.value;
+ userSelect.innerHTML='<option value="">User चुनें</option>';
+ if(chosen){
+  users.filter(u=>u.active&&!u.city).sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),"hi")).forEach(u=>{const o=document.createElement("option");o.value=u.username;o.textContent=(u.name||u.username)+" (@"+u.username+")";userSelect.appendChild(o);});
+  userSelect.disabled=false;
+ }else userSelect.disabled=true;
+ button.disabled=!(chosen&&userSelect.value);
+}
+async function loadAssignableChartCities(){
+ const rows=await api("/api/admin/results");
+ assignableChartCities=[...new Set(rows.map(r=>String(r.title||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"hi"));
+}
+$("#assignCitySelect").addEventListener("change",async()=>{
+ const users=await api("/api/admin/users");
+ renderAssignmentOptions(users);
+ $("#assignCityMsg").textContent=$("#assignCitySelect").value?"अब इस City के लिए User चुनें।":"";
+});
+$("#assignUserSelect").addEventListener("change",()=>{$("#assignSelectedCity").disabled=!($("#assignCitySelect").value&&$("#assignUserSelect").value);});
+$("#assignSelectedCity").addEventListener("click",async()=>{
+ const cityName=$("#assignCitySelect").value,username=$("#assignUserSelect").value,msg=$("#assignCityMsg");
+ if(!cityName||!username)return;
+ if(!confirm(cityName+" के पुराने Chart Results "+username+" को assign करें?"))return;
+ const button=$("#assignSelectedCity");button.disabled=true;msg.textContent="City assign हो रही है…";
+ try{
+  const result=await api("/api/admin/chart-city/assign-any",{method:"POST",body:JSON.stringify({cityName,username})});
+  msg.textContent=result.cityName+" अब "+result.name+" (@"+result.username+") को assign हो गई। पुराने Results: "+result.movedResults;
+  await refresh();
+ }catch(err){msg.textContent=err.message;button.disabled=false;}
+});
 $("#loginForm").addEventListener("submit",async e=>{e.preventDefault();try{const f=new FormData(e.target);await api("/api/admin/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});show(true);await refresh();}catch(err){$("#loginMsg").textContent=err.message;}});
 $("#createUserForm").addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(e.target);try{await api("/api/admin/users",{method:"POST",body:JSON.stringify({name:f.get("name"),username:f.get("username"),mobile:f.get("mobile"),email:f.get("email"),expiresInDays:Number(f.get("expiresInDays"))})});e.target.reset();$("#userMsg").textContent="User बन गया। चुनी गई अवधि के बाद account अपने आप बंद हो जाएगा। Login Password: userlogin (पहली Login पर बदलना जरूरी)।";await refresh();}catch(err){$("#userMsg").textContent=err.message;}});
 document.addEventListener("click",async e=>{
