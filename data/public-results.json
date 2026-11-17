@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-17T08:58:20.777Z",
+  "updatedAt": "2026-11-17T08:58:27.897Z",
   "results": [
     {
       "_id": "6afbafd73c4398211e8ad14a",
@@ -57638,7 +57638,7 @@
   "cities": [
     {
       "cityName": "Chandigarh City",
-      "expectedTime": ""
+      "expectedTime": "20:30"
     }
   ]
 }
