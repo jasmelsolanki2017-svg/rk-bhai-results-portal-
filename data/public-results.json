@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-17T13:30:27.383Z",
+  "updatedAt": "2026-11-17T13:35:40.334Z",
   "results": [
     {
       "_id": "6afbafd73c4398211e8ad14a",
@@ -9,6 +9,14 @@
       "resultDate": "2026-11-17T00:00:00.000Z",
       "sourceUrl": "",
       "createdAt": "2026-11-17T01:37:27.089Z"
+    },
+    {
+      "_id": "6afc582a0dd18626b7b9bc02",
+      "title": "Faridabad",
+      "resultText": "17",
+      "resultDate": "2026-11-17T00:00:00.000Z",
+      "sourceUrl": "",
+      "createdAt": "2026-11-17T13:35:38.435Z"
     },
     {
       "_id": "6afb22d79b9d1415811d7a9a",
