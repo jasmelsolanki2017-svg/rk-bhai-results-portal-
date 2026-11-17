@@ -115,7 +115,7 @@ function renderRecent(){
   recentCities.forEach(city=>{if(!byCity.has(city.cityName))byCity.set(city.cityName,{today:null,yesterday:null});});
   const todayStat=document.getElementById("statToday");
   if(todayStat)todayStat.textContent=recentRows.filter(r=>dateKey(r.resultDate)===todayKey).length;
-  const query=(citySearch.value||"").trim().toLocaleLowerCase("hi");
+  const query=(citySearch?.value||"").trim().toLocaleLowerCase("hi");
   const entries=[...byCity.entries()].filter(([city])=>city.toLocaleLowerCase("hi").includes(query)).sort((a,b)=>{
     const latestTime=item=>Math.max(...[item[1].today,item[1].yesterday].filter(Boolean).map(row=>new Date(row.createdAt||row.updatedAt||row.resultDate||0).getTime()),0);
     return latestTime(b)-latestTime(a);
@@ -166,6 +166,7 @@ if(notificationButton){
 }
 function monthKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;}
 function populateCityFilter(cities,rows){
+  if(!chartCity)return;
   const current=chartCity.value;
   const names=[...new Set([...rows.map(r=>r.title),...cities.map(c=>c.cityName)])].sort((a,b)=>a.localeCompare(b,"hi"));
   chartCity.innerHTML='<option value="">सभी शहर / मार्केट</option>'+names.map(name=>'<option value="'+escapeHtml(name)+'">'+escapeHtml(name)+'</option>').join("");
@@ -191,7 +192,7 @@ async function loadMonth(){
 function renderMonthTable(){
   let rows=monthRows;
   let titles=[...new Set([...rows.map(r=>r.title),...monthCities.map(c=>c.cityName)])];
-  if(chartCity.value){titles=titles.filter(t=>t===chartCity.value);rows=rows.filter(r=>r.title===chartCity.value);}
+  if(chartCity?.value){titles=titles.filter(t=>t===chartCity.value);rows=rows.filter(r=>r.title===chartCity.value);}
   const marketOrder=[["दिसावर","disawar","दिसावर"],["श्री गणेश","शिरी गणेश","shri ganesh","sri ganesh"],["दिल्ली बाजार","delhi bajar","delhi bazar","दिल्ली बाजार"],["फरीदाबाद","faridabad"],["चंडीगढ़ सिटी","chandigarh city","चंडीगढ़"],["गाजियाबाद","ghaziabad","गाजियाबाद"],["गली","gali"]];
   const marketRank=name=>{const value=String(name).toLocaleLowerCase("hi").replace(/[\\s_-]+/g,"");const index=marketOrder.findIndex(aliases=>aliases.some(alias=>value.includes(alias.toLocaleLowerCase("hi").replace(/[\\s_-]+/g,""))));return index<0?marketOrder.length:index;};
   titles.sort((a,b)=>{const ar=marketRank(a),br=marketRank(b);return ar!==br?ar-br:a.localeCompare(b,"hi");});
@@ -203,7 +204,7 @@ function renderMonthTable(){
     byDay.get(day)[row.title]=row;
   });
   const daysInMonth=new Date(selectedMonth.getFullYear(),selectedMonth.getMonth()+1,0).getDate();
-  const chosenDate=historyDate.value;
+  const chosenDate=historyDate?.value||"";
   const todayKey=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
   const currentMonthKey=todayKey.slice(0,7);
   const visibleDays=monthKey(selectedMonth)===currentMonthKey?Math.min(daysInMonth,Number(todayKey.slice(8,10))):daysInMonth;
@@ -225,10 +226,10 @@ function renderMonthTable(){
 }
 prevButton.addEventListener("click",()=>{selectedMonth=new Date(selectedMonth.getFullYear(),selectedMonth.getMonth()-1,1);loadMonth();});
 nextButton.addEventListener("click",()=>{const candidate=new Date(selectedMonth.getFullYear(),selectedMonth.getMonth()+1,1);if(candidate<=new Date(new Date().getFullYear(),new Date().getMonth(),1)){selectedMonth=candidate;loadMonth();}});
-citySearch.addEventListener("input",renderRecent);
-chartCity.addEventListener("change",renderMonthTable);
-historyDate.addEventListener("change",()=>{if(historyDate.value){const chosen=new Date(historyDate.value+"T00:00:00");selectedMonth=new Date(chosen.getFullYear(),chosen.getMonth(),1);loadMonth();}else{renderMonthTable();}});
-clearDate.addEventListener("click",()=>{historyDate.value="";renderMonthTable();});
+if(citySearch)citySearch.addEventListener("input",renderRecent);
+if(chartCity)chartCity.addEventListener("change",renderMonthTable);
+if(historyDate)historyDate.addEventListener("change",()=>{if(historyDate.value){const chosen=new Date(historyDate.value+"T00:00:00");selectedMonth=new Date(chosen.getFullYear(),chosen.getMonth(),1);loadMonth();}else{renderMonthTable();}});
+if(clearDate)clearDate.addEventListener("click",()=>{if(historyDate)historyDate.value="";renderMonthTable();});
 
 loadMonth();
 loadResults();
