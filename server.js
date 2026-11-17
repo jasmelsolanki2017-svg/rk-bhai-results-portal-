@@ -529,6 +529,29 @@ app.get("/api/admin/cities", adminOnly, async (req, res) => {
   const names = new Map(users.map(u => [String(u._id), u.username]));
   res.json(cities.map(c => ({ ...c, username: names.get(String(c.userId)) || "Unknown" })));
 });
+app.post("/api/admin/chart-city/assign", adminOnly, async (req, res) => {
+  const identifier = String(req.body?.username || req.body?.name || "").trim();
+  if (!identifier || identifier.length > 80) return res.status(400).json({ error: "Sandeep का सही नाम या Username भरें।" });
+  const lookup = identifier.toLowerCase();
+  const matches = await User.find({ $or: [{ username: lookup }, { $expr: { $eq: [{ $toLower: "$name" }, lookup] } }] }).select("_id name username active expiresAt").limit(2).lean();
+  if (!matches.length) return res.status(404).json({ error: "इस नाम/Username से कोई User नहीं मिला।" });
+  if (matches.length > 1) return res.status(409).json({ error: "एक से अधिक User मिले। Sandeep का exact Username डालें।" });
+  const target = matches[0];
+  if (!target.active || (target.expiresAt && target.expiresAt <= new Date())) return res.status(403).json({ error: "Sandeep का account बंद है या अवधि समाप्त है। पहले account चालू करें।" });
+  const chartFilter = { title: /^chandigarh city$/i, deleted: { $ne: true } };
+  const resultCount = await Result.countDocuments(chartFilter);
+  if (!resultCount) return res.status(404).json({ error: "Chart में Chandigarh City के पुराने परिणाम नहीं मिले।" });
+  const matchingCities = await City.find({ cityName: /^chandigarh city$/i });
+  if (matchingCities.length > 1) return res.status(409).json({ error: "Chandigarh City के एक से अधिक owner records मिले। पहले जाँच जरूरी है।" });
+  const city = matchingCities[0] || null;
+  const otherCity = await City.findOne({ userId: target._id, ...(city ? { _id: { $ne: city._id } } : {}) }).select("cityName").lean();
+  if (otherCity) return res.status(409).json({ error: "Sandeep के पास पहले से " + otherCity.cityName + " assigned है। पहले उसे अलग करें।" });
+  const assignedCity = city || new City({ userId: target._id, cityName: "Chandigarh City", expectedTime: "", status: "approved" });
+  assignedCity.userId = target._id; assignedCity.cityName = "Chandigarh City"; assignedCity.status = "approved"; assignedCity.reviewedAt = new Date();
+  await assignedCity.save();
+  const moved = await Result.updateMany(chartFilter, { $set: { cityId: assignedCity._id, ownerUserId: target._id, published: true, title: "Chandigarh City" } });
+  res.json({ ok: true, cityName: assignedCity.cityName, name: target.name || target.username, username: target.username, movedResults: moved.modifiedCount || 0, matchedResults: resultCount });
+});
 app.post("/api/admin/cities/:id/assign", adminOnly, async (req, res) => {
   const identifier = String(req.body?.username || req.body?.name || "").trim();
   if (!identifier || identifier.length > 80) return res.status(400).json({ error: "Sandeep का सही नाम या Username भरें।" });
