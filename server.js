@@ -537,7 +537,29 @@ app.post("/api/admin/cities/:id/assign", adminOnly, async (req, res) => {
   if (city.cityName.trim().toLowerCase() !== "chandigarh city") {
     return res.status(403).json({ error: "यह assignment सुविधा केवल Chandigarh City के लिए है।" });
   }
-  const escaped = identifier.replace(/[.*+?^${}()|[\]\\]/g, "\\app.patch("/api/admin/cities/:id", adminOnly, async (req, res) => {");
+  const lookup = identifier.toLowerCase();
+  const matches = await User.find({
+    $or: [{ username: lookup }, { $expr: { $eq: [{ $toLower: "$name" }, lookup] } }]
+  }).select("_id name username active expiresAt").limit(2).lean();
+  if (!matches.length) return res.status(404).json({ error: "इस नाम/Username से कोई User नहीं मिला।" });
+  if (matches.length > 1) return res.status(409).json({ error: "एक से अधिक User मिले। Sandeep का exact Username डालें।" });
+  const target = matches[0];
+  if (!target.active || (target.expiresAt && target.expiresAt <= new Date())) {
+    return res.status(403).json({ error: "Sandeep का account बंद है या अवधि समाप्त है। पहले account चालू करें।" });
+  }
+  const otherCity = await City.findOne({ userId: target._id, _id: { $ne: city._id } }).select("cityName").lean();
+  if (otherCity) return res.status(409).json({ error: "इस User के पास पहले से " + otherCity.cityName + " assigned है। पहले उसे अलग करें।" });
+  city.userId = target._id;
+  city.status = "approved";
+  city.reviewedAt = new Date();
+  await city.save();
+  const moved = await Result.updateMany(
+    { cityId: city._id, deleted: { $ne: true } },
+    { $set: { ownerUserId: target._id, published: true, title: city.cityName } }
+  );
+  res.json({ ok: true, cityName: city.cityName, name: target.name || target.username, username: target.username, movedResults: moved.modifiedCount || 0 });
+});
+app.patch("/api/admin/cities/:id", adminOnly, async (req, res) => {");
   const matches = await User.find({
     $or: [{ username: identifier.toLowerCase() }, { name: { $regex: "^" + escaped + "$", $options: "i" } }]
   }).select("_id name username active expiresAt").limit(2).lean();
