@@ -59,12 +59,14 @@ $("#forcedLogout").addEventListener("click",logoutUser);
 async function loadMyCity(){
  const city=await userApi("/api/user/city");
  const form=$("#cityForm"),status=$("#cityStatus"),box=$("#userRecordBox");
- if(!city){status.textContent="आपने अभी शहर नहीं बनाया है। एक ही शहर भेज सकते हैं; Admin approval जरूरी है।";form.hidden=false;box.hidden=true;return;}
+ const recordsPanel=$("#myRecordsPanel");
+ if(!city){status.textContent="आपने अभी शहर नहीं बनाया है। एक ही शहर भेज सकते हैं; Admin approval जरूरी है।";form.hidden=false;box.hidden=true;if(recordsPanel)recordsPanel.hidden=true;return;}
  form.hidden=true;
  status.innerHTML="शहर: "+userEsc(city.cityName)+" · स्थिति: "+({pending:"Approval pending",approved:"Approved",rejected:"Rejected",returned:"Admin ने वापस भेजा — नाम edit करें",hidden:"Admin ने hide किया"}[city.status]||city.status)+"<br>परिणाम का समय: "+(city.expectedTime||"समय नहीं दिया गया")+" IST";
  if(city.status==="returned") status.innerHTML+='<form id="cityRenameForm" class="inline-time-form"><label>शहर का नाम सुधारें</label><input name="cityName" minlength="2" maxlength="60" required value="'+userEsc(city.cityName)+'"><label>परिणाम का समय</label><input name="expectedTime" type="time" required value="'+userEsc(city.expectedTime||"")+'"><button type="submit">दोबारा Approval भेजें</button></form>';
  if(city.status==="approved") status.innerHTML+='<form id="cityTimeForm" class="inline-time-form"><label>परिणाम आने का समय बदलें (IST)</label><input name="expectedTime" type="time" required value="'+userEsc(city.expectedTime||"")+'"><button type="submit">समय अपडेट करें</button></form>';
  box.hidden=city.status!=="approved";
+ if(recordsPanel)recordsPanel.hidden=city.status!=="approved";
  if(city.status==="approved") await loadMyRecords();
 }
 function userMonthKey(value){
@@ -75,26 +77,34 @@ function userMonthLabel(key){
  const [year,month]=key.split("-").map(Number);
  return new Date(Date.UTC(year,month-1,1)).toLocaleDateString("hi-IN",{month:"long",year:"numeric",timeZone:"UTC"});
 }
-$("#myRecordsMonth").addEventListener("change",()=>loadMyRecords().catch(err=>{$("#myRecordsByMonth").textContent=err.message;}));
+function currentUserMonthKey(){
+ const parts=new Intl.DateTimeFormat("en",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit"}).formatToParts(new Date());
+ return parts.find(x=>x.type==="year").value+"-"+parts.find(x=>x.type==="month").value;
+}
+let selectedMyRecordsMonth=currentUserMonthKey();
+function shiftUserMonth(key,amount){
+ const [year,month]=key.split("-").map(Number),d=new Date(Date.UTC(year,month-1+amount,1));
+ return d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0");
+}
+$("#myRecordsPrev").addEventListener("click",()=>{selectedMyRecordsMonth=shiftUserMonth(selectedMyRecordsMonth,-1);loadMyRecords().catch(err=>{$("#myRecordsByMonth").textContent=err.message;});});
+$("#myRecordsNext").addEventListener("click",()=>{const next=shiftUserMonth(selectedMyRecordsMonth,1);if(next<=currentUserMonthKey()){selectedMyRecordsMonth=next;loadMyRecords().catch(err=>{$("#myRecordsByMonth").textContent=err.message;});}});
 async function loadMyRecords(){
  const rows=await userApi("/api/user/results");
  const groups=new Map();
  rows.forEach(row=>{const key=userMonthKey(row.resultDate);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(row);});
- const keys=[...groups.keys()].sort((a,b)=>b.localeCompare(a));
- const monthSelect=$("#myRecordsMonth"),chart=$("#myRecordsChart"),list=$("#myRecordsByMonth");
- if(!rows.length){
-  monthSelect.innerHTML='<option value="">कोई रिकॉर्ड नहीं</option>';
-  chart.innerHTML='<p class="muted">चार्ट के लिए अभी डेटा नहीं है।</p>';
-  list.innerHTML='<p class="muted">अभी कोई रिकॉर्ड नहीं जोड़ा।</p>';
-  return;
- }
- const selected=monthSelect.value&&groups.has(monthSelect.value)?monthSelect.value:keys[0];
- monthSelect.innerHTML=keys.map(key=>'<option value="'+userEsc(key)+'">'+userEsc(userMonthLabel(key))+' ('+groups.get(key).length+')</option>').join("");
- monthSelect.value=selected;
- const max=Math.max(1,...keys.map(key=>groups.get(key).length));
- chart.innerHTML='<div class="user-month-bars">'+keys.map(key=>'<div class="user-month-bar-row"><span>'+userEsc(userMonthLabel(key))+'</span><div class="user-month-bar-track"><i style="width:'+Math.max(4,groups.get(key).length/max*100)+'%"></i></div><b>'+groups.get(key).length+'</b></div>').join("")+'</div>';
- const monthRows=groups.get(selected)||[];
- list.innerHTML='<h4>'+userEsc(userMonthLabel(selected))+' के रिकॉर्ड ('+monthRows.length+')</h4>'+monthRows.map(r=>'<article class="admin-row"><div class="admin-row-info"><b>'+userEsc(r.resultText)+'</b><p>'+new Date(r.resultDate).toLocaleDateString("hi-IN",{timeZone:"UTC"})+'</p></div><button type="button" data-my-edit="'+userEsc(r._id)+'">Edit</button></article>').join("");
+ const list=$("#myRecordsByMonth"),label=$("#myRecordsMonthLabel"),prev=$("#myRecordsPrev"),next=$("#myRecordsNext");
+ if(!groups.has(selectedMyRecordsMonth)&&groups.size===1&&groups.has("unknown"))selectedMyRecordsMonth="unknown";
+ label.textContent=userMonthLabel(selectedMyRecordsMonth);
+ prev.disabled=selectedMyRecordsMonth==="unknown";
+ next.disabled=selectedMyRecordsMonth==="unknown"||selectedMyRecordsMonth>=currentUserMonthKey();
+ const monthRows=(groups.get(selectedMyRecordsMonth)||[]).slice().sort((a,b)=>new Date(a.resultDate)-new Date(b.resultDate));
+ const firstHalf=monthRows.filter(r=>{const d=new Date(r.resultDate);return !Number.isNaN(d.getTime())&&d.getUTCDate()<=16;});
+ const secondHalf=monthRows.filter(r=>{const d=new Date(r.resultDate);return !Number.isNaN(d.getTime())&&d.getUTCDate()>=17;});
+ const renderRows=(items,empty)=>items.length?items.map(r=>{
+  const d=new Date(r.resultDate),day=Number.isNaN(d.getTime())?"—":d.getUTCDate();
+  return '<article class="my-record-item"><div class="my-record-day">'+day+'</div><div class="my-record-info"><b>'+userEsc(r.resultText)+'</b><button type="button" data-my-edit="'+userEsc(r._id)+'">Edit</button></div></article>';
+ }).join(""):'<p class="muted my-record-empty">'+empty+'</p>';
+ list.innerHTML='<section class="my-record-half"><h3>1–16 तारीख <span>('+firstHalf.length+')</span></h3>'+renderRows(firstHalf,"इस हिस्से में कोई रिकॉर्ड नहीं")+'</section><section class="my-record-half"><h3>17–महीने का आखिरी दिन <span>('+secondHalf.length+')</span></h3>'+renderRows(secondHalf,"इस हिस्से में कोई रिकॉर्ड नहीं")+'</section>';
 }
 function userEsc(v){return String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 $("#cityForm").addEventListener("submit",async e=>{
