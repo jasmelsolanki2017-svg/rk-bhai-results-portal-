@@ -17,16 +17,27 @@ function dateValue(v){return new Date(v).toISOString().slice(0,10);}
 function monthKey(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");}
 
 async function refresh(){
-  // Load the full admin dataset first, then render the month. This avoids
-  // two simultaneous MongoDB reads competing during dashboard startup.
+  // Start the month chart immediately; the larger all-results request must
+  // never block the chart from appearing.
+  const monthTask = loadMonth();
   try {
-    allRows = await api("/api/admin/results");
+    allRows = await api("/api/admin/results", {signal:AbortSignal.timeout(15000)});
     renderCityLinks();
   } catch (e) {
     allRows = [];
     $("#cityLinks").innerHTML = '<p class="muted">शहरों की सूची लोड नहीं हुई: '+esc(e.message)+'</p>';
   }
-  await loadMonth();
+  const monthLoaded = await monthTask;
+  // If the month endpoint failed before the full list arrived, render from
+  // the data that has now loaded instead of leaving the chart stuck.
+  if (!monthLoaded && allRows.length) {
+    const fallback = allRows.filter(row => {
+      const d = new Date(row.resultDate);
+      return d.getFullYear() === selectedMonth.getFullYear() &&
+        d.getMonth() === selectedMonth.getMonth();
+    });
+    renderMonthChart(fallback, selectedMonth);
+  }
 }
 function renderCityLinks(){
  const cities=[...new Set(allRows.map(x=>String(x.title||"").trim()).filter(Boolean))].sort((a,b)=>{const ac=/chandigarh/i.test(a),bc=/chandigarh/i.test(b);return ac!==bc?(ac?1:-1):a.localeCompare(b,"hi");});
@@ -41,6 +52,7 @@ async function loadMonth(){
   try{
     const rows=await api("/api/admin/results?month="+encodeURIComponent(key),{signal:AbortSignal.timeout(12000)});
     renderMonthChart(rows,selectedMonth);
+    return true;
   }catch(e){
     // If the month-filtered query fails but the full admin list loaded,
     // keep the chart usable from that already-fetched data.
@@ -54,6 +66,7 @@ async function loadMonth(){
     }else{
       $("#adminChart").innerHTML='<p class="muted">चार्ट लोड नहीं हुआ: '+esc(e.message)+'</p>';
     }
+    return false;
   }
 }
 function renderMonthChart(rows,month){
