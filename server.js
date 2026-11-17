@@ -107,7 +107,7 @@ const ResultSchema = new mongoose.Schema({
   ownerUserId: { type: mongoose.Schema.Types.ObjectId, ref: "PortalUser", default: null, index: true },
   cityId: { type: mongoose.Schema.Types.ObjectId, ref: "PortalCity", default: null, index: true },
   createdAt: { type: Date, default: Date.now }
-}));
+});
 
 // Keep the monthly admin chart query and sort responsive on larger result collections.
 ResultSchema.index({ resultDate: -1, title: 1 });
