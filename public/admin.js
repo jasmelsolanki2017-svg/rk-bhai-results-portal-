@@ -2,6 +2,7 @@ const $=s=>document.querySelector(s);
 const msg=$("#msg");
 let allRows=[];
 let cityNames=[];
+let hiddenCityNames=new Set();
 let selectedMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
 
 async function api(url,opts={}){
@@ -20,8 +21,12 @@ async function refresh(){
   // Start the month chart immediately; the larger all-results request must
   // never block the chart from appearing.
   const monthTask = loadMonth();
+  const hiddenTask = api("/api/admin/users", {signal:AbortSignal.timeout(12000)}).then(users=>{
+    hiddenCityNames = new Set((users||[]).flatMap(user=>user.cities||[]).filter(city=>city.status==="hidden").map(city=>String(city.name||"").trim()).filter(Boolean));
+  }).catch(error=>{ console.warn("Hidden city status could not be loaded:",error.message); hiddenCityNames=new Set(); });
   try {
     allRows = await api("/api/admin/results", {signal:AbortSignal.timeout(15000)});
+    await hiddenTask;
     renderCityLinks();
   } catch (e) {
     allRows = [];
@@ -40,7 +45,7 @@ async function refresh(){
   }
 }
 function renderCityLinks(){
- const cities=[...new Set(allRows.map(x=>String(x.title||"").trim()).filter(Boolean))].sort((a,b)=>{const ac=/chandigarh/i.test(a),bc=/chandigarh/i.test(b);return ac!==bc?(ac?1:-1):a.localeCompare(b,"hi");});
+ const cities=[...new Set(allRows.map(x=>String(x.title||"").trim()).filter(name=>name&&!hiddenCityNames.has(name)))].sort((a,b)=>{const ac=/chandigarh/i.test(a),bc=/chandigarh/i.test(b);return ac!==bc?(ac?1:-1):a.localeCompare(b,"hi");});
  cityNames=cities;
  $("#cityLinks").innerHTML=cities.map(city=>"<a class=\"city-link\" href=\"/city.html?name="+encodeURIComponent(city)+"\"><strong>"+esc(city)+"</strong><span>"+allRows.filter(x=>x.title===city).length+" रिकॉर्ड</span></a>").join("")||"<p class=\"muted\">अभी कोई शहर/मार्केट रिकॉर्ड नहीं है।</p>";
 }
@@ -70,6 +75,7 @@ async function loadMonth(){
   }
 }
 function renderMonthChart(rows,month){
+  rows=rows.filter(row=>!hiddenCityNames.has(String(row.title||"").trim()));
   if(!rows.length){$("#adminChart").innerHTML='<p class="muted empty-month">इस महीने का कोई रिकॉर्ड नहीं है।</p>';return;}
   const titles=[...new Set(rows.map(r=>r.title))].sort((a,b)=>{const ac=/chandigarh/i.test(a),bc=/chandigarh/i.test(b);return ac!==bc?(ac?1:-1):a.localeCompare(b,"hi");});
   const byDay=new Map();
