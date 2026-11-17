@@ -147,51 +147,6 @@ $("#adminChart").addEventListener("click",e=>{
 });
 
 
-const backupMsg=$("#backupMsg"),restoreFile=$("#restoreFile"),restoreButton=$("#restoreBackup");
-let selectedBackupFile=null;
-restoreFile.addEventListener("change",()=>{
-  selectedBackupFile=restoreFile.files?.[0]||null;
-  restoreButton.disabled=!selectedBackupFile;
-  backupMsg.textContent=selectedBackupFile?"चुनी गई file: "+selectedBackupFile.name:"";
-});
-$("#downloadExcel").addEventListener("click",async()=>{
-  const status=$("#excelMsg");
-  status.textContent="Excel file तैयार हो रही है…";
-  try{
-    const response=await fetch("/api/admin/export.xlsx",{credentials:"same-origin"});
-    if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.error||"Excel download नहीं हुआ");}
-    const blob=await response.blob();
-    const url=URL.createObjectURL(blob),link=document.createElement("a");
-    link.href=url;link.download="rk-bhai-portal-export.xlsx";
-    document.body.appendChild(link);link.click();link.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
-    status.textContent="Excel file download शुरू हो गया।";
-  }catch(err){status.textContent=err.message;}
-});
-$("#downloadBackup").addEventListener("click",async()=>{
-  backupMsg.textContent="Backup तैयार हो रहा है…";
-  try{
-    const response=await fetch("/api/admin/backup",{credentials:"same-origin"});
-    if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.error||"Backup download नहीं हुआ");}
-    const blob=await response.blob(),url=URL.createObjectURL(blob),link=document.createElement("a");
-    link.href=url;link.download="rk-bhai-backup-"+new Date().toISOString().slice(0,10)+".json";
-    document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
-    backupMsg.textContent="Backup download शुरू हो गया। File को सुरक्षित जगह रखें।";
-  }catch(err){backupMsg.textContent=err.message;}
-});
-restoreButton.addEventListener("click",async()=>{
-  if(!selectedBackupFile)return;
-  if(!confirm("ध्यान दें: अभी के सभी Users, Cities और Results चुनी गई backup file के data से replace हो जाएंगे। पहले current backup डाउनलोड किया है? Restore जारी रखें?"))return;
-  restoreButton.disabled=true;backupMsg.textContent="Restore चल रहा है…";
-  try{
-    const backup=JSON.parse(await selectedBackupFile.text());
-    const result=await api("/api/admin/restore",{method:"POST",body:JSON.stringify(backup)});
-    backupMsg.textContent="Restore सफल: "+result.counts.users+" Users, "+result.counts.cities+" Cities और "+result.counts.results+" Results वापस आ गए।";
-    selectedBackupFile=null;restoreFile.value="";
-  }catch(err){backupMsg.textContent=err instanceof SyntaxError?"JSON backup file पढ़ी नहीं जा सकी।":err.message;}
-  finally{restoreButton.disabled=!selectedBackupFile;}
-});
-
 $("#cancelEdit").addEventListener("click",resetForm);
 $("#prevMonth").addEventListener("click",()=>{selectedMonth=new Date(selectedMonth.getFullYear(),selectedMonth.getMonth()-1,1);loadMonth();});
 $("#nextMonth").addEventListener("click",()=>{const d=new Date(selectedMonth.getFullYear(),selectedMonth.getMonth()+1,1);if(d<=new Date(new Date().getFullYear(),new Date().getMonth(),1)){selectedMonth=d;loadMonth();}});
