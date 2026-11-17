@@ -55,7 +55,7 @@ let publicSnapshotPromise=null;
 function loadPublicSnapshot(){
   if(!publicSnapshotPromise){
     const snapshotUrl="https://raw.githubusercontent.com/jasmelsolanki2017-svg/rk-bhai-results-portal-/public-data/data/public-results.json";
-    publicSnapshotPromise=fetch(snapshotUrl,{cache:"default"})
+    publicSnapshotPromise=fetch(snapshotUrl,{cache:"no-store"})
       .then(response=>{if(!response.ok)throw new Error("Public results snapshot unavailable");return response.json();})
       .catch(error=>{publicSnapshotPromise=null;throw error;});
   }
