@@ -192,7 +192,7 @@ function renderMonthTable(){
   let rows=monthRows;
   let titles=[...new Set([...rows.map(r=>r.title),...monthCities.map(c=>c.cityName)])];
   if(chartCity.value){titles=titles.filter(t=>t===chartCity.value);rows=rows.filter(r=>r.title===chartCity.value);}
-  const marketOrder=[["दिसावर","disawar","दिसावर"],["दिल्ली बाजार","delhi bajar","delhi bazar","दिल्ली बाजार"],["श्री गणेश","शिरी गणेश","shri ganesh","sri ganesh"],["फरीदाबाद","faridabad"],["चंडीगढ़ सिटी","chandigarh city","चंडीगढ़"],["गाजियाबाद","ghaziabad","गाजियाबाद"],["गली","gali"]];
+  const marketOrder=[["दिसावर","disawar","दिसावर"],["श्री गणेश","शिरी गणेश","shri ganesh","sri ganesh"],["दिल्ली बाजार","delhi bajar","delhi bazar","दिल्ली बाजार"],["फरीदाबाद","faridabad"],["चंडीगढ़ सिटी","chandigarh city","चंडीगढ़"],["गाजियाबाद","ghaziabad","गाजियाबाद"],["गली","gali"]];
   const marketRank=name=>{const value=String(name).toLocaleLowerCase("hi").replace(/[\\s_-]+/g,"");const index=marketOrder.findIndex(aliases=>aliases.some(alias=>value.includes(alias.toLocaleLowerCase("hi").replace(/[\\s_-]+/g,""))));return index<0?marketOrder.length:index;};
   titles.sort((a,b)=>{const ar=marketRank(a),br=marketRank(b);return ar!==br?ar-br:a.localeCompare(b,"hi");});
   if(!titles.length){chartHost.innerHTML='<p class="muted empty-month">इस महीने के लिए कोई प्रकाशित रिकॉर्ड या approved city नहीं मिला।</p>';return;}
