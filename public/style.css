@@ -603,3 +603,6 @@ body.dashboard-menu-open{overflow:hidden}
 @media(max-width:600px){
  .new-result-toast{top:6px;margin:8px 2px;padding:10px 11px;font-size:12px;line-height:1.45}
 }
+
+/* Respect hidden state for user city and record forms */
+#cityForm[hidden],#userRecordForm[hidden]{display:none!important}
