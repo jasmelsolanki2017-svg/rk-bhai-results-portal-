@@ -80,9 +80,6 @@ const User = mongoose.model("PortalUser", new mongoose.Schema({
   expiresAt: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now }
 });
-// Keep the monthly admin chart query and sort responsive on larger result collections.
-ResultSchema.index({ resultDate: -1, title: 1 });
-const Result = mongoose.model("Result", ResultSchema);
 
 const HistoricalImport = mongoose.model("HistoricalImport", new mongoose.Schema({
   key: { type: String, required: true, unique: true },
@@ -111,6 +108,10 @@ const ResultSchema = new mongoose.Schema({
   cityId: { type: mongoose.Schema.Types.ObjectId, ref: "PortalCity", default: null, index: true },
   createdAt: { type: Date, default: Date.now }
 }));
+
+// Keep the monthly admin chart query and sort responsive on larger result collections.
+ResultSchema.index({ resultDate: -1, title: 1 });
+const Result = mongoose.model("Result", ResultSchema);
 
 // Prefer a pre-generated bcrypt hash. ADMIN_PASSWORD is supported for simple
 // Render setup and is converted to a bcrypt hash once when the process starts.
