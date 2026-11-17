@@ -660,3 +660,38 @@ body.dashboard-menu-open{overflow:hidden}
     margin:1px 0 4px;
   }
 }
+
+
+/* User-added records: compact two-column date split for mobile */
+.user-records-panel{margin-top:12px}
+.user-records-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.user-records-heading h2{margin:0;font-size:18px}
+.user-record-month-nav{display:flex;align-items:center;gap:8px}
+.user-record-month-nav strong{min-width:112px;text-align:center;color:#f3d58e;font-size:13px}
+.user-record-month-nav button{width:34px;height:34px;padding:0;border:1px solid #70552a;border-radius:8px;background:#21190e;color:#f5d78e;font-size:21px}
+.user-record-month-nav button:disabled{opacity:.35}
+.my-record-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:12px;align-items:start}
+.my-record-half{min-width:0;padding:9px;border:1px solid #59451f;border-radius:10px;background:#100e0a}
+.my-record-half h3{margin:0 0 8px;padding-bottom:7px;border-bottom:1px solid #59451f;color:#f5d78e;font-size:12px;line-height:1.35}
+.my-record-half h3 span{color:#fff;font-size:11px}
+.my-record-item{display:flex;align-items:flex-start;gap:6px;padding:7px 0;border-bottom:1px solid #ffffff14}
+.my-record-item:last-child{border-bottom:0}
+.my-record-day{flex:0 0 23px;display:grid;place-items:center;min-height:23px;border-radius:6px;background:#392b16;color:#ffe2a0;font-size:11px;font-weight:900}
+.my-record-info{display:flex;align-items:flex-start;justify-content:space-between;gap:4px;min-width:0;width:100%}
+.my-record-info b{min-width:0;overflow-wrap:anywhere;color:#f2eadb;font-size:11px;line-height:1.4}
+.my-record-info button{flex:0 0 auto;padding:3px 5px;border:1px solid #70552a;border-radius:5px;background:#21190e;color:#f5d78e;font-size:10px}
+.my-record-empty{margin:5px 0;font-size:10px;line-height:1.4}
+@media(max-width:600px){
+ .user-records-panel{padding:10px}
+ .user-records-heading h2{font-size:15px}
+ .user-record-month-nav{gap:5px}
+ .user-record-month-nav strong{min-width:100px;font-size:12px}
+ .my-record-columns{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+ .my-record-half{padding:7px}
+ .my-record-half h3{font-size:10px}
+ .my-record-item{gap:4px;padding:6px 0}
+ .my-record-day{flex-basis:20px;min-height:20px;font-size:10px}
+ .my-record-info{flex-direction:column;gap:4px}
+ .my-record-info b{font-size:10px}
+ .my-record-info button{align-self:flex-start}
+}
