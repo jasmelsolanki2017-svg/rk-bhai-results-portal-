@@ -75,6 +75,7 @@ function userMonthLabel(key){
  const [year,month]=key.split("-").map(Number);
  return new Date(Date.UTC(year,month-1,1)).toLocaleDateString("hi-IN",{month:"long",year:"numeric",timeZone:"UTC"});
 }
+$("#myRecordsMonth").addEventListener("change",()=>loadMyRecords().catch(err=>{$("#myRecordsByMonth").textContent=err.message;}));
 async function loadMyRecords(){
  const rows=await userApi("/api/user/results");
  const groups=new Map();
@@ -106,7 +107,7 @@ $("#userRecordForm").addEventListener("submit",async e=>{
  try{await userApi("/api/user/results",{method:"POST",body:JSON.stringify({resultText:f.get("resultText"),resultDate:f.get("resultDate"),sourceUrl:f.get("sourceUrl")})});e.target.reset();$("#recordMessage").textContent="रिकॉर्ड सेव हो गया।";await loadMyRecords();if(window.loadResults)loadResults();if(window.loadMonth)loadMonth();}
  catch(err){$("#recordMessage").textContent=err.message;}
 });
-$("#myRecords").addEventListener("click",async e=>{
+$("#myRecordsByMonth").addEventListener("click",async e=>{
  const btn=e.target.closest("[data-my-edit]");if(!btn)return;
  const id=btn.dataset.myEdit;const next=prompt("नया परिणाम लिखें:");if(next===null)return;
  const date=prompt("तारीख YYYY-MM-DD (खाली छोड़ें तो तारीख नहीं बदलेगी):");
