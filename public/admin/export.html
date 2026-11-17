@@ -13,4 +13,5 @@
 </section>
 </section><script>
 document.getElementById("downloadExcel").addEventListener("click",async()=>{const status=document.getElementById("excelMsg");status.textContent="Excel file तैयार हो रही है…";try{const r=await fetch("/api/admin/export.xlsx",{credentials:"same-origin"});if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.error||"Excel download नहीं हुआ");}const blob=await r.blob(),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="rk-bhai-portal-export.xlsx";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);status.textContent="Excel file download शुरू हो गया।";}catch(e){status.textContent=e.message;}});
-</script><script src="/dashboard-menu.js"></script></body></html>
+</script><script src="/dashboard-menu.js"></script><script src="/refresh-button.js?v=20261117refresh1"></script>
+</body></html>
