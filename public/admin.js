@@ -6,7 +6,7 @@ let selectedMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
 
 async function api(url,opts={}){
   const headers={...(opts.body?{"Content-Type":"application/json"}:{}),...(opts.headers||{})};
-  const response=await fetch(url,{credentials:"same-origin",...opts,headers});
+  const response=await fetch(url,{credentials:"same-origin",...opts,headers,signal:opts.signal||AbortSignal.timeout(20000)});
   const data=await response.json().catch(()=>({}));
   if(!response.ok) throw new Error(data.error||("Request failed ("+response.status+")"));
   return data;
@@ -32,7 +32,7 @@ async function loadMonth(){
   $("#nextMonth").disabled=key>=monthKey(new Date());
   $("#adminChart").innerHTML='<p class="muted">चार्ट लोड हो रहा है…</p>';
   try{
-    const rows=await api("/api/admin/results?month="+encodeURIComponent(key));
+    const rows=await api("/api/admin/results?month="+encodeURIComponent(key),{signal:AbortSignal.timeout(20000)});
     renderMonthChart(rows,selectedMonth);
   }catch(e){$("#adminChart").innerHTML='<p class="muted">चार्ट लोड नहीं हुआ: '+esc(e.message)+'</p>';}
 }
