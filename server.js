@@ -368,7 +368,15 @@ app.post("/api/user/city", userOnly, async (req, res) => {
   if (cityName.length < 2 || cityName.length > 60) return res.status(400).json({ error: "शहर का नाम 2 से 60 अक्षर का रखें।" });
   if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(expectedTime)) return res.status(400).json({ error: "परिणाम आने का सही समय चुनें।" });
   if (await City.exists({ userId: req.portalUserId })) return res.status(409).json({ error: "आप एक ही शहर बना सकते हैं।" });
-  const city = await City.create({ userId: req.portalUserId, cityName, expectedTime, status: "pending" });
+  let city;
+  try {
+    city = await City.create({ userId: req.portalUserId, cityName, expectedTime, status: "pending" });
+  } catch (error) {
+    // A rapid double tap can pass the pre-check twice; the unique userId index
+    // is the final guard and should return a normal conflict instead of an error.
+    if (error && error.code === 11000) return res.status(409).json({ error: "आप एक ही शहर बना सकते हैं।" });
+    throw error;
+  }
   res.status(201).json({ id: city._id, cityName: city.cityName, expectedTime: city.expectedTime, status: city.status });
 });
 app.patch("/api/user/city/name", userOnly, async (req, res) => {
