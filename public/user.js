@@ -102,7 +102,7 @@ async function loadMyRecords(){
  const secondHalf=monthRows.filter(r=>{const d=new Date(r.resultDate);return !Number.isNaN(d.getTime())&&d.getUTCDate()>=17;});
  const renderRows=(items,empty)=>items.length?items.map(r=>{
   const d=new Date(r.resultDate),day=Number.isNaN(d.getTime())?"—":d.getUTCDate();
-  return '<article class="my-record-item"><div class="my-record-day">'+day+'</div><div class="my-record-info"><b>'+userEsc(r.resultText)+'</b><button type="button" data-my-edit="'+userEsc(r._id)+'">Edit</button></div></article>';
+  return '<article class="my-record-item" role="button" tabindex="0" aria-label="दिन '+day+' का परिणाम edit करें" data-my-edit="'+userEsc(r._id)+'" style="cursor:pointer"><div class="my-record-day">'+day+'</div><div class="my-record-info"><b>'+userEsc(r.resultText)+'</b><span aria-hidden="true">✎ Edit</span></div></article>';
  }).join(""):'<p class="muted my-record-empty">'+empty+'</p>';
  list.innerHTML='<section class="my-record-half"><h3>1–16 तारीख <span>('+firstHalf.length+')</span></h3>'+renderRows(firstHalf,"इस हिस्से में कोई रिकॉर्ड नहीं")+'</section><section class="my-record-half"><h3>17–महीने का आखिरी दिन <span>('+secondHalf.length+')</span></h3>'+renderRows(secondHalf,"इस हिस्से में कोई रिकॉर्ड नहीं")+'</section>';
 }
@@ -117,13 +117,17 @@ $("#userRecordForm").addEventListener("submit",async e=>{
  try{await userApi("/api/user/results",{method:"POST",body:JSON.stringify({resultText:f.get("resultText"),resultDate:f.get("resultDate"),sourceUrl:f.get("sourceUrl")})});e.target.reset();$("#recordMessage").textContent="रिकॉर्ड सेव हो गया।";await loadMyRecords();if(window.loadResults)loadResults();if(window.loadMonth)loadMonth();}
  catch(err){$("#recordMessage").textContent=err.message;}
 });
-$("#myRecordsByMonth").addEventListener("click",async e=>{
- const btn=e.target.closest("[data-my-edit]");if(!btn)return;
- const id=btn.dataset.myEdit;const next=prompt("नया परिणाम लिखें:");if(next===null)return;
+async function editMyRecordItem(item){
+ const id=item?.dataset.myEdit;if(!id)return;
+ const next=prompt("नया परिणाम लिखें:");if(next===null)return;
  const date=prompt("तारीख YYYY-MM-DD (खाली छोड़ें तो तारीख नहीं बदलेगी):");
  const payload={resultText:next};if(date)payload.resultDate=date;
  try{await userApi("/api/user/results/"+id,{method:"PATCH",body:JSON.stringify(payload)});await loadMyRecords();if(window.loadResults)loadResults();if(window.loadMonth)loadMonth();}
  catch(err){alert(err.message);}
+}
+$("#myRecordsByMonth").addEventListener("click",e=>editMyRecordItem(e.target.closest("[data-my-edit]")));
+$("#myRecordsByMonth").addEventListener("keydown",e=>{
+ if((e.key==="Enter"||e.key===" ")&&e.target.matches("[data-my-edit]")){e.preventDefault();editMyRecordItem(e.target);}
 });
 
 document.addEventListener("submit",async e=>{
