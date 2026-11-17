@@ -22,7 +22,7 @@ async function getJson(url){
   }catch(error){
     // Public pages can fall back to the last GitHub snapshot while the free Render API sleeps.
     if(!url.startsWith("/api/results")&&!url.startsWith("/api/public/cities"))throw error;
-    const snapshotUrl="https://raw.githubusercontent.com/jasmelsolanki2017-svg/rk-bhai-results-portal-/main/data/public-results.json?ts="+Date.now();
+    const snapshotUrl="https://raw.githubusercontent.com/jasmelsolanki2017-svg/rk-bhai-results-portal-/public-data/data/public-results.json?ts="+Date.now();
     const response=await fetch(snapshotUrl,{cache:"no-store"});
     if(!response.ok)throw error;
     const snapshot=await response.json();
