@@ -730,3 +730,28 @@ body.dashboard-menu-open{overflow:hidden}
     font-size:13px;
   }
 }
+
+
+/* Force dashboard three-dot controls to remain visible on mobile and desktop. */
+.pro-header-right .dashboard-menu-trigger:not([hidden]),
+.user-dashboard-header .dashboard-menu-trigger:not([hidden]){
+  display:inline-flex!important;
+  visibility:visible!important;
+  opacity:1!important;
+  position:relative;
+  z-index:20;
+  min-width:42px;
+  min-height:42px;
+  flex:0 0 42px;
+  color:#f4d58b!important;
+  background:#21190e!important;
+  border:1px solid #d0a34e!important;
+  font-size:30px!important;
+  line-height:1!important;
+}
+.user-dashboard-header .dashboard-menu-trigger:not([hidden]){
+  position:absolute;
+  right:14px;
+  top:18px;
+}
+.user-dashboard-header{padding-right:64px}
