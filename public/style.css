@@ -587,3 +587,18 @@ body.dashboard-menu-open{overflow:hidden}
  .mobile-nav-item.is-active .mobile-nav-icon{color:#ffda82}
  .mobile-nav-item:focus-visible{outline:2px solid #e4bf68;outline-offset:2px}
 }
+
+
+/* New-result notice and notification controls */
+.new-result-toast{
+ position:sticky;top:10px;z-index:8000;margin:12px auto;padding:12px 15px;
+ max-width:760px;border:1px solid #8b6a32;border-radius:12px;
+ background:linear-gradient(120deg,#332615,#17130d);color:#ffe4a2;
+ box-shadow:0 10px 28px #0009;font-size:14px;font-weight:700;
+}
+.new-result-toast.is-visible{animation:resultToastIn .25s ease-out}
+@keyframes resultToastIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+#enableNotifications{cursor:pointer}
+@media(max-width:600px){
+ .new-result-toast{top:6px;margin:8px 2px;padding:10px 11px;font-size:12px;line-height:1.45}
+}
