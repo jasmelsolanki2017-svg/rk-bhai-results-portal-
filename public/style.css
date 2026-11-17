@@ -695,3 +695,38 @@ body.dashboard-menu-open{overflow:hidden}
  .my-record-info b{font-size:10px}
  .my-record-info button{align-self:flex-start}
 }
+
+
+/* User dashboard monthly chart: larger, clearer result numbers */
+.user-dashboard #historyChart .history-table th,
+.user-dashboard #historyChart .history-table td{
+  font-size:16px;
+  line-height:1.5;
+  padding:10px 8px;
+}
+.user-dashboard #historyChart .history-table td{
+  font-size:18px;
+  font-weight:800;
+  color:#ffe0a0;
+}
+.user-dashboard #historyChart .history-table .date-col{
+  font-size:15px;
+  font-weight:800;
+}
+.user-dashboard #historyChart .market-chart h3{
+  font-size:15px;
+}
+@media(max-width:600px){
+  .user-dashboard #historyChart .history-table th,
+  .user-dashboard #historyChart .history-table td{
+    font-size:14px;
+    padding:9px 5px;
+  }
+  .user-dashboard #historyChart .history-table td{
+    font-size:16px;
+    font-weight:800;
+  }
+  .user-dashboard #historyChart .history-table .date-col{
+    font-size:13px;
+  }
+}
