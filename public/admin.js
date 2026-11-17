@@ -17,9 +17,16 @@ function dateValue(v){return new Date(v).toISOString().slice(0,10);}
 function monthKey(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");}
 
 async function refresh(){
-  allRows=await api("/api/admin/results");
-  renderCityLinks();
-  await loadMonth();
+  // Load the selected month independently so a slow full-history request
+  // cannot leave the monthly chart stuck on its loading message.
+  const monthLoad = loadMonth();
+  try {
+    allRows = await api("/api/admin/results");
+    renderCityLinks();
+  } catch (e) {
+    $("#cityLinks").innerHTML = '<p class="muted">शहरों की सूची लोड नहीं हुई: '+esc(e.message)+'</p>';
+  }
+  await monthLoad;
 }
 function renderCityLinks(){
  const cities=[...new Set(allRows.map(x=>String(x.title||"").trim()).filter(Boolean))].sort((a,b)=>{const ac=/chandigarh/i.test(a),bc=/chandigarh/i.test(b);return ac!==bc?(ac?1:-1):a.localeCompare(b,"hi");});
