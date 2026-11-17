@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-17T09:55:03.797Z",
+  "updatedAt": "2026-11-17T09:55:11.297Z",
   "results": [
     {
       "_id": "6afbafd73c4398211e8ad14a",
@@ -193,6 +193,14 @@
       "resultDate": "2026-11-14T12:00:00.000Z",
       "sourceUrl": "https://satta-klng.com/satta-king-result-of-november-2026",
       "createdAt": "2026-11-15T16:26:03.703Z"
+    },
+    {
+      "_id": "6afc247d202ca974211808cb",
+      "title": "Metro city",
+      "resultText": "78",
+      "resultDate": "2026-11-14T00:00:00.000Z",
+      "sourceUrl": "",
+      "createdAt": "2026-11-17T09:55:09.667Z"
     },
     {
       "_id": "6af9ddd1a042f3afe7528b47",
