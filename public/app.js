@@ -63,7 +63,7 @@ function loadPublicSnapshot(){
 }
 async function getJson(url){
   // GitHub Pages is static: read one shared snapshot instead of waiting for the sleeping Render API.
-  if(url.startsWith("/api/results")||url.startsWith("/api/public/cities")){
+  if(location.hostname.endsWith("github.io")&&(url.startsWith("/api/results")||url.startsWith("/api/public/cities"))){
     const snapshot=await loadPublicSnapshot();
     if(url.startsWith("/api/public/cities"))return snapshot.cities||[];
     const params=new URLSearchParams(url.split("?")[1]||"");
