@@ -755,3 +755,4 @@ body.dashboard-menu-open{overflow:hidden}
   top:18px;
 }
 .user-dashboard-header{padding-right:64px}
+\n.public-poster-wrap{max-width:1100px;margin:20px auto;padding:0 14px}.public-poster-card{border:1px solid #b68c42;border-radius:22px;background:linear-gradient(145deg,#20170d,#090909);padding:14px;box-shadow:0 14px 35px #0005;text-align:center}.public-poster-card h2{color:#e4bd68;margin:5px 0 12px}.public-poster-image{display:block;width:100%;height:auto;max-height:1100px;object-fit:contain;border-radius:12px}.public-poster-card p{color:#e6dfd1}.public-poster-button{display:inline-flex;margin:12px auto 4px;padding:13px 24px;border-radius:999px;background:#18c76b;color:#07150d;font-weight:800;text-decoration:none}.poster-admin-preview img{display:block;max-width:100%;max-height:500px;object-fit:contain;margin:10px auto;border-radius:12px}.poster-admin-preview:empty{display:none}\n
