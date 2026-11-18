@@ -1,7 +1,15 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-17T21:24:59.604Z",
+  "updatedAt": "2026-11-18T03:05:10.274Z",
   "results": [
+    {
+      "_id": "6afd15e427dcbc376b26b924",
+      "title": "Disawar",
+      "resultText": "80",
+      "resultDate": "2026-11-18T00:00:00.000Z",
+      "sourceUrl": "",
+      "createdAt": "2026-11-18T03:05:08.141Z"
+    },
     {
       "_id": "6afc72f02b82e63739f7b3ec",
       "title": "Chandigarh City",
