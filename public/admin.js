@@ -136,7 +136,7 @@ titleInput.addEventListener("keydown",e=>{if(e.key==="Escape")suggestionBox.hidd
 
 $("#loginForm").addEventListener("submit",async e=>{
   e.preventDefault();msg.textContent="Login हो रहा है…";
-  try{const f=new FormData(e.target);await api("/api/admin/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});showPanel(true);await refresh();msg.textContent="Login सफल";}
+  try{const f=new FormData(e.target);await api("/api/admin/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});showPanel(true);await loadPosterManager();await refresh();msg.textContent="Login सफल";}
   catch(err){msg.textContent=err.message;}
 });
 $("#resultForm").addEventListener("submit",async e=>{
@@ -160,5 +160,6 @@ $("#logout").addEventListener("click",async()=>{
   try{await api("/api/admin/logout",{method:"POST"});showPanel(false);$("#loginForm").reset();msg.textContent="Logout हो गया";}
   catch(err){msg.textContent=err.message;showPanel(false);}
 });
-(async()=>{try{await api("/api/admin/session");showPanel(true);await refresh();msg.textContent="Admin session चालू है";}
+(async()=>{try{await api("/api/admin/session");showPanel(true);await loadPosterManager();await refresh();msg.textContent="Admin session चालू है";}
 catch{showPanel(false);}})();
+\nlet posterImageData="";\nasync function loadPosterManager(){try{const p=await api("/api/admin/poster");posterImageData=p.imageData||"";$("#posterHeading").value=p.heading||"";$("#posterDescription").value=p.description||"";$("#posterButtonText").value=p.buttonText||"WhatsApp Now";$("#posterButtonUrl").value=p.buttonUrl||"";$("#posterEnabled").checked=!!p.enabled;if(posterImageData)$("#posterPreview").innerHTML='<img src="'+posterImageData+'" alt="Poster preview">';}catch(e){$("#posterMsg").textContent="Poster load error: "+e.message;}}\n$("#posterImage").addEventListener("change",e=>{const file=e.target.files?.[0];if(!file)return;if(file.size>4*1024*1024){e.target.value="";$("#posterMsg").textContent="Image 4 MB से छोटी रखें।";return;}const reader=new FileReader();reader.onload=()=>{posterImageData=String(reader.result||"");$("#posterPreview").innerHTML='<img src="'+posterImageData+'" alt="Poster preview">';$("#posterMsg").textContent="Image ready. Save करें।";};reader.readAsDataURL(file);});\n$("#posterForm").addEventListener("submit",async e=>{e.preventDefault();if(!posterImageData){$("#posterMsg").textContent="पहले Poster image upload करें।";return;}$("#posterMsg").textContent="Saving…";try{await api("/api/admin/poster",{method:"PUT",body:JSON.stringify({imageData:posterImageData,heading:$("#posterHeading").value,description:$("#posterDescription").value,buttonText:$("#posterButtonText").value,buttonUrl:$("#posterButtonUrl").value,enabled:$("#posterEnabled").checked})});$("#posterMsg").textContent="Poster saved. Public index पर update हो गया।";}catch(err){$("#posterMsg").textContent=err.message;}});\n$("#posterOff").addEventListener("click",()=>{$("#posterEnabled").checked=false;$("#posterMsg").textContent="OFF करने के लिए Save / Update दबाएँ।";});\n
