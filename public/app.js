@@ -347,3 +347,4 @@ if ("IntersectionObserver" in window && mobileNavItems.length) {
     if(target) mobileNavObserver.observe(target);
   });
 }
+\n(async()=>{const box=document.getElementById("publicPoster");if(!box)return;try{const r=await fetch("/api/public/poster",{cache:"no-store"});if(!r.ok)return;const p=await r.json();if(!p.enabled||!p.imageData)return;box.innerHTML='<article class="public-poster-card">'+(p.heading?'<h2>'+escapeHtml(p.heading)+'</h2>':'')+'<img class="public-poster-image" src="'+p.imageData+'" alt="Homepage announcement poster">'+ (p.description?'<p>'+escapeHtml(p.description)+'</p>':'')+(p.buttonUrl?'<a class="public-poster-button" href="'+escapeHtml(p.buttonUrl)+'" target="_blank" rel="noopener">'+escapeHtml(p.buttonText||"Open Link")+'</a>':'')+'</article>';box.hidden=false;}catch(e){console.info("Public poster not available",e);}})();\n
