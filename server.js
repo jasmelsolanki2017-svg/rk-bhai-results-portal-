@@ -22,7 +22,8 @@ const publicFrontendOrigins = new Set([
 const publicFrontendApiPaths = new Set([
   "/api/results",
   "/api/public/cities",
-  "/api/public/export.csv"
+  "/api/public/export.csv",
+  "/api/public/poster"
 ]);
 app.use((req, res, next) => {
   if (!publicFrontendApiPaths.has(req.path)) return next();
@@ -97,6 +98,7 @@ const City = mongoose.model("PortalCity", new mongoose.Schema({
   reviewedAt: { type: Date, default: null }
 }));
 
+const Poster = mongoose.model("PortalPoster", new mongoose.Schema({imageData:{type:String,required:true},heading:{type:String,default:""},description:{type:String,default:""},buttonText:{type:String,default:"WhatsApp Now"},buttonUrl:{type:String,default:""},enabled:{type:Boolean,default:false},updatedAt:{type:Date,default:Date.now}}));
 const ResultSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true, maxlength: 100 },
   resultText: { type: String, required: true, trim: true, maxlength: 300 },
@@ -182,6 +184,9 @@ app.post("/api/admin/login", async (req, res) => {
   res.json({ ok: true });
 });
 
+app.get("/api/public/poster", async (req,res)=>{try{const p=await Poster.findOne().lean();res.setHeader("Cache-Control","no-store");res.json(p&&p.enabled?{imageData:p.imageData,heading:p.heading,description:p.description,buttonText:p.buttonText,buttonUrl:p.buttonUrl,enabled:true}:{enabled:false});}catch(e){res.status(503).json({enabled:false});}});
+app.get("/api/admin/poster",adminOnly,async(req,res)=>{const p=await Poster.findOne().lean();res.json(p||{enabled:false,heading:"",description:"",buttonText:"WhatsApp Now",buttonUrl:"",imageData:""});});
+app.put("/api/admin/poster",adminOnly,async(req,res)=>{const {imageData,heading,description,buttonText,buttonUrl,enabled}=req.body||{};if(typeof imageData!=="string"||!imageData.startsWith("data:image/")||imageData.length>6500000)return res.status(400).json({error:"Poster image upload valid नहीं है (4 MB तक रखें)।"});if(buttonUrl&&!/^https:\/\//i.test(buttonUrl))return res.status(400).json({error:"Button link https:// से शुरू होना चाहिए।"});const p=await Poster.findOneAndUpdate({},{$set:{imageData,heading:String(heading||"").slice(0,120),description:String(description||"").slice(0,500),buttonText:String(buttonText||"WhatsApp Now").slice(0,50),buttonUrl:String(buttonUrl||"").slice(0,500),enabled:!!enabled,updatedAt:new Date()}},{upsert:true,new:true});res.json({ok:true,enabled:p.enabled});});
 app.get("/api/admin/session", adminOnly, (req, res) => res.json({ ok: true, role: "admin" }));
 app.get("/api/admin/export.xlsx", adminOnly, async (req, res) => {
   const [users, cities, results] = await Promise.all([
