@@ -811,3 +811,10 @@ body.dashboard-menu-open{overflow:hidden}
 .top-result-section .top-result-grid{gap:10px}
 .top-result-section .top-result-card{border-radius:13px}
 @media(max-width:600px){.top-result-section{padding:12px;border-radius:17px;margin-bottom:15px}.top-result-section-head{padding-bottom:10px;margin-bottom:10px}.top-result-section .top-result-grid{gap:7px}}
+
+/* Public index promotion: keep the full advertisement neatly inside one centered box */
+#publicPoster.public-poster-wrap{display:block;width:100%;max-width:1180px;margin:0 auto 20px;padding:10px;border:1px solid #70552a;border-radius:18px;background:linear-gradient(145deg,#17140e 0%,#0d0c0a 100%);box-shadow:0 8px 24px #0006;overflow:hidden}
+#publicPoster .public-text-ad-card{width:100%;margin:0;padding:18px 16px;border:1px solid #59451f;border-radius:12px;background:linear-gradient(145deg,#251b0c,#121212 65%,#1d170d);box-shadow:none;text-align:center;overflow-wrap:anywhere}
+#publicPoster .public-text-ad-card p{max-width:100%;margin:0 auto;white-space:normal;overflow-wrap:anywhere}
+#publicPoster .public-text-ad-button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+@media(max-width:600px){#publicPoster.public-poster-wrap{padding:7px;margin-bottom:15px;border-radius:15px}#publicPoster .public-text-ad-card{padding:14px 11px}}
