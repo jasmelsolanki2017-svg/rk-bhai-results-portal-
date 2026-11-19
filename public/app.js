@@ -136,7 +136,7 @@ function renderRecent(){
     const latestTime=item=>Math.max(...[item[1].today,item[1].yesterday].filter(Boolean).map(row=>new Date(row.createdAt||row.updatedAt||row.resultDate||0).getTime()),0);
     return latestTime(b)-latestTime(a);
   });
-  if(!entries.length){host.innerHTML='<p class="muted">इस खोज से कोई शहर नहीं मिला।</p>';return;}
+  if(!entries.length){if(topResultCards)topResultCards.innerHTML='<p class="muted">अभी कोई प्रकाशित रिजल्ट नहीं है।</p>';return;}
   const yesterdayLabel=new Date(todayStart.getTime()-86400000).toLocaleDateString("hi-IN",{day:"2-digit",month:"short"});
   const todayLabel=todayStart.toLocaleDateString("hi-IN",{day:"2-digit",month:"short"});
   const newestResult=[...recentRows].sort((a,b)=>new Date(b.createdAt||b.updatedAt||b.resultDate||0).getTime()-new Date(a.createdAt||a.updatedAt||a.resultDate||0).getTime())[0];
@@ -152,9 +152,7 @@ function renderRecent(){
       return '<article class="top-result-card"><h3>'+escapeHtml(city)+'</h3><p class="top-result-time">'+(time?'( '+escapeHtml(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+previous+'</span><span class="top-result-arrow" aria-hidden="true">➡️</span><span class="top-current-wrap">'+(result.today?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(result.today?' result-blink':'')+'">'+current+'</span></span></div><a class="top-chart-link" href="#archive" data-chart-city="'+escapeHtml(city)+'">चार्ट देखें</a></article>';
     }).join("");
   }
-  host.innerHTML='<div class="recent-results-wrap"><table class="recent-results-table"><thead><tr><th>शहर / मार्केट</th><th>कल ('+yesterdayLabel+')</th><th>आज ('+todayLabel+')</th></tr></thead><tbody>'+
-    entries.map(([city,result])=>'<tr><th>'+escapeHtml(city)+'</th><td>'+cell(result.yesterday)+'</td><td>'+cell(result.today,true)+'</td></tr>').join("")+
-    '</tbody></table></div>';
+
 }
 async function loadResults({notify=false}={}){
   try{
