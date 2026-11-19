@@ -64,29 +64,37 @@ function loadPublicSnapshot(){
 async function getJson(url){
   // GitHub Pages is static: read one shared snapshot instead of waiting for the sleeping Render API.
   if(location.hostname.endsWith("github.io")&&(url.startsWith("/api/results")||url.startsWith("/api/public/cities"))){
-    const snapshot=await loadPublicSnapshot();
-    if(url.startsWith("/api/public/cities"))return snapshot.cities||[];
-    const params=new URLSearchParams(url.split("?")[1]||"");
-    let rows=Array.isArray(snapshot.results)?snapshot.results:[];
-    if(params.get("recent")==="2"){
-      const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
-      const start=new Date(today+"T00:00:00.000Z");
-      const from=new Date(start.getTime()-86400000);
-      const to=new Date(start.getTime()+86400000);
-      rows=rows.filter(row=>new Date(row.resultDate)>=from&&new Date(row.resultDate)<to);
-    }else if(params.get("month")){
-      const [year,month]=params.get("month").split("-").map(Number);
-      const from=new Date(Date.UTC(year,month-1,1)),to=new Date(Date.UTC(year,month,1));
-      rows=rows.filter(row=>new Date(row.resultDate)>=from&&new Date(row.resultDate)<to);
-    }else if(params.get("today")==="1"){
-      const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
-      const from=new Date(today+"T00:00:00.000Z"),to=new Date(from.getTime()+86400000);
-      rows=rows.filter(row=>new Date(row.resultDate)>=from&&new Date(row.resultDate)<to);
-    }else if(params.get("date")){
-      const from=new Date(params.get("date")+"T00:00:00.000Z"),to=new Date(from.getTime()+86400000);
-      rows=rows.filter(row=>new Date(row.resultDate)>=from&&new Date(row.resultDate)<to);
+    try {
+      const snapshot=await loadPublicSnapshot();
+      if(!Array.isArray(snapshot.results)||!Array.isArray(snapshot.cities))throw new Error("Snapshot format invalid");
+      if(url.startsWith("/api/public/cities"))return snapshot.cities;
+      const params=new URLSearchParams(url.split("?")[1]||"");
+      let rows=snapshot.results;
+      if(params.get("recent")==="2"){
+        const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+        const start=new Date(today+"T00:00:00.000Z");
+        const from=new Date(start.getTime()-86400000);
+        const to=new Date(start.getTime()+86400000);
+        rows=rows.filter(row=>new Date(row.resultDate)>=from&&new Date(row.resultDate)<to);
+      }else if(params.get("month")){
+        const [year,month]=params.get("month").split("-").map(Number);
+        const from=new Date(Date.UTC(year,month-1,1)),to=new Date(Date.UTC(year,month,1));
+        rows=rows.filter(row=>new Date(row.resultDate)>=from&&new Date(row.resultDate)<to);
+      }else if(params.get("today")==="1"){
+        const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+        const from=new Date(today+"T00:00:00.000Z"),to=new Date(from.getTime()+86400000);
+        rows=rows.filter(row=>new Date(row.resultDate)>=from&&new Date(row.resultDate)<to);
+      }else if(params.get("date")){
+        const from=new Date(params.get("date")+"T00:00:00.000Z"),to=new Date(from.getTime()+86400000);
+        rows=rows.filter(row=>new Date(row.resultDate)>=from&&new Date(row.resultDate)<to);
+      }
+      return rows;
+    } catch(snapshotError) {
+      console.warn("GitHub snapshot unavailable; falling back to Render API:",snapshotError);
+      const fallback=await fetch("https://rk-bhai-results-portal.onrender.com"+url,{mode:"cors",credentials:"omit",cache:"no-store"});
+      if(!fallback.ok)throw new Error("Snapshot and live API are unavailable");
+      return fallback.json();
     }
-    return rows;
   }
   const response=await fetch(url);
   if(!response.ok)throw new Error("Request failed");
