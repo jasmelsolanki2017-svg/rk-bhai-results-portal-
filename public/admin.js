@@ -129,6 +129,8 @@ function renderMonthChart(rows,month){
 }
 function resetForm(){
   const form=$("#resultForm");form.reset();form.elements.editId.value="";
+  form.elements.resultDate.value=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+  form.elements.published.checked=true;
   $("#formTitle").textContent="नया रिकॉर्ड जोड़ें";$("#saveRecord").textContent="रिकॉर्ड सेव करें";$("#cancelEdit").hidden=true;
 }
 function editRecord(id){
@@ -179,6 +181,7 @@ $("#adminChart").addEventListener("click",e=>{
 });
 
 
+resetForm();
 $("#cancelEdit").addEventListener("click",resetForm);
 $("#prevMonth").addEventListener("click",()=>{selectedMonth=new Date(selectedMonth.getFullYear(),selectedMonth.getMonth()-1,1);loadMonth();});
 $("#nextMonth").addEventListener("click",()=>{const d=new Date(selectedMonth.getFullYear(),selectedMonth.getMonth()+1,1);if(d<=new Date(new Date().getFullYear(),new Date().getMonth(),1)){selectedMonth=d;loadMonth();}});
