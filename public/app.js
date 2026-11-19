@@ -155,8 +155,10 @@ function renderRecent(){
       const previousRow=result.yesterday;
       const shouldBlink=isGali?galiBlinkWindow&&!!currentRow:!!result.today;
       const previous=previousRow?escapeHtml(previousRow.resultText):"XX";
-      const current=currentRow?escapeHtml(currentRow.resultText):"—";
-      return '<article class="top-result-card"><h3>'+escapeHtml(city)+'</h3><p class="top-result-time">'+(time?'( '+escapeHtml(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+previous+'</span><span class="top-result-arrow" aria-hidden="true">➡️</span><span class="top-current-wrap">'+(shouldBlink?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(shouldBlink?' result-blink':'')+'">'+current+'</span></span></div><a class="top-chart-link" href="#archive" data-chart-city="'+escapeHtml(city)+'">चार्ट देखें</a></article>';
+      const current=isGali&&galiBlinkWindow?"-":(currentRow?escapeHtml(currentRow.resultText):"—");
+      const blinkLeft=isGali&&galiBlinkWindow&&!!previousRow;
+      const blinkRight=shouldBlink&&!blinkLeft;
+      return '<article class="top-result-card"><h3>'+escapeHtml(city)+'</h3><p class="top-result-time">'+(time?'( '+escapeHtml(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous'+(blinkLeft?' result-blink':'')+'">'+(blinkLeft?'<span class="new-result-badge">NEW</span>':'')+previous+'</span><span class="top-result-arrow" aria-hidden="true">➡️</span><span class="top-current-wrap">'+(blinkRight?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(blinkRight?' result-blink':'')+'">'+current+'</span></span></div><a class="top-chart-link" href="#archive" data-chart-city="'+escapeHtml(city)+'">चार्ट देखें</a></article>';
     }).join("");
   }
 
