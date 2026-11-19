@@ -515,14 +515,14 @@ body.dashboard-menu-open{overflow:hidden}
   box-shadow:0 18px 48px #0006;
 }
 .homepage-overview-shell .public-hero{
-  min-height:0;margin:0;padding:25px 28px 20px;border:0;border-radius:0;
+  min-height:0;margin:0;padding:12px 20px 10px;border:0;border-radius:0;
   background:transparent;box-shadow:none;
 }
 .homepage-overview-shell .hero-copy{max-width:720px}
-.homepage-overview-shell .public-hero h1{font-size:clamp(25px,3.2vw,36px);margin:7px 0 6px}
-.homepage-overview-shell .public-hero p{font-size:13px;line-height:1.5}
-.homepage-overview-shell .hero-cta{margin-top:12px;padding:8px 13px;font-size:12px}
-.homepage-overview-shell .hero-art{width:145px;height:125px;margin:0 3% 0 16px}
+.homepage-overview-shell .public-hero h1{font-size:clamp(22px,2.8vw,30px);margin:4px 0 4px}
+.homepage-overview-shell .public-hero p{font-size:12px;line-height:1.35}
+.homepage-overview-shell .hero-cta{margin-top:7px;padding:6px 10px;font-size:11px}
+.homepage-overview-shell .hero-art{width:105px;height:90px;margin:0 2% 0 16px}
 .homepage-overview-shell .hero-emblem{width:82px;height:82px;border-radius:22px}
 .homepage-overview-shell .hero-emblem span{font-size:30px}
 .homepage-overview-shell .hero-emblem small{font-size:7px}
