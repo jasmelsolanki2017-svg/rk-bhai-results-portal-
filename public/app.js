@@ -1,5 +1,12 @@
 const host=document.getElementById("results");
 const topResultCards=document.getElementById("topResultCards");
+if(topResultCards)topResultCards.addEventListener("click",event=>{
+  const link=event.target.closest("[data-chart-city]");
+  if(!link)return;
+  event.preventDefault();
+  if(chartCity){chartCity.value=link.dataset.chartCity;loadMonth();}
+  document.getElementById("archive")?.scrollIntoView({behavior:"smooth"});
+});
 const chartHost=document.getElementById("historyChart");
 const monthLabel=document.getElementById("monthLabel");
 const prevButton=document.getElementById("prevMonth");
