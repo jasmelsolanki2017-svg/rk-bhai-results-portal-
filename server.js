@@ -501,11 +501,23 @@ app.post("/api/admin/logout", adminOnly, (req, res) => {
 });
 
 app.get("/api/public/cities", async (req, res) => {
-  // Keep approved city listings public even when the owner's account expires.
-  // City visibility is controlled by the admin-reviewed city status, not billing/account expiry.
-  const cities = await City.find({ status: "approved" }).select("cityName expectedTime").sort({ cityName: 1 }).lean();
+  // Include approved city records and legacy/global published result titles.
+  // A city hidden/rejected by admin is not reintroduced from its linked results.
+  const [approved, globalTitles] = await Promise.all([
+    City.find({ status: "approved" }).select("cityName expectedTime").lean(),
+    Result.distinct("title", {
+      published: true, deleted: { $ne: true },
+      $or: [{ ownerUserId: null }, { ownerUserId: { $exists: false } }]
+    })
+  ]);
+  const byName = new Map();
+  for (const c of approved) byName.set(String(c.cityName).trim().toLocaleLowerCase("en"), { cityName: c.cityName, expectedTime: c.expectedTime || "" });
+  for (const title of globalTitles) {
+    const key = String(title || "").trim().toLocaleLowerCase("en");
+    if (key && !byName.has(key)) byName.set(key, { cityName: String(title).trim(), expectedTime: "" });
+  }
   res.setHeader("Cache-Control", "no-store");
-  res.json(cities.map(c => ({ cityName: c.cityName, expectedTime: c.expectedTime || "" })));
+  res.json([...byName.values()].sort((a,b) => a.cityName.localeCompare(b.cityName)));
 });
 app.get("/api/public/export.csv", async (req, res) => {
   // Published results remain visible for every admin-approved city, regardless of owner expiry.
@@ -748,9 +760,9 @@ async function syncPublicSnapshotOnce() {
   }
   const repo = process.env.GITHUB_REPO || "jasmelsolanki2017-svg/rk-bhai-results-portal-";
   // Snapshot must use the same approved-city visibility rule as the live public API.
-  const cities = await City.find({ status: "approved" })
+  const approvedCities = await City.find({ status: "approved" })
     .select("cityName expectedTime").sort({ cityName: 1 }).lean();
-  const approvedCityIds = cities.map(c => c._id);
+  const approvedCityIds = approvedCities.map(c => c._id);
   const filter = {
     published: true,
     deleted: { $ne: true },
@@ -759,6 +771,13 @@ async function syncPublicSnapshotOnce() {
   const results = await Result.find(filter)
     .select("title resultText resultDate sourceUrl createdAt")
     .sort({ resultDate: -1, title: 1 }).limit(20000).lean();
+  const cityMap = new Map();
+  for (const c of approvedCities) cityMap.set(String(c.cityName).trim().toLocaleLowerCase("en"), { cityName: c.cityName, expectedTime: c.expectedTime || "" });
+  for (const r of results) {
+    const key = String(r.title || "").trim().toLocaleLowerCase("en");
+    if (key && !cityMap.has(key)) cityMap.set(key, { cityName: String(r.title).trim(), expectedTime: "" });
+  }
+  const cities = [...cityMap.values()].sort((a,b) => a.cityName.localeCompare(b.cityName));
   const snapshot = {
     app: "rk-bhai-results-portal",
     updatedAt: new Date().toISOString(),
@@ -770,7 +789,7 @@ async function syncPublicSnapshotOnce() {
       sourceUrl: r.sourceUrl || "",
       createdAt: r.createdAt || null
     })),
-    cities: cities.map(c => ({ cityName: c.cityName, expectedTime: c.expectedTime || "" }))
+    cities
   };
   // Keep public data on its own branch so snapshot updates do not redeploy this Render service.
   const snapshotBranch = "public-data";
