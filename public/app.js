@@ -1,4 +1,5 @@
 const host=document.getElementById("results");
+const topResultCards=document.getElementById("topResultCards");
 const chartHost=document.getElementById("historyChart");
 const monthLabel=document.getElementById("monthLabel");
 const prevButton=document.getElementById("prevMonth");
@@ -134,6 +135,15 @@ function renderRecent(){
   const newestResult=[...recentRows].sort((a,b)=>new Date(b.createdAt||b.updatedAt||b.resultDate||0).getTime()-new Date(a.createdAt||a.updatedAt||a.resultDate||0).getTime())[0];
   const newestResultKey=newestResult?resultKey(newestResult):null;
   const cell=(row,isToday=false)=>{if(!row)return isToday?'<span class="wait-badge">WAIT</span>':'<span class="no-result">XX</span>';return '<span'+(isToday?' class="result-blink"':'')+'>'+escapeHtml(row.resultText)+'</span>'+(isToday?' <span class="new-result-badge">NEW</span>':'');};
+  if(topResultCards){
+    topResultCards.innerHTML=entries.map(([city,result])=>{
+      const cityInfo=recentCities.find(item=>item.cityName===city)||{};
+      const time=cityInfo.expectedTime||cityInfo.resultTime||cityInfo.time||"";
+      const previous=result.yesterday?escapeHtml(result.yesterday.resultText):"XX";
+      const current=result.today?escapeHtml(result.today.resultText):"—";
+      return '<article class="top-result-card"><h3>'+escapeHtml(city)+'</h3><p class="top-result-time">'+(time?'( '+escapeHtml(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+previous+'</span><span class="top-result-arrow" aria-hidden="true">➡️</span><span class="top-current'+(result.today?' result-blink':'')+'">'+current+'</span></div><a class="top-chart-link" href="#archive" data-chart-city="'+escapeHtml(city)+'">चार्ट देखें</a></article>';
+    }).join("");
+  }
   host.innerHTML='<div class="recent-results-wrap"><table class="recent-results-table"><thead><tr><th>शहर / मार्केट</th><th>कल ('+yesterdayLabel+')</th><th>आज ('+todayLabel+')</th></tr></thead><tbody>'+
     entries.map(([city,result])=>'<tr><th>'+escapeHtml(city)+'</th><td>'+cell(result.yesterday)+'</td><td>'+cell(result.today,true)+'</td></tr>').join("")+
     '</tbody></table></div>';
