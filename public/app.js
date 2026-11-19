@@ -158,7 +158,7 @@ async function loadResults({notify=false}={}){
   try{
     const [rows,cities]=await Promise.all([getJson("/api/results?recent=2"),getJson("/api/public/cities")]);
     recentRows=rows;recentCities=cities;updateKnownResults(rows,notify);renderRecent();
-  }catch(e){host.innerHTML='<p class="muted">अभी परिणाम लोड नहीं हो पाए। कृपया बाद में प्रयास करें।</p>';}
+  }catch(e){if(topResultCards)topResultCards.innerHTML='<p class="muted">अभी परिणाम लोड नहीं हो पाए। कृपया बाद में प्रयास करें।</p>';}
 }
 async function checkForNewResults(){
   // Refresh the static GitHub snapshot in the background; Render is not required.
