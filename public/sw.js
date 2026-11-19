@@ -1,5 +1,6 @@
-const CACHE_NAME = "rk-bhai-shell-v5";
-const APP_SHELL = ["/", "/index.html", "/style.css", "/app.js", "/clock.js", "/manifest.json", "/icon.svg"];
+const CACHE_NAME = "rk-bhai-shell-v6-ghpages";
+const APP_BASE = new URL("./", self.location.href);
+const APP_SHELL = ["", "index.html", "style.css", "app.js", "clock.js", "manifest.json", "icon.svg"].map(path => new URL(path, APP_BASE).toString());
 
 self.addEventListener("install", event => {
   event.waitUntil(
@@ -21,7 +22,7 @@ self.addEventListener("fetch", event => {
   const request = event.request;
   if (request.method !== "GET") return;
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin || url.pathname.startsWith("/api/")) return;
+  if (url.origin !== self.location.origin || url.pathname.includes("/api/")) return;
 
   if (request.mode === "navigate") {
     event.respondWith(
