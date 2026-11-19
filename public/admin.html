@@ -9,6 +9,7 @@
 <section id="loginBox" class="admin-box pro-login" hidden><h2>Admin Login</h2><form id="loginForm"><input name="username" autocomplete="username" placeholder="Username" required><input name="password" type="password" autocomplete="current-password" placeholder="Password" required><button type="submit">Login</button></form></section>
 <section id="panel" hidden class="pro-dashboard">
   <nav class="pro-shortcuts"><a href="#chartSection"><span>▦</span> Monthly Records</a><a href="#recordSection"><span>＋</span> Add Record</a><a href="/admin/users"><span>♙</span> User Management</a></nav>
+  <section class="admin-box pro-card dashboard-latest-results" id="adminLatestResults"><div class="section-kicker">LIVE MARKET BOARD</div><h2>Latest Published Results</h2><div class="top-result-grid" id="adminTopResultCards"><p class="muted">रिजल्ट लोड हो रहे हैं…</p></div></section>
   <div class="pro-content-grid">
   <section class="admin-box pro-card pro-chart" id="chartSection">
     <div class="admin-top"><h2>पूरा मासिक चार्ट</h2><div class="actions"><a class="back-link" href="/admin/users">User Management</a><button id="logout" type="button" class="secondary">Logout</button></div></div>
@@ -33,6 +34,6 @@
 </section>
 <p id="msg" class="muted" role="status"></p>
 </main>
-<script src="/admin.js?v=20261119panelfix1"></script><script src="/dashboard-menu.js?v=20261117menu1"></script>
+<script src="/admin.js?v=20261119latestshare1"></script><script src="/dashboard-menu.js?v=20261117menu1"></script>
 <script src="/refresh-button.js?v=20261117refresh1"></script>
 </body></html>
