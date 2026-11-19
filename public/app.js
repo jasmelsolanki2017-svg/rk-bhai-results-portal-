@@ -149,7 +149,7 @@ function renderRecent(){
       const time=cityInfo.expectedTime||cityInfo.resultTime||cityInfo.time||fixedTimes[String(city).trim().toLocaleLowerCase("en")]||"";
       const previous=result.yesterday?escapeHtml(result.yesterday.resultText):"XX";
       const current=result.today?escapeHtml(result.today.resultText):"—";
-      return '<article class="top-result-card"><h3>'+escapeHtml(city)+'</h3><p class="top-result-time">'+(time?'( '+escapeHtml(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+previous+'</span><span class="top-result-arrow" aria-hidden="true">➡️</span><span class="top-current'+(result.today?' result-blink':'')+'">'+current+'</span></div><a class="top-chart-link" href="#archive" data-chart-city="'+escapeHtml(city)+'">चार्ट देखें</a></article>';
+      return '<article class="top-result-card"><h3>'+escapeHtml(city)+'</h3><p class="top-result-time">'+(time?'( '+escapeHtml(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+previous+'</span><span class="top-result-arrow" aria-hidden="true">➡️</span><span class="top-current'+(result.today?' result-blink':'')+'">'+current+'</span>'+(result.today?' <span class="new-result-badge">NEW</span>':'')+'</div><a class="top-chart-link" href="#archive" data-chart-city="'+escapeHtml(city)+'">चार्ट देखें</a></article>';
     }).join("");
   }
   host.innerHTML='<div class="recent-results-wrap"><table class="recent-results-table"><thead><tr><th>शहर / मार्केट</th><th>कल ('+yesterdayLabel+')</th><th>आज ('+todayLabel+')</th></tr></thead><tbody>'+
