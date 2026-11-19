@@ -1,7 +1,15 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-19T08:26:41.414Z",
+  "updatedAt": "2026-11-19T08:39:41.145Z",
   "results": [
+    {
+      "_id": "6afeb5cb2d72e7158e3aff1b",
+      "title": "Delhi Bazar",
+      "resultText": "07",
+      "resultDate": "2026-11-18T00:00:00.000Z",
+      "sourceUrl": "",
+      "createdAt": "2026-11-19T08:39:39.237Z"
+    },
     {
       "_id": "6afd15e427dcbc376b26b924",
       "title": "Disawar",
