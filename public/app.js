@@ -152,7 +152,7 @@ function renderRecent(){
       const galiBlinkWindow=isGali&&indiaHour<14;
       const galiCarry=galiBlinkWindow&&!result.today&&!!result.yesterday;
       const currentRow=result.today||(galiCarry?result.yesterday:null);
-      const previousRow=galiCarry?null:result.yesterday;
+      const previousRow=result.yesterday;
       const shouldBlink=isGali?galiBlinkWindow&&!!currentRow:!!result.today;
       const previous=previousRow?escapeHtml(previousRow.resultText):"XX";
       const current=currentRow?escapeHtml(currentRow.resultText):"—";
