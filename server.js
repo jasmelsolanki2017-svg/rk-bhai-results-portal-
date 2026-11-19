@@ -501,13 +501,15 @@ app.post("/api/admin/logout", adminOnly, (req, res) => {
 });
 
 app.get("/api/public/cities", async (req, res) => {
-  const activeUsers = await User.find({ active: true, $or: [{ expiresAt: null }, { expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }] }).distinct("_id");
-  const cities = await City.find({ status: "approved", userId: { $in: activeUsers } }).select("cityName expectedTime").sort({ cityName: 1 }).lean();
+  // Keep approved city listings public even when the owner's account expires.
+  // City visibility is controlled by the admin-reviewed city status, not billing/account expiry.
+  const cities = await City.find({ status: "approved" }).select("cityName expectedTime").sort({ cityName: 1 }).lean();
+  res.setHeader("Cache-Control", "no-store");
   res.json(cities.map(c => ({ cityName: c.cityName, expectedTime: c.expectedTime || "" })));
 });
 app.get("/api/public/export.csv", async (req, res) => {
-  const activeUsers = await User.find({ active: true, $or: [{ expiresAt: null }, { expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }] }).distinct("_id");
-  const approvedCityIds = await City.find({ status: "approved", userId: { $in: activeUsers } }).distinct("_id");
+  // Published results remain visible for every admin-approved city, regardless of owner expiry.
+  const approvedCityIds = await City.find({ status: "approved" }).distinct("_id");
   const filter = { published: true, deleted: { $ne: true }, $or: [{ ownerUserId: null }, { ownerUserId: { $exists: false } }, { cityId: { $in: approvedCityIds } }] };
   const rows = await Result.find(filter).select("title resultText resultDate sourceUrl").sort({ resultDate: -1, title: 1 }).limit(20000).lean();
   const cell = value => {
@@ -523,8 +525,8 @@ app.get("/api/public/export.csv", async (req, res) => {
 });
 
 app.get("/api/results", async (req, res) => {
-  const activeUsers = await User.find({ active: true, $or: [{ expiresAt: null }, { expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }] }).distinct("_id");
-  const approvedCityIds = await City.find({ status: "approved", userId: { $in: activeUsers } }).distinct("_id");
+  // Published results remain visible for every admin-approved city, regardless of owner expiry.
+  const approvedCityIds = await City.find({ status: "approved" }).distinct("_id");
   const filter = { published: true, deleted: { $ne: true }, $or: [{ ownerUserId: null }, { ownerUserId: { $exists: false } }, { cityId: { $in: approvedCityIds } }] };
   if (req.query.recent === "2") {
     const today = new Intl.DateTimeFormat("en-CA", {
@@ -745,11 +747,8 @@ async function syncPublicSnapshotOnce() {
     return false;
   }
   const repo = process.env.GITHUB_REPO || "jasmelsolanki2017-svg/rk-bhai-results-portal-";
-  const activeUsers = await User.find({
-    active: true,
-    $or: [{ expiresAt: null }, { expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }]
-  }).distinct("_id");
-  const cities = await City.find({ status: "approved", userId: { $in: activeUsers } })
+  // Snapshot must use the same approved-city visibility rule as the live public API.
+  const cities = await City.find({ status: "approved" })
     .select("cityName expectedTime").sort({ cityName: 1 }).lean();
   const approvedCityIds = cities.map(c => c._id);
   const filter = {
