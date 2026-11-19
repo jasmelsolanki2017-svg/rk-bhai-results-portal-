@@ -792,3 +792,6 @@ body.dashboard-menu-open{overflow:hidden}
 .top-current.result-blink{color:#f5d78e}
 .top-chart-link{color:#e4bd68}
 .top-chart-link:hover{color:#ffe2a0}
+
+.top-current-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:0}
+.top-result-card .new-result-badge{display:inline-block;padding:1px 8px;border:1px solid #d6ad45;border-radius:999px;background:#d6ad45;color:#17120a;font:800 11px/1.4 Arial,sans-serif;letter-spacing:1px;box-shadow:0 0 8px #d6ad4566}
