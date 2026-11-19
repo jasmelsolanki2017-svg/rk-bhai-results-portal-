@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-19T11:55:49.413Z",
+  "updatedAt": "2026-11-19T12:08:36.644Z",
   "results": [
     {
       "_id": "6afecb6519999efefaa72508",
@@ -73,14 +73,6 @@
       "resultDate": "2026-11-18T00:00:00.000Z",
       "sourceUrl": "",
       "createdAt": "2026-11-19T08:44:07.745Z"
-    },
-    {
-      "_id": "6afeb98f2d72e7158e3b006e",
-      "title": "Pink City",
-      "resultText": "00",
-      "resultDate": "2026-11-18T00:00:00.000Z",
-      "sourceUrl": "",
-      "createdAt": "2026-11-19T08:55:43.028Z"
     },
     {
       "_id": "6afeb6a82d72e7158e3aff54",
@@ -57795,10 +57787,6 @@
     {
       "cityName": "Ghaziabad",
       "expectedTime": ""
-    },
-    {
-      "cityName": "Pink City",
-      "expectedTime": "20:00"
     },
     {
       "cityName": "Shree Ganesh",
