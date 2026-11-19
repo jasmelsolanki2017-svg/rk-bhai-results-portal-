@@ -54,7 +54,7 @@ $("#userLoginForm").addEventListener("submit",async e=>{
 async function logoutUser(){try{await fetch("/api/user/logout",{method:"POST",credentials:"same-origin"});}catch{}showPasswordChange(false);showUser(false);$("#userLoginForm").reset();}
 $("#userLogout").addEventListener("click",logoutUser);
 $("#forcedLogout").addEventListener("click",logoutUser);
-(async()=>{const checking=$("#sessionChecking");let data;try{data=await userApi("/api/user/session");}catch{if(checking)checking.hidden=true;showUser(false);return;}if(checking)checking.hidden=true;$("#userName").textContent=data.username;if(data.mustChangePassword){showPasswordChange(true);$("#passwordChangeMessage").textContent="पहले default password बदलें।";}else{showUser(true);showExpiryWarning(data.expiresAt);try{await loadMyCity();}catch(err){$("#cityStatus").textContent=err.message||"शहर की जानकारी लोड नहीं हो पाई।";}}})();
+(async()=>{const checking=$("#sessionChecking");let data;try{data=await userApi("/api/user/session");}catch{if(checking)checking.hidden=true;showUser(false);return;}if(checking)checking.hidden=true;$("#userName").textContent=data.username;if(data.mustChangePassword){showPasswordChange(true);$("#passwordChangeMessage").textContent="पहले default password बदलें।";}else{showUser(true);showExpiryWarning(data.expiresAt);try{await loadMyCity();if(window.loadResults)await loadResults();if(window.loadMonth)await loadMonth();}catch(err){$("#cityStatus").textContent=err.message||"शहर की जानकारी लोड नहीं हो पाई।";}}})();
 
 async function loadMyCity(){
  const city=await userApi("/api/user/city");
