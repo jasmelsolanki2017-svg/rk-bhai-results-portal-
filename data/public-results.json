@@ -1,7 +1,15 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-19T14:50:18.894Z",
+  "updatedAt": "2026-11-19T15:13:36.416Z",
   "results": [
+    {
+      "_id": "6aff121e215b3428d64ecd57",
+      "title": "Chandigarh City",
+      "resultText": "10",
+      "resultDate": "2026-11-19T00:00:00.000Z",
+      "sourceUrl": "",
+      "createdAt": "2026-11-19T15:13:34.567Z"
+    },
     {
       "_id": "6afecb6519999efefaa72508",
       "title": "Delhi Bazar",
