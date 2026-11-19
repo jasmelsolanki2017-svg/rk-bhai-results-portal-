@@ -26,6 +26,7 @@ async function refresh(){
   const monthTask = hiddenTask.then(()=>loadMonth());
   try {
     allRows = await api("/api/admin/results", {signal:AbortSignal.timeout(15000)});
+    await renderAdminTopResults();
     await hiddenTask;
     renderCityLinks();
   } catch (e) {
@@ -44,6 +45,31 @@ async function refresh(){
     renderMonthChart(fallback, selectedMonth);
   }
 }
+
+async function renderAdminTopResults(){
+ const box=$("#adminTopResultCards");if(!box)return;
+ try{
+  const [rows,cities]=await Promise.all([Promise.resolve(allRows),api("/api/public/cities")]);
+  const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+  const todayStart=new Date(today+"T00:00:00.000Z"),yesterday=new Date(todayStart.getTime()-86400000).toISOString().slice(0,10);
+  const byCity=new Map();
+  rows.filter(r=>r.published!==false&&!r.deleted).forEach(r=>{const day=new Date(r.resultDate).toISOString().slice(0,10);if(day!==today&&day!==yesterday)return;if(!byCity.has(r.title))byCity.set(r.title,{today:null,yesterday:null});const slot=byCity.get(r.title);if(day===""+today)slot.today=r;else slot.yesterday=r;});
+  const visible=[...new Set([...cities.map(c=>c.cityName),...byCity.keys()])].filter(n=>n&&!hiddenCityNames.has(n)).sort((a,b)=>a.localeCompare(b,"hi"));
+  if(!visible.length){box.innerHTML='<p class="muted">अभी कोई प्रकाशित रिजल्ट नहीं है।</p>';return;}
+  const fixed={"disawar":"05:00 AM","desawar":"05:00 AM","faridabad":"06:20 PM","ghaziabad":"10:05 PM","gali":"12:05 AM","delhi bazar":"03:15 PM","shri ganesh":"04:45 PM","shree ganesh":"04:45 PM"};
+  box.innerHTML=visible.map(city=>{
+   const result=byCity.get(city)||{},now=result.today,prev=result.yesterday;
+   const info=cities.find(c=>c.cityName===city)||{},time=info.expectedTime||info.resultTime||info.time||fixed[city.trim().toLowerCase()]||"";
+   const value=now?String(now.resultText):"WAIT";
+   const date=now?new Date(now.resultDate).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",timeZone:"Asia/Kolkata"}):"";
+   const publishedAt=now?.createdAt||now?.updatedAt||now?.resultDate;
+   const clock=publishedAt?new Date(publishedAt).toLocaleTimeString("en-IN",{hour:"numeric",minute:"2-digit",hour12:true,timeZone:"Asia/Kolkata"}):"";
+   const message="RK Bhai - प्रकाशित परिणाम और पुराने रिकॉर्ड\n\n❤️ "+city.toUpperCase()+" ❤️\n👇 Live Result 👇\n\n"+(prev?"पिछला रिजल्ट: "+prev.resultText+"\n":"")+"✅ (( "+value+" )) ✅\n\n"+location.origin+"\nDate : "+date+(clock?"\n"+clock:"");
+   return '<article class="top-result-card"><h3>'+esc(city)+'</h3><p class="top-result-time">'+(time?'( '+esc(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+(prev?esc(prev.resultText):"XX")+'</span><span class="top-result-arrow">➡️</span><span class="top-current-wrap">'+(now?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(now?' result-blink':'')+'">'+esc(value)+'</span></span></div><a class="dashboard-whatsapp-share" '+(now?'href="https://wa.me/?text='+encodeURIComponent(message)+'" target="_blank" rel="noopener"':'aria-disabled="true"')+'>WhatsApp पर शेयर करें</a></article>';
+  }).join("");
+ }catch(error){box.innerHTML='<p class="muted">रिजल्ट लोड नहीं हो पाए: '+esc(error.message)+'</p>';}
+}
+
 function renderCityLinks(){
  const cities=[...new Set(allRows.map(x=>String(x.title||"").trim()).filter(name=>name&&!hiddenCityNames.has(name)))].sort((a,b)=>{const ac=/chandigarh/i.test(a),bc=/chandigarh/i.test(b);return ac!==bc?(ac?1:-1):a.localeCompare(b,"hi");});
  cityNames=cities;
