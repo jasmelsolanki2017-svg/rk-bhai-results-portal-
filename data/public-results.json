@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-19T08:43:44.307Z",
+  "updatedAt": "2026-11-19T08:44:09.560Z",
   "results": [
     {
       "_id": "6afeb5cb2d72e7158e3aff1b",
@@ -33,6 +33,14 @@
       "resultDate": "2026-11-18T00:00:00.000Z",
       "sourceUrl": "",
       "createdAt": "2026-11-19T08:43:42.211Z"
+    },
+    {
+      "_id": "6afeb6d72d72e7158e3aff6b",
+      "title": "Ghaziabad",
+      "resultText": "57",
+      "resultDate": "2026-11-18T00:00:00.000Z",
+      "sourceUrl": "",
+      "createdAt": "2026-11-19T08:44:07.745Z"
     },
     {
       "_id": "6afeb6a82d72e7158e3aff54",
