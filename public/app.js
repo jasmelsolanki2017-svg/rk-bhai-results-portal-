@@ -147,9 +147,16 @@ function renderRecent(){
       const cityInfo=recentCities.find(item=>item.cityName===city)||{};
       const fixedTimes={"disawar":"05:00 AM","desawar":"05:00 AM","faridabad":"06:20 PM","ghaziabad":"10:05 PM","gali":"12:05 AM","delhi bazar":"03:15 PM","shri ganesh":"04:45 PM","shree ganesh":"04:45 PM"};
       const time=cityInfo.expectedTime||cityInfo.resultTime||cityInfo.time||fixedTimes[String(city).trim().toLocaleLowerCase("en")]||"";
-      const previous=result.yesterday?escapeHtml(result.yesterday.resultText):"XX";
-      const current=result.today?escapeHtml(result.today.resultText):"—";
-      return '<article class="top-result-card"><h3>'+escapeHtml(city)+'</h3><p class="top-result-time">'+(time?'( '+escapeHtml(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+previous+'</span><span class="top-result-arrow" aria-hidden="true">➡️</span><span class="top-current-wrap">'+(result.today?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(result.today?' result-blink':'')+'">'+current+'</span></span></div><a class="top-chart-link" href="#archive" data-chart-city="'+escapeHtml(city)+'">चार्ट देखें</a></article>';
+      const isGali=String(city).trim().toLocaleLowerCase("en")==="gali";
+      const indiaHour=Number(new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Kolkata",hour:"2-digit",hourCycle:"h23"}).format(new Date()));
+      const galiBlinkWindow=isGali&&indiaHour<14;
+      const galiCarry=galiBlinkWindow&&!result.today&&!!result.yesterday;
+      const currentRow=result.today||(galiCarry?result.yesterday:null);
+      const previousRow=galiCarry?null:result.yesterday;
+      const shouldBlink=isGali?galiBlinkWindow&&!!currentRow:!!result.today;
+      const previous=previousRow?escapeHtml(previousRow.resultText):"XX";
+      const current=currentRow?escapeHtml(currentRow.resultText):"—";
+      return '<article class="top-result-card"><h3>'+escapeHtml(city)+'</h3><p class="top-result-time">'+(time?'( '+escapeHtml(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+previous+'</span><span class="top-result-arrow" aria-hidden="true">➡️</span><span class="top-current-wrap">'+(shouldBlink?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(shouldBlink?' result-blink':'')+'">'+current+'</span></span></div><a class="top-chart-link" href="#archive" data-chart-city="'+escapeHtml(city)+'">चार्ट देखें</a></article>';
     }).join("");
   }
 
