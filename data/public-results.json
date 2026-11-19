@@ -1,7 +1,15 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-19T18:47:50.058Z",
+  "updatedAt": "2026-11-19T18:52:45.000Z",
   "results": [
+    {
+      "_id": "6aff457a23336ce1379aed24",
+      "title": "Gali",
+      "resultText": "85",
+      "resultDate": "2026-11-20T00:00:00.000Z",
+      "sourceUrl": "",
+      "createdAt": "2026-11-19T18:52:42.910Z"
+    },
     {
       "_id": "6aff121e215b3428d64ecd57",
       "title": "Chandigarh City",
