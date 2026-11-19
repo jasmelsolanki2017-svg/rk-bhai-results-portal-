@@ -27,7 +27,7 @@ jobs:
         run: npm install --omit=dev
       - name: Fetch and publish new results
         env:
-          MONGODB_URI: \${{ secrets.MONGODB_URI }}
-          GITHUB_TOKEN: \${{ github.token }}
-          GITHUB_REPOSITORY: \${{ github.repository }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: node scripts/auto-sync-results.js
