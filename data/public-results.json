@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-19T08:54:17.273Z",
+  "updatedAt": "2026-11-19T08:54:59.107Z",
   "results": [
     {
       "_id": "6afeb7602d72e7158e3aff89",
@@ -57771,6 +57771,10 @@
     {
       "cityName": "Ghaziabad",
       "expectedTime": ""
+    },
+    {
+      "cityName": "Pink City",
+      "expectedTime": "20:00"
     },
     {
       "cityName": "Shree Ganesh",
