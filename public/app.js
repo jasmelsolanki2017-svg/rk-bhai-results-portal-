@@ -43,7 +43,7 @@ function showNewResultNotice(rows){
     try{
       new Notification("RK Bhai पर नया रिजल्ट",{
         body:rows.length===1?(first.title+" : "+first.resultText):rows.length+" नए रिजल्ट प्रकाशित हुए हैं।",
-        icon:"/icon.svg",
+        icon:"./icon.svg",
         tag:"rk-bhai-new-results"
       });
     }catch(error){console.warn("Browser notification unavailable:",error);}
@@ -311,7 +311,7 @@ if (qrDialog) qrDialog.addEventListener("click", event => { if (event.target ===
 const printButton = document.getElementById("printArchive");
 if (printButton) printButton.addEventListener("click", () => window.print());
 if ("serviceWorker" in navigator) window.addEventListener("load", () => {
-  navigator.serviceWorker.register("/sw.js").catch(error => console.warn("App offline setup unavailable:", error));
+  navigator.serviceWorker.register("./sw.js").catch(error => console.warn("App offline setup unavailable:", error));
 });
 
 
