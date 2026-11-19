@@ -795,3 +795,12 @@ body.dashboard-menu-open{overflow:hidden}
 
 .top-current-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:0}
 .top-result-card .new-result-badge{display:inline-block;padding:1px 8px;border:1px solid #d6ad45;border-radius:999px;background:#d6ad45;color:#17120a;font:800 11px/1.4 Arial,sans-serif;letter-spacing:1px;box-shadow:0 0 8px #d6ad4566}
+
+/* Dashboard latest-result cards and direct WhatsApp sharing */
+.dashboard-latest-results{margin:0 0 16px;padding:14px}
+.dashboard-latest-results h2{margin:4px 0 12px;color:#f1d28a;font-size:18px}
+.dashboard-latest-results .top-result-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.dashboard-latest-results .top-result-card{min-height:210px}
+.dashboard-whatsapp-share{display:inline-flex;align-items:center;justify-content:center;margin:12px 0 0;padding:8px 10px;border:1px solid #168b50;border-radius:8px;background:#075e36;color:#fff;font-size:12px;font-weight:800;text-decoration:none}
+.dashboard-whatsapp-share[aria-disabled="true"]{opacity:.45;pointer-events:none}
+@media(max-width:600px){.dashboard-latest-results{padding:10px}.dashboard-latest-results h2{font-size:15px}.dashboard-latest-results .top-result-grid{gap:5px}.dashboard-latest-results .top-result-card{min-height:190px;padding:12px 6px 10px}.dashboard-whatsapp-share{font-size:10px;padding:7px 6px}}
