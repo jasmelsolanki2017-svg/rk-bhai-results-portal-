@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-19T18:52:45.000Z",
+  "updatedAt": "2026-11-19T18:53:09.237Z",
   "results": [
     {
       "_id": "6aff457a23336ce1379aed24",
@@ -41,6 +41,14 @@
       "resultDate": "2026-11-19T00:00:00.000Z",
       "sourceUrl": "",
       "createdAt": "2026-11-19T12:47:26.610Z"
+    },
+    {
+      "_id": "6aff459323336ce1379aed3a",
+      "title": "Gali",
+      "resultText": "85",
+      "resultDate": "2026-11-19T00:00:00.000Z",
+      "sourceUrl": "",
+      "createdAt": "2026-11-19T18:53:07.374Z"
     },
     {
       "_id": "6aff281f30173f784b9f6f7f",
