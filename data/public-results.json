@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-19T07:27:33.349Z",
+  "updatedAt": "2026-11-19T07:34:14.979Z",
   "results": [
     {
       "_id": "6afd15e427dcbc376b26b924",
@@ -57695,6 +57695,30 @@
     {
       "cityName": "Chandigarh City",
       "expectedTime": "20:30"
+    },
+    {
+      "cityName": "Delhi Bazar",
+      "expectedTime": ""
+    },
+    {
+      "cityName": "Disawar",
+      "expectedTime": ""
+    },
+    {
+      "cityName": "Faridabad",
+      "expectedTime": ""
+    },
+    {
+      "cityName": "Gali",
+      "expectedTime": ""
+    },
+    {
+      "cityName": "Ghaziabad",
+      "expectedTime": ""
+    },
+    {
+      "cityName": "Shree Ganesh",
+      "expectedTime": ""
     }
   ]
 }
