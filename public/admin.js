@@ -64,7 +64,7 @@ async function renderAdminTopResults(){
    const date=now?new Date(now.resultDate).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",timeZone:"Asia/Kolkata"}):"";
    const publishedAt=now?.createdAt||now?.updatedAt||now?.resultDate;
    const clock=publishedAt?new Date(publishedAt).toLocaleTimeString("en-IN",{hour:"numeric",minute:"2-digit",hour12:true,timeZone:"Asia/Kolkata"}):"";
-   const message="RK Bhai - प्रकाशित परिणाम और पुराने रिकॉर्ड\n\n❤️ "+city.toUpperCase()+" ❤️\n👇 Live Result 👇\n\n"+(prev?"पिछला रिजल्ट: "+prev.resultText+"\n":"")+"✅ (( "+value+" )) ✅\n\n"https://jasmelsolanki2017-svg.github.io/rk-bhai-results-portal-/"\nDate : "+date+(clock?"\n"+clock:"");
+   const message="RK Bhai - प्रकाशित परिणाम और पुराने रिकॉर्ड\n\n❤️ "+city.toUpperCase()+" ❤️\n👇 Live Result 👇\n\n"+(prev?"पिछला रिजल्ट: "+prev.resultText+"\n":"")+"✅ (( "+value+" )) ✅\n\n"+"https://jasmelsolanki2017-svg.github.io/rk-bhai-results-portal-/"+"\nDate : "+date+(clock?"\n"+clock:"");
    return '<article class="top-result-card"><h3>'+esc(city)+'</h3><p class="top-result-time">'+(time?'( '+esc(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+(prev?esc(prev.resultText):"XX")+'</span><span class="top-result-arrow">➡️</span><span class="top-current-wrap">'+(now?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(now?' result-blink':'')+'">'+esc(value)+'</span></span></div><a class="dashboard-whatsapp-share" '+(now?'href="https://wa.me/?text='+encodeURIComponent(message)+'" target="_blank" rel="noopener"':'aria-disabled="true"')+'>WhatsApp पर शेयर करें</a></article>';
   }).join("");
  }catch(error){box.innerHTML='<p class="muted">रिजल्ट लोड नहीं हो पाए: '+esc(error.message)+'</p>';}
