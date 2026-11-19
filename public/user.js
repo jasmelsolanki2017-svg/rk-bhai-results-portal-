@@ -5,6 +5,31 @@ async function userApi(url,opts={}){
  if(!response.ok)throw new Error(data.error||"Request failed");
  return data;
 }
+
+async function loadUserTopResults(){
+ const box=$("#userTopResultCards");if(!box)return;
+ try{
+  const [rows,cities]=await Promise.all([userApi("/api/results?recent=2"),userApi("/api/public/cities")]);
+  const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+  const start=new Date(today+"T00:00:00.000Z"),yesterday=new Date(start.getTime()-86400000).toISOString().slice(0,10);
+  const byCity=new Map();
+  rows.filter(r=>r.published!==false&&!r.deleted).forEach(r=>{const day=new Date(r.resultDate).toISOString().slice(0,10);if(day!==today&&day!==yesterday)return;if(!byCity.has(r.title))byCity.set(r.title,{today:null,yesterday:null});const slot=byCity.get(r.title);if(day===today)slot.today=r;else slot.yesterday=r;});
+  const visible=[...new Set([...cities.map(c=>c.cityName),...byCity.keys()])].sort((a,b)=>a.localeCompare(b,"hi"));
+  if(!visible.length){box.innerHTML='<p class="muted">अभी कोई प्रकाशित रिजल्ट नहीं है।</p>';return;}
+  const fixed={"disawar":"05:00 AM","desawar":"05:00 AM","faridabad":"06:20 PM","ghaziabad":"10:05 PM","gali":"12:05 AM","delhi bazar":"03:15 PM","shri ganesh":"04:45 PM","shree ganesh":"04:45 PM"};
+  box.innerHTML=visible.map(city=>{
+   const result=byCity.get(city)||{},now=result.today,prev=result.yesterday,info=cities.find(c=>c.cityName===city)||{};
+   const time=info.expectedTime||info.resultTime||info.time||fixed[city.trim().toLowerCase()]||"";
+   const value=now?String(now.resultText):"WAIT";
+   const date=now?new Date(now.resultDate).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",timeZone:"Asia/Kolkata"}):"";
+   const publishedAt=now?.createdAt||now?.updatedAt||now?.resultDate;
+   const clock=publishedAt?new Date(publishedAt).toLocaleTimeString("en-IN",{hour:"numeric",minute:"2-digit",hour12:true,timeZone:"Asia/Kolkata"}):"";
+   const message="RK Bhai - प्रकाशित परिणाम और पुराने रिकॉर्ड\n\n❤️ "+city.toUpperCase()+" ❤️\n👇 Live Result 👇\n\n"+(prev?"पिछला रिजल्ट: "+prev.resultText+"\n":"")+"✅ (( "+value+" )) ✅\n\n"+location.origin+"\nDate : "+date+(clock?"\n"+clock:"");
+   return '<article class="top-result-card"><h3>'+userEsc(city)+'</h3><p class="top-result-time">'+(time?'( '+userEsc(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+(prev?userEsc(prev.resultText):"XX")+'</span><span class="top-result-arrow">➡️</span><span class="top-current-wrap">'+(now?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(now?' result-blink':'')+'">'+userEsc(value)+'</span></span></div><a class="dashboard-whatsapp-share" '+(now?'href="https://wa.me/?text='+encodeURIComponent(message)+'" target="_blank" rel="noopener"':'aria-disabled="true"')+'>WhatsApp पर शेयर करें</a></article>';
+  }).join("");
+ }catch(error){box.innerHTML='<p class="muted">रिजल्ट लोड नहीं हो पाए: '+userEsc(error.message)+'</p>';}
+}
+
 function showUser(on){$("#userLogin").hidden=on;$("#userContent").hidden=!on;$("#passwordChangeBox").hidden=true;}
 function showExpiryWarning(expiresAt){
  const popup=$("#expiryWarning"),banner=$("#expiryStatusBanner");
@@ -48,13 +73,13 @@ $("#expiryClose")?.addEventListener("click",()=>{$("#expiryWarning").hidden=true
 function showPasswordChange(on){$("#userLogin").hidden=true;$("#userContent").hidden=true;$("#passwordChangeBox").hidden=!on;}
 $("#userLoginForm").addEventListener("submit",async e=>{
  e.preventDefault();$("#userMessage").textContent="Login हो रहा है…";
- try{const f=new FormData(e.target);const data=await userApi("/api/user/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});$("#userName").textContent=data.name||data.username;if(data.mustChangePassword){showPasswordChange(true);$("#passwordChangeMessage").textContent="Default password बदलना जरूरी है।";}else{showUser(true);showExpiryWarning(data.expiresAt);await loadMyCity();if(window.loadResults)loadResults();if(window.loadMonth)loadMonth();}$("#userMessage").textContent="";}
+ try{const f=new FormData(e.target);const data=await userApi("/api/user/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});$("#userName").textContent=data.name||data.username;if(data.mustChangePassword){showPasswordChange(true);$("#passwordChangeMessage").textContent="Default password बदलना जरूरी है।";}else{showUser(true);showExpiryWarning(data.expiresAt);await loadMyCity();await loadUserTopResults();if(window.loadResults)loadResults();if(window.loadMonth)loadMonth();}$("#userMessage").textContent="";}
  catch(err){$("#userMessage").textContent=err.message;}
 });
 async function logoutUser(){try{await fetch("/api/user/logout",{method:"POST",credentials:"same-origin"});}catch{}showPasswordChange(false);showUser(false);$("#userLoginForm").reset();}
 $("#userLogout").addEventListener("click",logoutUser);
 $("#forcedLogout").addEventListener("click",logoutUser);
-(async()=>{const checking=$("#sessionChecking");let data;try{data=await userApi("/api/user/session");}catch{if(checking)checking.hidden=true;showUser(false);return;}if(checking)checking.hidden=true;$("#userName").textContent=data.username;if(data.mustChangePassword){showPasswordChange(true);$("#passwordChangeMessage").textContent="पहले default password बदलें।";}else{showUser(true);showExpiryWarning(data.expiresAt);try{await loadMyCity();if(window.loadResults)await loadResults();if(window.loadMonth)await loadMonth();}catch(err){$("#cityStatus").textContent=err.message||"शहर की जानकारी लोड नहीं हो पाई।";}}})();
+(async()=>{const checking=$("#sessionChecking");let data;try{data=await userApi("/api/user/session");}catch{if(checking)checking.hidden=true;showUser(false);return;}if(checking)checking.hidden=true;$("#userName").textContent=data.username;if(data.mustChangePassword){showPasswordChange(true);$("#passwordChangeMessage").textContent="पहले default password बदलें।";}else{showUser(true);showExpiryWarning(data.expiresAt);try{await loadMyCity();await loadUserTopResults();if(window.loadResults)await loadResults();if(window.loadMonth)await loadMonth();}catch(err){$("#cityStatus").textContent=err.message||"शहर की जानकारी लोड नहीं हो पाई।";}}})();
 
 async function loadMyCity(){
  const city=await userApi("/api/user/city");
@@ -114,7 +139,7 @@ $("#cityForm").addEventListener("submit",async e=>{
 });
 $("#userRecordForm").addEventListener("submit",async e=>{
  e.preventDefault();const f=new FormData(e.target);
- try{await userApi("/api/user/results",{method:"POST",body:JSON.stringify({resultText:f.get("resultText"),resultDate:f.get("resultDate"),sourceUrl:f.get("sourceUrl")})});e.target.reset();$("#recordMessage").textContent="रिकॉर्ड सेव हो गया।";await loadMyRecords();if(window.loadResults)loadResults();if(window.loadMonth)loadMonth();}
+ try{await userApi("/api/user/results",{method:"POST",body:JSON.stringify({resultText:f.get("resultText"),resultDate:f.get("resultDate"),sourceUrl:f.get("sourceUrl")})});e.target.reset();$("#recordMessage").textContent="रिकॉर्ड सेव हो गया।";await loadMyRecords();await loadUserTopResults();if(window.loadResults)loadResults();if(window.loadMonth)loadMonth();}
  catch(err){$("#recordMessage").textContent=err.message;}
 });
 async function editMyRecordItem(item){
@@ -134,7 +159,7 @@ document.addEventListener("submit",async e=>{
  if(e.target.id==="cityRenameForm"){e.preventDefault();const f=new FormData(e.target);try{await userApi("/api/user/city/name",{method:"PATCH",body:JSON.stringify({cityName:f.get("cityName"),expectedTime:f.get("expectedTime")})});await loadMyCity();}catch(err){alert(err.message);}return;}
  if(e.target.id!=="cityTimeForm")return;
  e.preventDefault();const expectedTime=new FormData(e.target).get("expectedTime");
- try{await userApi("/api/user/city/time",{method:"PATCH",body:JSON.stringify({expectedTime})});await loadMyCity();if(window.loadMonth)loadMonth();}
+ try{await userApi("/api/user/city/time",{method:"PATCH",body:JSON.stringify({expectedTime})});await loadMyCity();await loadUserTopResults();if(window.loadMonth)loadMonth();}
  catch(err){alert(err.message);}
 });
 
