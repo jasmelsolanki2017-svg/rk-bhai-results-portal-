@@ -776,3 +776,19 @@ body.dashboard-menu-open{overflow:hidden}
 @keyframes topResultBlink{to{visibility:hidden}}
 @media(min-width:900px){.top-result-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.top-result-card{min-height:245px;padding:22px 14px}}
 @media(max-width:600px){.top-result-section{margin-bottom:15px}.top-result-grid{gap:5px}.top-result-card{min-height:195px;padding:14px 7px 11px}.top-result-card h3{font-size:clamp(15px,4vw,20px);margin-bottom:6px}.top-result-time{font-size:13px;margin-bottom:9px;min-height:21px}.top-result-values{grid-template-columns:1fr 27px 1fr;font-size:clamp(23px,6vw,31px);gap:2px}.top-result-arrow{font-size:21px}.top-chart-link{font-size:16px;margin-top:14px}}
+
+
+/* Harmonize new homepage result cards with the site's black-and-gold theme */
+.top-result-section-head h2{color:#d7ad55}
+.section-eyebrow{color:#a99a7b}
+.section-chip{border:1px solid #70552a;background:#21190e;color:#f5d78e}
+.top-result-card{background:linear-gradient(145deg,#201b12,#11100d);border:1px solid #59451f;border-radius:13px;color:#f7f3ea;box-shadow:0 7px 20px #0005}
+.top-result-card h3{color:#f1d28a}
+.top-result-time{color:#a99b80}
+.top-result-values{color:#f1e4c8}
+.top-previous{color:#f1e4c8}
+.top-result-arrow{filter:grayscale(1) sepia(1) saturate(2.2) hue-rotate(2deg);opacity:.95}
+.top-current{color:#edca78}
+.top-current.result-blink{color:#f5d78e}
+.top-chart-link{color:#e4bd68}
+.top-chart-link:hover{color:#ffe2a0}
