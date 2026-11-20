@@ -24,7 +24,8 @@ const publicFrontendApiPaths = new Set([
   "/api/public/cities",
   "/api/public/export.csv",
   "/api/public/poster",
-  "/api/public/announcement"
+  "/api/public/announcement",
+  "/api/visitor/track"
 ]);
 app.use((req, res, next) => {
   if (!publicFrontendApiPaths.has(req.path)) return next();
@@ -32,7 +33,7 @@ app.use((req, res, next) => {
   if (origin && publicFrontendOrigins.has(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
-    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   }
   if (req.method === "OPTIONS") {
@@ -117,6 +118,13 @@ const ResultSchema = new mongoose.Schema({
 ResultSchema.index({ resultDate: -1, title: 1 });
 const Result = mongoose.model("Result", ResultSchema);
 
+// Store one record for every public page load from either frontend.
+const VisitorVisit = mongoose.model("VisitorVisit", new mongoose.Schema({
+  site: { type: String, enum: ["github_pages", "render"], required: true },
+  createdAt: { type: Date, default: Date.now, index: true }
+}, { versionKey: false }));
+
+
 // Prefer a pre-generated bcrypt hash. ADMIN_PASSWORD is supported for simple
 // Render setup and is converted to a bcrypt hash once when the process starts.
 const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH ||
@@ -193,6 +201,95 @@ app.get("/api/public/poster", async (req,res)=>{try{const p=await Poster.findOne
 app.get("/api/admin/poster",adminOnly,async(req,res)=>{const p=await Poster.findOne().lean();res.json(p||{enabled:false,heading:"",description:"",buttonText:"",buttonUrl:""});});
 app.put("/api/admin/poster",adminOnly,async(req,res)=>{const {heading,description,buttonText,buttonUrl,enabled}=req.body||{};if(!String(heading||"").trim()&&!String(description||"").trim())return res.status(400).json({error:"Ad का message लिखें।"});if(buttonUrl&&!/^https:\/\//i.test(buttonUrl))return res.status(400).json({error:"Button link https:// से शुरू होना चाहिए।"});const p=await Poster.findOneAndUpdate({},{$set:{heading:String(heading||"").slice(0,120),description:String(description||"").slice(0,1000),buttonText:String(buttonText||"").slice(0,50),buttonUrl:String(buttonUrl||"").slice(0,500),enabled:!!enabled,updatedAt:new Date()},$unset:{imageData:1}},{upsert:true,new:true});res.json({ok:true,enabled:p.enabled});});
 app.get("/api/admin/session", adminOnly, (req, res) => res.json({ ok: true, role: "admin" }));
+
+function indiaDayStart(dateKey) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day) - 330 * 60 * 1000);
+}
+function indiaDateKey(date) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit"
+  }).format(date);
+}
+
+// Public endpoint: intentionally stores no IP address, cookie, or personal identifier.
+app.post("/api/visitor/track", async (req, res) => {
+  try {
+    const site = req.body?.site;
+    if (!["github_pages", "render"].includes(site)) {
+      return res.status(400).json({ error: "Invalid visitor source." });
+    }
+    await VisitorVisit.create({ site });
+    res.setHeader("Cache-Control", "no-store");
+    res.status(202).json({ ok: true });
+  } catch (error) {
+    console.error("Visitor tracking failed:", error.message);
+    res.status(503).json({ error: "Visitor tracking temporarily unavailable." });
+  }
+});
+
+app.get("/api/admin/visitors", adminOnly, async (req, res) => {
+  try {
+    const todayKey = indiaDateKey(new Date());
+    const todayStart = indiaDayStart(todayKey);
+    const tomorrowStart = new Date(todayStart.getTime() + 86400000);
+    const yesterdayStart = new Date(todayStart.getTime() - 86400000);
+    const last7Start = new Date(todayStart.getTime() - 6 * 86400000);
+    const last30Start = new Date(todayStart.getTime() - 29 * 86400000);
+    const activeStart = new Date(Date.now() - 5 * 60 * 1000);
+    const [facet] = await VisitorVisit.aggregate([{
+      $facet: {
+        totals: [{
+          $group: {
+            _id: null,
+            total: { $sum: 1 },
+            today: { $sum: { $cond: [{ $and: [{ $gte: ["$createdAt", todayStart] }, { $lt: ["$createdAt", tomorrowStart] }] }, 1, 0] } },
+            yesterday: { $sum: { $cond: [{ $and: [{ $gte: ["$createdAt", yesterdayStart] }, { $lt: ["$createdAt", todayStart] }] }, 1, 0] } },
+            last7: { $sum: { $cond: [{ $gte: ["$createdAt", last7Start] }, 1, 0] } },
+            last30: { $sum: { $cond: [{ $gte: ["$createdAt", last30Start] }, 1, 0] } }
+          }
+        }],
+        todayBySite: [
+          { $match: { createdAt: { $gte: todayStart, $lt: tomorrowStart } } },
+          { $group: { _id: "$site", count: { $sum: 1 } } }
+        ],
+        allBySite: [
+          { $group: { _id: "$site", count: { $sum: 1 } } }
+        ],
+        recent5m: [
+          { $match: { createdAt: { $gte: activeStart } } },
+          { $count: "count" }
+        ],
+        daily: [
+          { $match: { createdAt: { $gte: last7Start, $lt: tomorrowStart } } },
+          { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: "Asia/Kolkata" } }, count: { $sum: 1 } } },
+          { $sort: { _id: 1 } }
+        ]
+      }
+    }]);
+    const totals = facet?.totals?.[0] || {};
+    const countFor = (rows, key) => rows.find(row => row._id === key)?.count || 0;
+    res.setHeader("Cache-Control", "no-store");
+    res.json({
+      timezone: "Asia/Kolkata",
+      today: totals.today || 0,
+      yesterday: totals.yesterday || 0,
+      last7: totals.last7 || 0,
+      last30: totals.last30 || 0,
+      total: totals.total || 0,
+      recent5m: facet?.recent5m?.[0]?.count || 0,
+      sites: {
+        github_pages: { today: countFor(facet?.todayBySite || [], "github_pages"), total: countFor(facet?.allBySite || [], "github_pages") },
+        render: { today: countFor(facet?.todayBySite || [], "render"), total: countFor(facet?.allBySite || [], "render") }
+      },
+      daily: facet?.daily || []
+    });
+  } catch (error) {
+    console.error("Visitor analytics failed:", error.message);
+    res.status(503).json({ error: "Visitor analytics load nahi ho paya." });
+  }
+});
+
 app.get("/api/admin/export.xlsx", adminOnly, async (req, res) => {
   const [users, cities, results] = await Promise.all([
     User.find().select("name username mobile email active expiresAt createdAt").lean(),

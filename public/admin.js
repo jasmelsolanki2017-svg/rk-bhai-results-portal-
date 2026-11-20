@@ -164,7 +164,7 @@ titleInput.addEventListener("keydown",e=>{if(e.key==="Escape")suggestionBox.hidd
 
 $("#loginForm").addEventListener("submit",async e=>{
   e.preventDefault();msg.textContent="Login हो रहा है…";
-  try{const f=new FormData(e.target);await api("/api/admin/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});showPanel(true);await loadPosterManager();await loadAnnouncementManager();await refresh();msg.textContent="Login सफल";}
+  try{const f=new FormData(e.target);await api("/api/admin/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});showPanel(true);await loadPosterManager();await loadAnnouncementManager();await loadVisitorAnalytics();await refresh();msg.textContent="Login सफल";}
   catch(err){msg.textContent=err.message;}
 });
 $("#resultForm").addEventListener("submit",async e=>{
@@ -189,8 +189,36 @@ $("#logout").addEventListener("click",async()=>{
   try{await api("/api/admin/logout",{method:"POST"});showPanel(false);$("#loginForm").reset();msg.textContent="Logout हो गया";}
   catch(err){msg.textContent=err.message;showPanel(false);}
 });
-(async()=>{try{await api("/api/admin/session");showPanel(true);await loadPosterManager();await loadAnnouncementManager();await refresh();msg.textContent="Admin session चालू है";}
+(async()=>{try{await api("/api/admin/session");showPanel(true);await loadPosterManager();await loadAnnouncementManager();await loadVisitorAnalytics();await refresh();msg.textContent="Admin session चालू है";}
 catch{showPanel(false);}})();
+
+async function loadVisitorAnalytics(){
+  const status=$("#visitorAnalyticsMsg");
+  if(!$("#visitorToday")) return;
+  status.textContent="Visitor data लोड हो रहा है…";
+  try{
+    const data=await api("/api/admin/visitors",{signal:AbortSignal.timeout(15000)});
+    const number=value=>Number(value||0).toLocaleString("en-IN");
+    $("#visitorToday").textContent=number(data.today);
+    $("#visitorYesterday").textContent=number(data.yesterday);
+    $("#visitor7Days").textContent=number(data.last7);
+    $("#visitor30Days").textContent=number(data.last30);
+    $("#visitorTotal").textContent=number(data.total);
+    $("#visitorRecent").textContent=number(data.recent5m);
+    $("#visitorGithubToday").textContent=number(data.sites?.github_pages?.today);
+    $("#visitorGithubTotal").textContent=number(data.sites?.github_pages?.total);
+    $("#visitorRenderToday").textContent=number(data.sites?.render?.today);
+    $("#visitorRenderTotal").textContent=number(data.sites?.render?.total);
+    const days=Array.isArray(data.daily)?data.daily:[];
+    $("#visitorDaily").innerHTML=days.length?days.map(day=>{
+      const label=new Date(day._id+"T00:00:00+05:30").toLocaleDateString("hi-IN",{day:"2-digit",month:"short"});
+      return '<div class="visitor-day-row"><span>'+esc(label)+'</span><strong>'+number(day.count)+'</strong></div>';
+    }).join(""):'<p class="muted">अभी कोई Visit रिकॉर्ड नहीं है।</p>';
+    status.textContent="आखिरी अपडेट: "+new Date().toLocaleTimeString("hi-IN");
+  }catch(error){status.textContent="Visitor data लोड नहीं हुआ: "+error.message;}
+}
+const visitorRefreshButton=$("#visitorRefresh");
+if(visitorRefreshButton) visitorRefreshButton.addEventListener("click",loadVisitorAnalytics);
 
 async function loadPosterManager(){try{const p=await api("/api/admin/poster");$("#posterHeading").value=p.heading||"";$("#posterDescription").value=p.description||"";$("#posterButtonText").value=p.buttonText||"";$("#posterButtonUrl").value=p.buttonUrl||"";$("#posterEnabled").checked=!!p.enabled;}catch(e){$("#posterMsg").textContent="Ad load error: "+e.message;}}
 $("#posterForm").addEventListener("submit",async e=>{e.preventDefault();$("#posterMsg").textContent="Saving…";try{await api("/api/admin/poster",{method:"PUT",body:JSON.stringify({heading:$("#posterHeading").value,description:$("#posterDescription").value,buttonText:$("#posterButtonText").value,buttonUrl:$("#posterButtonUrl").value,enabled:$("#posterEnabled").checked})});$("#posterMsg").textContent="Ad saved. Public index पर update हो गया।";}catch(err){$("#posterMsg").textContent=err.message;}});
