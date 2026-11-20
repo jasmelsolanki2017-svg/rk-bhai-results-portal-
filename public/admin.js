@@ -64,7 +64,7 @@ async function renderAdminTopResults(){
    const date=now?new Date(now.resultDate).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",timeZone:"Asia/Kolkata"}):"";
    const publishedAt=now?.createdAt||now?.updatedAt||now?.resultDate;
    const clock=publishedAt?new Date(publishedAt).toLocaleTimeString("en-IN",{hour:"numeric",minute:"2-digit",hour12:true,timeZone:"Asia/Kolkata"}):"";
-   const resultUrl="https://rk-bhai-results-portal.onrender.com/";
+   const resultUrl="https://github.com/jasmelsolanki2017-svg/rk-bhai-results-portal-";
    const message=["❤️ "+city.toUpperCase()+" ❤️","👇 LIVE RESULT 👇","","*✅   (( "+value+" ))   ✅*","","Date : "+date,...(clock?[clock]:[]),"","पूरा रिजल्ट देखें:",resultUrl].join("\n");
    const shareAttrs=now?'href="https://wa.me/?text='+encodeURIComponent(message)+'" target="_blank" rel="noopener" data-share-city="'+esc(city)+'" data-share-value="'+esc(value)+'" data-share-date="'+esc(now.resultDate)+'"':'aria-disabled="true"';
    return '<article class="top-result-card"><h3>'+esc(city)+'</h3><p class="top-result-time">'+(time?'( '+esc(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+(prev?esc(prev.resultText):"XX")+'</span><span class="top-result-arrow">➡️</span><span class="top-current-wrap">'+(now?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(now?' result-blink':'')+'">'+esc(value)+'</span></span></div><div class="dashboard-share-options"><a class="dashboard-whatsapp-share" '+shareAttrs+' data-share-mode="both">कार्ड + मैसेज</a><a class="dashboard-whatsapp-share" '+shareAttrs+' data-share-mode="card">केवल कार्ड</a><a class="dashboard-whatsapp-share" '+shareAttrs+' data-share-mode="message">केवल मैसेज</a></div></article>';
@@ -75,25 +75,32 @@ async function renderAdminTopResults(){
 
 // Admin result card sharing: send the image and the public archive link together where supported.
 function createAdminResultCard(city,value,resultDate){
- const siteUrl="https://rk-bhai-results-portal.onrender.com/";
  const canvas=document.createElement("canvas");canvas.width=1080;canvas.height=1350;
  const ctx=canvas.getContext("2d");
- const bg=ctx.createLinearGradient(0,0,1080,1350);bg.addColorStop(0,"#17140e");bg.addColorStop(1,"#090909");
- ctx.fillStyle=bg;ctx.fillRect(0,0,1080,1350);ctx.strokeStyle="#b88a3b";ctx.lineWidth=5;ctx.strokeRect(42,42,996,1266);
- ctx.textAlign="center";ctx.fillStyle="#e6bd70";ctx.font="bold 64px Arial";ctx.fillText("RK BHAI",540,170);
- ctx.fillStyle="#f5f0e6";ctx.font="bold 38px Arial";ctx.fillText("RESULTS PORTAL",540,230);
- ctx.strokeStyle="#80632d";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(180,280);ctx.lineTo(900,280);ctx.stroke();
- ctx.fillStyle="#d8d0c0";ctx.font="bold 40px Arial";ctx.fillText("TODAY'S RESULT",540,370);
- ctx.fillStyle="#e6bd70";ctx.font="bold 58px Arial";ctx.fillText(String(city||"").slice(0,28),540,490);
+ const bg=ctx.createLinearGradient(0,0,1080,1350);bg.addColorStop(0,"#21172f");bg.addColorStop(.52,"#101827");bg.addColorStop(1,"#080d18");
+ ctx.fillStyle=bg;ctx.fillRect(0,0,1080,1350);
+ const glow=ctx.createRadialGradient(540,650,80,540,650,650);glow.addColorStop(0,"rgba(213,160,70,.20)");glow.addColorStop(1,"rgba(213,160,70,0)");
+ ctx.fillStyle=glow;ctx.fillRect(0,0,1080,1350);
+ ctx.strokeStyle="#d6a84f";ctx.lineWidth=7;ctx.strokeRect(34,34,1012,1282);ctx.strokeStyle="rgba(255,225,165,.38)";ctx.lineWidth=2;ctx.strokeRect(54,54,972,1242);
+ ctx.textAlign="center";
+ ctx.fillStyle="#f6d58d";ctx.font="bold 72px Arial";ctx.fillText("RK BHAI",540,170);
+ ctx.fillStyle="#ffffff";ctx.font="bold 42px Arial";ctx.fillText("RESULTS PORTAL",540,232);
+ ctx.strokeStyle="#d6a84f";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(170,292);ctx.lineTo(910,292);ctx.stroke();
+ ctx.fillStyle="#ffffff";ctx.font="bold 44px Arial";ctx.fillText("TODAY'S RESULT",540,385);
+ ctx.fillStyle="#f6d58d";ctx.font="bold 76px Arial";ctx.fillText(String(city||"").toUpperCase().slice(0,24),540,520);
  const date=resultDate?new Date(resultDate).toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric",timeZone:"Asia/Kolkata"}):new Date().toLocaleDateString("en-IN");
- ctx.fillStyle="#d8d0c0";ctx.font="32px Arial";ctx.fillText(date,540,555);
- ctx.fillStyle="#b88a3b";ctx.font="bold 30px Arial";ctx.fillText("PUBLISHED RESULT",540,690);
- ctx.fillStyle="#f5d78e";ctx.font="bold 190px Arial";ctx.fillText(String(value||"—").slice(0,12),540,900);
- ctx.strokeStyle="#80632d";ctx.beginPath();ctx.moveTo(180,990);ctx.lineTo(900,990);ctx.stroke();
- ctx.fillStyle="#e6bd70";ctx.font="bold 34px Arial";ctx.fillText("CHECK MORE RESULTS & OLD RECORDS",540,1080);
- ctx.fillStyle="#f5f0e6";ctx.font="30px Arial";ctx.fillText("VISIT OUR WEBSITE",540,1150);
- ctx.fillStyle="#d8d0c0";ctx.font="27px Arial";ctx.fillText("rk-bhai-results-portal.onrender.com",540,1205);
- ctx.fillStyle="#9f8a64";ctx.font="24px Arial";ctx.fillText("THANK YOU FOR YOUR SUPPORT",540,1265);
+ ctx.fillStyle="#e4e9f2";ctx.font="36px Arial";ctx.fillText(date,540,590);
+ const panel=ctx.createLinearGradient(150,0,930,0);panel.addColorStop(0,"#30233d");panel.addColorStop(.5,"#49351d");panel.addColorStop(1,"#30233d");
+ ctx.fillStyle=panel;ctx.beginPath();ctx.roundRect(115,665,850,335,34);ctx.fill();
+ ctx.strokeStyle="#e0b75f";ctx.lineWidth=4;ctx.stroke();
+ ctx.fillStyle="#f7dfaa";ctx.font="bold 36px Arial";ctx.fillText("PUBLISHED RESULT",540,735);
+ const resultText=String(value||"—").slice(0,12);let resultFont=250;if(resultText.length>5)resultFont=210;if(resultText.length>8)resultFont=170;
+ ctx.fillStyle="#ffffff";ctx.font="bold "+resultFont+"px Arial";ctx.fillText(resultText,540,925);
+ ctx.strokeStyle="#d6a84f";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(170,1050);ctx.lineTo(910,1050);ctx.stroke();
+ ctx.fillStyle="#f6d58d";ctx.font="bold 36px Arial";ctx.fillText("MORE RESULTS & OLD RECORDS",540,1120);
+ ctx.fillStyle="#ffffff";ctx.font="bold 28px Arial";ctx.fillText("VISIT OUR GITHUB REPOSITORY",540,1180);
+ ctx.fillStyle="#dce5f5";ctx.font="24px Arial";ctx.fillText("github.com/jasmelsolanki2017-svg/rk-bhai-results-portal-",540,1225);
+ ctx.fillStyle="#c5a66c";ctx.font="26px Arial";ctx.fillText("THANK YOU FOR YOUR SUPPORT",540,1280);
  const data=canvas.toDataURL("image/png"),binary=atob(data.split(",")[1]),bytes=new Uint8Array(binary.length);
  for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
  return new File([bytes],"rk-bhai-result.png",{type:"image/png"});
