@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Visitor Counter | RK Bhai Admin</title>
+<link rel="stylesheet" href="/style.css?v=20261120themesnotice1">
+</head>
+<body>
+<header class="pro-header"><div class="pro-brand"><div class="brand-mark">RK</div><div><div class="brand">RK <span>BHAI</span></div><p>PORTAL CONTROL CENTER</p></div></div><div class="pro-header-right"><span class="admin-live-dot">ADMIN WORKSPACE</span><a class="pro-nav-link" href="/admin">Back to Dashboard</a></div></header>
+<main class="pro-main">
+<section class="pro-welcome"><div><span class="eyebrow">PUBLIC WEBSITE TRAFFIC</span><h1>Visitor Counter</h1><p>GitHub Pages और Render दोनों वेबसाइट के Visits एक जगह देखें।</p></div><div class="pro-welcome-icon">↗</div></section>
+<section id="visitorAnalytics" class="admin-box pro-card visitor-analytics">
+<div class="admin-top"><div><div class="section-kicker">VISITOR ANALYTICS</div><h2>Website Visits</h2></div><button id="visitorRefresh" type="button" class="secondary">Refresh</button></div>
+<p class="muted">हर बार पेज खुलने पर 1 Visit जुड़ता है; एक व्यक्ति के बार-बार खोलने पर हर बार गिना जाएगा।</p>
+<div class="visitor-stat-grid">
+<article class="visitor-stat"><span>आज</span><strong id="visitorToday">—</strong></article>
+<article class="visitor-stat"><span>कल</span><strong id="visitorYesterday">—</strong></article>
+<article class="visitor-stat"><span>पिछले 7 दिन</span><strong id="visitor7Days">—</strong></article>
+<article class="visitor-stat"><span>पिछले 30 दिन</span><strong id="visitor30Days">—</strong></article>
+<article class="visitor-stat"><span>कुल Visits</span><strong id="visitorTotal">—</strong></article>
+<article class="visitor-stat"><span>पिछले 5 मिनट के Visits</span><strong id="visitorRecent">—</strong></article>
+</div>
+<div class="visitor-source-grid">
+<article><strong>GitHub Pages</strong><span>आज: <b id="visitorGithubToday">—</b></span><span>कुल: <b id="visitorGithubTotal">—</b></span></article>
+<article><strong>Render Website</strong><span>आज: <b id="visitorRenderToday">—</b></span><span>कुल: <b id="visitorRenderTotal">—</b></span></article>
+</div>
+<h3>पिछले 7 दिनों का रिकॉर्ड</h3><div id="visitorDaily" class="visitor-daily"><p class="muted">डेटा लोड हो रहा है…</p></div>
+<p id="visitorAnalyticsMsg" class="muted" role="status"></p>
+</section>
+<p id="visitorPageMsg" class="muted" role="status"></p>
+</main>
+<script src="/visitors.js?v=20261120separatepage1"></script>
+</body></html>
