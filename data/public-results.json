@@ -1,7 +1,15 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-19T20:01:49.445Z",
+  "updatedAt": "2026-11-20T01:12:13.359Z",
   "results": [
+    {
+      "_id": "6aff9e6a6d3e9be71a24d0e6",
+      "title": "Disawar",
+      "resultText": "47",
+      "resultDate": "2026-11-20T12:00:00.000Z",
+      "sourceUrl": "https://satta-king-fast.com/",
+      "createdAt": "2026-11-20T01:12:08.595Z"
+    },
     {
       "_id": "6aff121e215b3428d64ecd57",
       "title": "Chandigarh City",
