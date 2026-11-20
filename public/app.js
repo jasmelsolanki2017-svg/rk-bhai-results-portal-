@@ -176,7 +176,7 @@ function renderRecent(){
 
 }
 async function makeResultShareCard(city,value,resultDate){
-  const siteUrl="https://rk-bhai-results-portal.onrender.com/";
+  const siteUrl="https://jasmelsolanki2017-svg.github.io/rk-bhai-results-portal-/";
   const canvas=document.createElement("canvas");
   canvas.width=1080;canvas.height=1350;
   const ctx=canvas.getContext("2d");
@@ -198,7 +198,7 @@ async function makeResultShareCard(city,value,resultDate){
   ctx.strokeStyle="#80632d";ctx.beginPath();ctx.moveTo(180,980);ctx.lineTo(900,980);ctx.stroke();
   ctx.fillStyle="#e6bd70";ctx.font="bold 34px Arial";ctx.fillText("CHECK MORE RESULTS & OLD RECORDS",540,1070);
   ctx.fillStyle="#f5f0e6";ctx.font="30px Arial";ctx.fillText("VISIT OUR WEBSITE",540,1140);
-  ctx.fillStyle="#d8d0c0";ctx.font="27px Arial";ctx.fillText("rk-bhai-results-portal.onrender.com",540,1195);
+  ctx.fillStyle="#d8d0c0";ctx.font="27px Arial";ctx.fillText("jasmelsolanki2017-svg.github.io/rk-bhai-results-portal-",540,1195);
   ctx.fillStyle="#9f8a64";ctx.font="24px Arial";ctx.fillText("THANK YOU FOR YOUR SUPPORT",540,1260);
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
   if(!blob)throw new Error("Card image could not be created");
