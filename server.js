@@ -23,7 +23,8 @@ const publicFrontendApiPaths = new Set([
   "/api/results",
   "/api/public/cities",
   "/api/public/export.csv",
-  "/api/public/poster"
+  "/api/public/poster",
+  "/api/public/announcement"
 ]);
 app.use((req, res, next) => {
   if (!publicFrontendApiPaths.has(req.path)) return next();
@@ -99,6 +100,7 @@ const City = mongoose.model("PortalCity", new mongoose.Schema({
 }));
 
 const Poster = mongoose.model("PortalPoster", new mongoose.Schema({heading:{type:String,default:"",maxlength:120},description:{type:String,default:"",maxlength:1000},buttonText:{type:String,default:""},buttonUrl:{type:String,default:""},enabled:{type:Boolean,default:false},updatedAt:{type:Date,default:Date.now}}));
+const Announcement = mongoose.model("PortalAnnouncement", new mongoose.Schema({title:{type:String,default:"",maxlength:120},message:{type:String,default:"",maxlength:1000},enabled:{type:Boolean,default:false},updatedAt:{type:Date,default:Date.now}}));
 const ResultSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true, maxlength: 100 },
   resultText: { type: String, required: true, trim: true, maxlength: 300 },
@@ -184,6 +186,9 @@ app.post("/api/admin/login", async (req, res) => {
   res.json({ ok: true });
 });
 
+app.get("/api/public/announcement",async(req,res)=>{try{const a=await Announcement.findOne().lean();res.setHeader("Cache-Control","no-store");res.json(a&&a.enabled?{title:a.title,message:a.message,enabled:true}:{enabled:false});}catch(e){res.status(503).json({enabled:false});}});
+app.get("/api/admin/announcement",adminOnly,async(req,res)=>{const a=await Announcement.findOne().lean();res.json(a||{enabled:false,title:"",message:""});});
+app.put("/api/admin/announcement",adminOnly,async(req,res)=>{const {title,message,enabled}=req.body||{};if(!String(message||"").trim())return res.status(400).json({error:"सूचना का message लिखें।"});const a=await Announcement.findOneAndUpdate({},{$set:{title:String(title||"").slice(0,120),message:String(message||"").slice(0,1000),enabled:!!enabled,updatedAt:new Date()}},{upsert:true,new:true,setDefaultsOnInsert:true});res.json({ok:true,enabled:a.enabled});});
 app.get("/api/public/poster", async (req,res)=>{try{const p=await Poster.findOne().lean();res.setHeader("Cache-Control","no-store");res.json(p&&p.enabled?{heading:p.heading,description:p.description,buttonText:p.buttonText,buttonUrl:p.buttonUrl,enabled:true}:{enabled:false});}catch(e){res.status(503).json({enabled:false});}});
 app.get("/api/admin/poster",adminOnly,async(req,res)=>{const p=await Poster.findOne().lean();res.json(p||{enabled:false,heading:"",description:"",buttonText:"",buttonUrl:""});});
 app.put("/api/admin/poster",adminOnly,async(req,res)=>{const {heading,description,buttonText,buttonUrl,enabled}=req.body||{};if(!String(heading||"").trim()&&!String(description||"").trim())return res.status(400).json({error:"Ad का message लिखें।"});if(buttonUrl&&!/^https:\/\//i.test(buttonUrl))return res.status(400).json({error:"Button link https:// से शुरू होना चाहिए।"});const p=await Poster.findOneAndUpdate({},{$set:{heading:String(heading||"").slice(0,120),description:String(description||"").slice(0,1000),buttonText:String(buttonText||"").slice(0,50),buttonUrl:String(buttonUrl||"").slice(0,500),enabled:!!enabled,updatedAt:new Date()},$unset:{imageData:1}},{upsert:true,new:true});res.json({ok:true,enabled:p.enabled});});
