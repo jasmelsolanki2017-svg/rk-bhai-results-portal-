@@ -119,9 +119,12 @@ function formatUpdate(value){
 function renderLiveResultTicker(){
   const track=document.getElementById("liveResultTickerTrack");
   if(!track)return;
-  const latest=[...recentRows].sort((a,b)=>new Date(b.createdAt||b.updatedAt||b.resultDate||0)-new Date(a.createdAt||a.updatedAt||a.resultDate||0)).slice(0,12);
-  if(!latest.length){track.innerHTML="<span>अभी कोई नया रिजल्ट उपलब्ध नहीं है</span>";return;}
-  const items=latest.map(row=>'<span class="live-result-ticker-item"><b>'+escapeHtml(row.title||"Result")+'</b><strong>'+escapeHtml(row.resultText||"—")+'</strong><small>'+escapeHtml(new Date(row.resultDate).toLocaleDateString("hi-IN",{day:"2-digit",month:"short",timeZone:"Asia/Kolkata"}))+'</small></span>').join("");
+  const todayKey=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+  const latest=recentRows
+    .filter(row=>new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(row.resultDate))===todayKey)
+    .sort((a,b)=>new Date(b.createdAt||b.updatedAt||b.resultDate||0)-new Date(a.createdAt||a.updatedAt||a.resultDate||0));
+  if(!latest.length){track.innerHTML="<span>आज का कोई रिजल्ट उपलब्ध नहीं है</span>";return;}
+  const items=latest.map(row=>'<span class="live-result-ticker-item"><b>'+escapeHtml(row.title||"Result")+'</b><strong>'+escapeHtml(row.resultText||"—")+'</strong></span>').join("");
   track.innerHTML=items+items;
 }
 function renderRecent(){
