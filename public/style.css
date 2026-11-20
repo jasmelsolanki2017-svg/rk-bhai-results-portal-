@@ -876,3 +876,6 @@ body.theme-light .side-tools-menu{background:#fff;color:#20242b;border-color:#d8
 .top-share-card{border:1px solid rgba(184,138,59,.55);border-radius:7px;padding:6px 10px;background:rgba(184,138,59,.12);color:var(--text,#f5f5f5);font:inherit;font-size:11px;font-weight:700;cursor:pointer}
 .top-share-card:disabled{opacity:.45;cursor:not-allowed}
 @media(prefers-reduced-motion:reduce){.live-result-ticker-track{animation:none}}
+
+/* Admin result WhatsApp card control: retain the existing green share-button design. */
+.dashboard-whatsapp-share{font-family:inherit;cursor:pointer;text-align:center}
