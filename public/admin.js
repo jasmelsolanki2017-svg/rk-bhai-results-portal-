@@ -164,7 +164,7 @@ titleInput.addEventListener("keydown",e=>{if(e.key==="Escape")suggestionBox.hidd
 
 $("#loginForm").addEventListener("submit",async e=>{
   e.preventDefault();msg.textContent="Login हो रहा है…";
-  try{const f=new FormData(e.target);await api("/api/admin/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});showPanel(true);await loadPosterManager();await refresh();msg.textContent="Login सफल";}
+  try{const f=new FormData(e.target);await api("/api/admin/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});showPanel(true);await loadPosterManager();await loadAnnouncementManager();await refresh();msg.textContent="Login सफल";}
   catch(err){msg.textContent=err.message;}
 });
 $("#resultForm").addEventListener("submit",async e=>{
@@ -189,10 +189,15 @@ $("#logout").addEventListener("click",async()=>{
   try{await api("/api/admin/logout",{method:"POST"});showPanel(false);$("#loginForm").reset();msg.textContent="Logout हो गया";}
   catch(err){msg.textContent=err.message;showPanel(false);}
 });
-(async()=>{try{await api("/api/admin/session");showPanel(true);await loadPosterManager();await refresh();msg.textContent="Admin session चालू है";}
+(async()=>{try{await api("/api/admin/session");showPanel(true);await loadPosterManager();await loadAnnouncementManager();await refresh();msg.textContent="Admin session चालू है";}
 catch{showPanel(false);}})();
 
 async function loadPosterManager(){try{const p=await api("/api/admin/poster");$("#posterHeading").value=p.heading||"";$("#posterDescription").value=p.description||"";$("#posterButtonText").value=p.buttonText||"";$("#posterButtonUrl").value=p.buttonUrl||"";$("#posterEnabled").checked=!!p.enabled;}catch(e){$("#posterMsg").textContent="Ad load error: "+e.message;}}
 $("#posterForm").addEventListener("submit",async e=>{e.preventDefault();$("#posterMsg").textContent="Saving…";try{await api("/api/admin/poster",{method:"PUT",body:JSON.stringify({heading:$("#posterHeading").value,description:$("#posterDescription").value,buttonText:$("#posterButtonText").value,buttonUrl:$("#posterButtonUrl").value,enabled:$("#posterEnabled").checked})});$("#posterMsg").textContent="Ad saved. Public index पर update हो गया।";}catch(err){$("#posterMsg").textContent=err.message;}});
 $("#posterOff").addEventListener("click",async()=>{$("#posterEnabled").checked=false;try{await api("/api/admin/poster",{method:"PUT",body:JSON.stringify({heading:$("#posterHeading").value,description:$("#posterDescription").value,buttonText:$("#posterButtonText").value,buttonUrl:$("#posterButtonUrl").value,enabled:false})});$("#posterMsg").textContent="Ad public page से OFF कर दिया गया।";}catch(e){$("#posterMsg").textContent=e.message;}});
 $("#posterDelete").addEventListener("click",async()=>{if(!confirm("विज्ञापन खाली और OFF करना है?"))return;$("#posterHeading").value="";$("#posterDescription").value="";$("#posterButtonText").value="";$("#posterButtonUrl").value="";$("#posterEnabled").checked=false;try{await api("/api/admin/poster",{method:"PUT",body:JSON.stringify({heading:"",description:"",buttonText:"",buttonUrl:"",enabled:false})});$("#posterMsg").textContent="Ad delete/clear हो गया।";}catch(e){$("#posterMsg").textContent=e.message;}});
+
+
+async function loadAnnouncementManager(){try{const a=await api("/api/admin/announcement");$("#announcementTitleInput").value=a.title||"";$("#announcementMessageInput").value=a.message||"";$("#announcementEnabled").checked=!!a.enabled;}catch(e){$("#announcementMsg").textContent="Banner load error: "+e.message;}}
+$("#announcementForm").addEventListener("submit",async e=>{e.preventDefault();$("#announcementMsg").textContent="Saving…";try{await api("/api/admin/announcement",{method:"PUT",body:JSON.stringify({title:$("#announcementTitleInput").value,message:$("#announcementMessageInput").value,enabled:$("#announcementEnabled").checked})});$("#announcementMsg").textContent="सूचना सेव हो गई। Public website पर update हो जाएगी।";}catch(err){$("#announcementMsg").textContent=err.message;}});
+$("#announcementOff").addEventListener("click",async()=>{try{await api("/api/admin/announcement",{method:"PUT",body:JSON.stringify({title:$("#announcementTitleInput").value,message:$("#announcementMessageInput").value,enabled:false})});$("#announcementEnabled").checked=false;$("#announcementMsg").textContent="Public banner OFF कर दिया गया।";}catch(e){$("#announcementMsg").textContent=e.message;}});
