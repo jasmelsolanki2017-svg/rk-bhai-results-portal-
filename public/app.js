@@ -173,32 +173,42 @@ function renderRecent(){
 
 }
 async function makeResultShareCard(city,value,resultDate){
+  const siteUrl="https://rk-bhai-results-portal.onrender.com/";
   const canvas=document.createElement("canvas");
-  canvas.width=1080;canvas.height=1080;
+  canvas.width=1080;canvas.height=1350;
   const ctx=canvas.getContext("2d");
-  const gradient=ctx.createLinearGradient(0,0,1080,1080);
+  const gradient=ctx.createLinearGradient(0,0,1080,1350);
   gradient.addColorStop(0,"#17140e");gradient.addColorStop(1,"#090909");
-  ctx.fillStyle=gradient;ctx.fillRect(0,0,1080,1080);
-  ctx.strokeStyle="#b88a3b";ctx.lineWidth=5;ctx.strokeRect(42,42,996,996);
+  ctx.fillStyle=gradient;ctx.fillRect(0,0,1080,1350);
+  ctx.strokeStyle="#b88a3b";ctx.lineWidth=5;ctx.strokeRect(42,42,996,1266);
   ctx.textAlign="center";
-  ctx.fillStyle="#e6bd70";ctx.font="bold 58px Arial";ctx.fillText("RK BHAI",540,190);
-  ctx.fillStyle="#f5f0e6";ctx.font="bold 34px Arial";ctx.fillText("LIVE RESULT",540,290);
-  ctx.fillStyle="#d8d0c0";ctx.font="bold 54px Arial";
-  let label=String(city||"").slice(0,24);ctx.fillText(label,540,430);
-  ctx.fillStyle="#e6bd70";ctx.font="bold 150px Arial";ctx.fillText(String(value||"—").slice(0,12),540,650);
+  ctx.fillStyle="#e6bd70";ctx.font="bold 62px Arial";ctx.fillText("RK BHAI",540,170);
+  ctx.fillStyle="#f5f0e6";ctx.font="bold 36px Arial";ctx.fillText("RESULTS PORTAL",540,225);
+  ctx.strokeStyle="#80632d";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(180,275);ctx.lineTo(900,275);ctx.stroke();
+  ctx.fillStyle="#d8d0c0";ctx.font="bold 40px Arial";ctx.fillText("TODAY'S RESULT",540,365);
+  const label=String(city||"").slice(0,28);
+  ctx.fillStyle="#e6bd70";ctx.font="bold 58px Arial";ctx.fillText(label,540,485);
   const date=resultDate?new Date(resultDate).toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric",timeZone:"Asia/Kolkata"}):new Date().toLocaleDateString("en-IN");
-  ctx.fillStyle="#d8d0c0";ctx.font="32px Arial";ctx.fillText(date,540,790);
-  ctx.fillStyle="#b8a27c";ctx.font="26px Arial";ctx.fillText("RK BHAI RESULTS & HISTORICAL ARCHIVE",540,920);
+  ctx.fillStyle="#cfc6b5";ctx.font="32px Arial";ctx.fillText(date,540,550);
+  ctx.fillStyle="#b88a3b";ctx.font="bold 30px Arial";ctx.fillText("PUBLISHED RESULT",540,680);
+  ctx.fillStyle="#f5d78e";ctx.font="bold 190px Arial";ctx.fillText(String(value||"—").slice(0,12),540,890);
+  ctx.strokeStyle="#80632d";ctx.beginPath();ctx.moveTo(180,980);ctx.lineTo(900,980);ctx.stroke();
+  ctx.fillStyle="#e6bd70";ctx.font="bold 34px Arial";ctx.fillText("CHECK MORE RESULTS & OLD RECORDS",540,1070);
+  ctx.fillStyle="#f5f0e6";ctx.font="30px Arial";ctx.fillText("VISIT OUR WEBSITE",540,1140);
+  ctx.fillStyle="#d8d0c0";ctx.font="27px Arial";ctx.fillText("rk-bhai-results-portal.onrender.com",540,1195);
+  ctx.fillStyle="#9f8a64";ctx.font="24px Arial";ctx.fillText("THANK YOU FOR YOUR SUPPORT",540,1260);
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
   if(!blob)throw new Error("Card image could not be created");
   const file=new File([blob],"rk-bhai-result.png",{type:"image/png"});
+  const shareText="RK BHAI RESULTS PORTAL\n"+String(city||"Result")+" : "+String(value||"—")+"\nDate: "+date+"\n\nपूरा रिजल्ट और पुराने रिकॉर्ड यहाँ देखें:\n"+siteUrl;
   if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-    await navigator.share({files:[file],title:"RK Bhai Result",text:city+" : "+value});
+    await navigator.share({files:[file],title:"RK Bhai Result",text:shareText});
   }else{
     const url=URL.createObjectURL(blob);
     const link=document.createElement("a");link.href=url;link.download="rk-bhai-result.png";link.click();
     setTimeout(()=>URL.revokeObjectURL(url),1500);
-    alert("रिजल्ट कार्ड डाउनलोड हो गया। अब इसे WhatsApp पर शेयर कर सकते हैं।");
+    if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(shareText);}catch(error){}}
+    alert("रिजल्ट कार्ड डाउनलोड हो गया। शेयर करने के लिए वेबसाइट लिंक भी कॉपी कर दिया गया है।");
   }
 }
 if(topResultCards)topResultCards.addEventListener("click",async event=>{
