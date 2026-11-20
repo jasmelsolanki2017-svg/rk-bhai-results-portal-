@@ -69,22 +69,35 @@ function parseMonth(html, year, month, sourceUrl) {
 async function fetchMonth(year, month) {
   const slug = MONTHS[month - 1] + "-" + year;
   const url = SOURCE_HOST + "/satta-king-result-of-" + slug;
-  const response = await fetch(url, {
-    headers: { "User-Agent": "Mozilla/5.0 (compatible; RKBhaiHistoricalArchive/1.0)" },
-    signal: AbortSignal.timeout(25000)
-  });
-  if (response.status === 404) {
-    console.log("Archive month not found; skipped:", slug);
-    return [];
+  let lastError;
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    try {
+      const response = await fetch(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; RKBhaiHistoricalArchive/1.0)",
+          "Connection": "close"
+        },
+        signal: AbortSignal.timeout(30000)
+      });
+      if (response.status === 404) {
+        console.log("Archive month not found; skipped:", slug);
+        return [];
+      }
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      const html = await response.text();
+      const rows = parseMonth(html, year, month, url);
+      if (!rows.length && !/All Games/i.test(html)) {
+        throw new Error("Archive table could not be verified");
+      }
+      console.log(slug + ": parsed " + rows.length + " declared results.");
+      return rows;
+    } catch (error) {
+      lastError = error;
+      console.warn("Retry", attempt, "for", slug, "-", error.message);
+      if (attempt < 4) await new Promise(resolve => setTimeout(resolve, attempt * 1200));
+    }
   }
-  if (!response.ok) throw new Error("Source failed for " + slug + ": HTTP " + response.status);
-  const html = await response.text();
-  const rows = parseMonth(html, year, month, url);
-  if (!rows.length && !/All Games/i.test(html)) {
-    throw new Error("Could not verify the archive table for " + slug + "; refusing to import.");
-  }
-  console.log(slug + ": parsed " + rows.length + " declared results.");
-  return rows;
+  throw new Error("Could not fetch " + slug + " after 4 attempts: " + (lastError?.message || "unknown error"));
 }
 
 async function updatePublicSnapshot() {
@@ -154,7 +167,7 @@ async function main() {
     const lastMonth = year === 2026 ? 11 : 12;
     for (let month = firstMonth; month <= lastMonth; month++) {
       sourceRows.push(...await fetchMonth(year, month));
-      await new Promise(resolve => setTimeout(resolve, 180));
+      await new Promise(resolve => setTimeout(resolve, 300));
     }
   }
   if (!sourceRows.length) throw new Error("No historical results were parsed; nothing was changed.");
