@@ -859,3 +859,20 @@ body.theme-light .side-tools-menu{background:#fff;color:#20242b;border-color:#d8
 
 /* Compact public online-members indicator */
 .online-members-pill{display:flex;align-items:center;justify-content:center;gap:9px;width:max-content;max-width:100%;margin:14px auto 0;padding:9px 15px;border:1px solid rgba(46,204,113,.28);border-radius:999px;background:rgba(46,204,113,.07);color:var(--text,#f5f5f5);font-size:.88rem;font-weight:600}.online-members-dot{width:8px;height:8px;flex:0 0 8px;border-radius:50%;background:#2ecc71;box-shadow:0 0 0 4px rgba(46,204,113,.12)}.online-members-pill strong{color:#2ecc71;font-variant-numeric:tabular-nums}
+
+
+/* Minimal live ticker and result-share controls; existing page layout remains unchanged. */
+.live-result-ticker{display:flex;align-items:center;gap:10px;min-width:0;margin:0 0 14px;padding:9px 12px;border:1px solid rgba(184,138,59,.38);border-radius:10px;background:rgba(184,138,59,.08);overflow:hidden}
+.live-result-ticker-label{flex:0 0 auto;padding:4px 8px;border-radius:6px;background:#8b2525;color:#fff;font-size:10px;font-weight:900;letter-spacing:1px}
+.live-result-ticker-viewport{min-width:0;overflow:hidden;white-space:nowrap;flex:1}
+.live-result-ticker-track{display:inline-flex;align-items:center;gap:28px;width:max-content;animation:rkResultTickerMove 38s linear infinite}
+.live-result-ticker:hover .live-result-ticker-track{animation-play-state:paused}
+.live-result-ticker-item{display:inline-flex;align-items:center;gap:8px;color:var(--text,#f5f5f5);font-size:12px}
+.live-result-ticker-item strong{color:#e6bd70;font-size:14px}
+.live-result-ticker-item small{color:var(--muted,#aaa);font-size:10px}
+@keyframes rkResultTickerMove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.top-result-actions{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:9px}
+.top-result-actions .top-chart-link{margin:0}
+.top-share-card{border:1px solid rgba(184,138,59,.55);border-radius:7px;padding:6px 10px;background:rgba(184,138,59,.12);color:var(--text,#f5f5f5);font:inherit;font-size:11px;font-weight:700;cursor:pointer}
+.top-share-card:disabled{opacity:.45;cursor:not-allowed}
+@media(prefers-reduced-motion:reduce){.live-result-ticker-track{animation:none}}
