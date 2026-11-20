@@ -19,6 +19,16 @@ async function load(){
   $("#visitor30Days").textContent=number(data.last30);
   $("#visitorTotal").textContent=number(data.total);
   $("#visitorRecent").textContent=number(data.recent5m);
+  const newVisitors=data.newVisitors||{};
+  $("#newVisitorToday").textContent=number(newVisitors.today);
+  $("#newVisitorYesterday").textContent=number(newVisitors.yesterday);
+  $("#newVisitor7Days").textContent=number(newVisitors.last7);
+  $("#newVisitor30Days").textContent=number(newVisitors.last30);
+  const newDays=Array.isArray(newVisitors.daily)?newVisitors.daily:[];
+  $("#newVisitorDaily").innerHTML=newDays.length?newDays.map(day=>{
+   const label=new Date(day._id+"T00:00:00+05:30").toLocaleDateString("hi-IN",{day:"2-digit",month:"short"});
+   return '<div class="visitor-day-row"><span>'+label+'</span><strong>'+number(day.count)+'</strong></div>';
+  }).join(""):'<p class="muted">अभी नए विज़िटर का रिकॉर्ड नहीं है।</p>';
   $("#visitorGithubToday").textContent=number(data.sites?.github_pages?.today);
   $("#visitorGithubTotal").textContent=number(data.sites?.github_pages?.total);
   $("#visitorRenderToday").textContent=number(data.sites?.render?.today);
