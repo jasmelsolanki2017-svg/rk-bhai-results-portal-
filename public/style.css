@@ -778,6 +778,21 @@ body.dashboard-menu-open{overflow:hidden}
 @media(max-width:600px){.top-result-section{margin-bottom:15px}.top-result-grid{gap:5px}.top-result-card{min-height:195px;padding:14px 7px 11px}.top-result-card h3{font-size:clamp(15px,4vw,20px);margin-bottom:6px}.top-result-time{font-size:13px;margin-bottom:9px;min-height:21px}.top-result-values{grid-template-columns:1fr 27px 1fr;font-size:clamp(23px,6vw,31px);gap:2px}.top-result-arrow{font-size:21px}.top-chart-link{font-size:16px;margin-top:14px}}
 
 
+/* Dark/light theme and announcement banner additions */
+.site-announcement{width:min(1180px,100%);margin:0 auto 18px;padding:14px 16px;border:1px solid #a77a2d;border-left:5px solid #e0b34f;border-radius:12px;background:linear-gradient(120deg,#35250d,#17120a);color:#fff0c8;box-shadow:0 7px 20px #0004;overflow-wrap:anywhere}
+.site-announcement strong{display:block;color:#f3ce78;font-size:16px;margin-bottom:4px}.site-announcement p{margin:0;white-space:pre-wrap;line-height:1.55}
+body.theme-light{color:#20242b;background:#f4f6fa;color-scheme:light}
+body.theme-light .public-header,body.theme-light .pro-header{background:#fff;border-color:#d8dee8;color:#20242b}
+body.theme-light .public-brand,body.theme-light .public-brand strong,body.theme-light .public-nav a,body.theme-light .live-clock strong,body.theme-light .public-main{color:#20242b}
+body.theme-light .top-result-section,body.theme-light .homepage-overview-shell .public-hero,body.theme-light .summary-panel,body.theme-light .chart-panel,body.theme-light .public-chart-panel{background:#fff;border-color:#d8dee8;color:#20242b;box-shadow:0 6px 22px #1b2a4412}
+body.theme-light .top-result-card,body.theme-light .summary-card,body.theme-light .market-chart{background:#f8fafc;border-color:#d8dee8;color:#20242b;box-shadow:none}
+body.theme-light .top-result-card h3,body.theme-light .top-result-time,body.theme-light .top-previous,body.theme-light .top-current,body.theme-light .chart-heading h2,body.theme-light .chart-heading p,body.theme-light .summary-top h2,body.theme-light .summary-card span,body.theme-light .summary-card small,body.theme-light .intro h1,body.theme-light .intro p{color:#283342}
+body.theme-light .top-result-arrow{filter:none}body.theme-light .archive-filters label,body.theme-light .chart-note,body.theme-light .notice,body.theme-light footer{color:#526071}
+body.theme-light .archive-filters select,body.theme-light .archive-filters input,body.theme-light .month-nav button{background:#fff;color:#20242b;border-color:#c8d1df}
+body.theme-light .history-table th{background:#e9eef5;color:#263447}body.theme-light .history-table td{background:#fff;color:#20242b;border-color:#d8dee8}
+body.theme-light .site-announcement{background:#fff7e5;color:#49330b;border-color:#d8a83e}body.theme-light .site-announcement strong{color:#79520b}
+body.theme-light .side-tools-menu{background:#fff;color:#20242b;border-color:#d8dee8}body.theme-light .side-tools-heading h2,body.theme-light .side-tools-heading small{color:#283342}body.theme-light .more-tools-item{background:#f5f7fa;color:#20242b;border-color:#d8dee8}body.theme-light .top-chart-link{color:#8a5a00}
+
 /* Harmonize new homepage result cards with the site's black-and-gold theme */
 .top-result-section-head h2{color:#d7ad55}
 .section-eyebrow{color:#a99a7b}
