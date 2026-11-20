@@ -64,11 +64,51 @@ async function renderAdminTopResults(){
    const date=now?new Date(now.resultDate).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",timeZone:"Asia/Kolkata"}):"";
    const publishedAt=now?.createdAt||now?.updatedAt||now?.resultDate;
    const clock=publishedAt?new Date(publishedAt).toLocaleTimeString("en-IN",{hour:"numeric",minute:"2-digit",hour12:true,timeZone:"Asia/Kolkata"}):"";
-   const message="❤️ "+city.toUpperCase()+" ❤️\n👇 LIVE RESULT 👇\n\n*✅   (( "+value+" ))   ✅*\n\n"+"https://jasmelsolanki2017-svg.github.io/rk-bhai-results-portal-/"+"\nDate : "+date+(clock?"\n"+clock:"");
-   return '<article class="top-result-card"><h3>'+esc(city)+'</h3><p class="top-result-time">'+(time?'( '+esc(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+(prev?esc(prev.resultText):"XX")+'</span><span class="top-result-arrow">➡️</span><span class="top-current-wrap">'+(now?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(now?' result-blink':'')+'">'+esc(value)+'</span></span></div><a class="dashboard-whatsapp-share" '+(now?'href="https://wa.me/?text='+encodeURIComponent(message)+'" target="_blank" rel="noopener"':'aria-disabled="true"')+'>WhatsApp पर शेयर करें</a></article>';
+   const resultUrl="https://jasmelsolanki2017-svg.github.io/rk-bhai-results-portal-/#archive";
+   const message="❤️ "+city.toUpperCase()+" ❤️\\n👇 LIVE RESULT 👇\\n\\n*✅   (( "+value+" ))   ✅*\\n\\nDate : "+date+(clock?"\\n"+clock:"")+"\\n\\nपूरा रिजल्ट देखें: "+resultUrl;
+   return '<article class="top-result-card"><h3>'+esc(city)+'</h3><p class="top-result-time">'+(time?'( '+esc(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+(prev?esc(prev.resultText):"XX")+'</span><span class="top-result-arrow">➡️</span><span class="top-current-wrap">'+(now?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(now?' result-blink':'')+'">'+esc(value)+'</span></span></div><a class="dashboard-whatsapp-share" '+(now?'href="https://wa.me/?text='+encodeURIComponent(message)+'" target="_blank" rel="noopener" data-share-city="'+esc(city)+'" data-share-value="'+esc(value)+'" data-share-date="'+esc(now.resultDate)+'"':'aria-disabled="true"')+'>WhatsApp पर कार्ड + लिंक शेयर करें</a></article>';
   }).join("");
  }catch(error){box.innerHTML='<p class="muted">रिजल्ट लोड नहीं हो पाए: '+esc(error.message)+'</p>';}
 }
+
+
+// Admin result card sharing: send the image and the public archive link together where supported.
+function createAdminResultCard(city,value,resultDate){
+ const canvas=document.createElement("canvas");canvas.width=1080;canvas.height=1080;
+ const ctx=canvas.getContext("2d");
+ const bg=ctx.createLinearGradient(0,0,1080,1080);bg.addColorStop(0,"#17140e");bg.addColorStop(1,"#090909");
+ ctx.fillStyle=bg;ctx.fillRect(0,0,1080,1080);ctx.strokeStyle="#b88a3b";ctx.lineWidth=5;ctx.strokeRect(42,42,996,996);
+ ctx.textAlign="center";ctx.fillStyle="#e6bd70";ctx.font="bold 64px Arial";ctx.fillText("RK BHAI",540,190);
+ ctx.fillStyle="#f5f0e6";ctx.font="bold 36px Arial";ctx.fillText("LIVE RESULT",540,290);
+ ctx.fillStyle="#d8d0c0";ctx.font="bold 56px Arial";ctx.fillText(String(city||"").slice(0,24),540,430);
+ ctx.fillStyle="#e6bd70";ctx.font="bold 158px Arial";ctx.fillText(String(value||"—").slice(0,12),540,650);
+ const date=resultDate?new Date(resultDate).toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric",timeZone:"Asia/Kolkata"}):new Date().toLocaleDateString("en-IN");
+ ctx.fillStyle="#d8d0c0";ctx.font="34px Arial";ctx.fillText(date,540,790);
+ ctx.fillStyle="#b8a27c";ctx.font="27px Arial";ctx.fillText("RK BHAI RESULTS & HISTORICAL ARCHIVE",540,920);
+ const data=canvas.toDataURL("image/png"),binary=atob(data.split(",")[1]),bytes=new Uint8Array(binary.length);
+ for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+ return new File([bytes],"rk-bhai-result.png",{type:"image/png"});
+}
+function downloadAdminResultCard(file){
+ const url=URL.createObjectURL(file),link=document.createElement("a");link.href=url;link.download=file.name;link.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+const adminResultBox=$("#adminTopResultCards");
+if(adminResultBox)adminResultBox.addEventListener("click",event=>{
+ const link=event.target.closest(".dashboard-whatsapp-share[data-share-city]");
+ if(!link)return;
+ try{
+  const file=createAdminResultCard(link.dataset.shareCity,link.dataset.shareValue,link.dataset.shareDate);
+  const message=decodeURIComponent((link.href.split("?text=")[1]||""));
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+   event.preventDefault();
+   navigator.share({files:[file],title:"RK Bhai Result",text:message}).catch(error=>{if(error.name!=="AbortError")console.warn("Result share failed:",error);});
+  }else{
+   downloadAdminResultCard(file);
+   // The existing WhatsApp link opens with the result and public archive URL.
+  }
+ }catch(error){console.warn("Result card could not be created:",error);}
+});
 
 function renderCityLinks(){
  const cities=[...new Set(allRows.map(x=>String(x.title||"").trim()).filter(name=>name&&!hiddenCityNames.has(name)))].sort((a,b)=>{const ac=/chandigarh/i.test(a),bc=/chandigarh/i.test(b);return ac!==bc?(ac?1:-1):a.localeCompare(b,"hi");});
