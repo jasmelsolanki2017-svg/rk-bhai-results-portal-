@@ -66,7 +66,8 @@ async function renderAdminTopResults(){
    const clock=publishedAt?new Date(publishedAt).toLocaleTimeString("en-IN",{hour:"numeric",minute:"2-digit",hour12:true,timeZone:"Asia/Kolkata"}):"";
    const resultUrl="https://rk-bhai-results-portal.onrender.com/";
    const message=["❤️ "+city.toUpperCase()+" ❤️","👇 LIVE RESULT 👇","","*✅   (( "+value+" ))   ✅*","","Date : "+date,...(clock?[clock]:[]),"","पूरा रिजल्ट देखें:",resultUrl].join("\n");
-   return '<article class="top-result-card"><h3>'+esc(city)+'</h3><p class="top-result-time">'+(time?'( '+esc(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+(prev?esc(prev.resultText):"XX")+'</span><span class="top-result-arrow">➡️</span><span class="top-current-wrap">'+(now?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(now?' result-blink':'')+'">'+esc(value)+'</span></span></div><a class="dashboard-whatsapp-share" '+(now?'href="https://wa.me/?text='+encodeURIComponent(message)+'" target="_blank" rel="noopener" data-share-city="'+esc(city)+'" data-share-value="'+esc(value)+'" data-share-date="'+esc(now.resultDate)+'"':'aria-disabled="true"')+'>WhatsApp पर कार्ड + लिंक शेयर करें</a></article>';
+   const shareAttrs=now?'href="https://wa.me/?text='+encodeURIComponent(message)+'" target="_blank" rel="noopener" data-share-city="'+esc(city)+'" data-share-value="'+esc(value)+'" data-share-date="'+esc(now.resultDate)+'"':'aria-disabled="true"';
+   return '<article class="top-result-card"><h3>'+esc(city)+'</h3><p class="top-result-time">'+(time?'( '+esc(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+(prev?esc(prev.resultText):"XX")+'</span><span class="top-result-arrow">➡️</span><span class="top-current-wrap">'+(now?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(now?' result-blink':'')+'">'+esc(value)+'</span></span></div><div class="dashboard-share-options"><a class="dashboard-whatsapp-share" '+shareAttrs+' data-share-mode="both">कार्ड + मैसेज</a><a class="dashboard-whatsapp-share" '+shareAttrs+' data-share-mode="card">केवल कार्ड</a><a class="dashboard-whatsapp-share" '+shareAttrs+' data-share-mode="message">केवल मैसेज</a></div></article>';
   }).join("");
  }catch(error){box.innerHTML='<p class="muted">रिजल्ट लोड नहीं हो पाए: '+esc(error.message)+'</p>';}
 }
@@ -105,15 +106,20 @@ const adminResultBox=$("#adminTopResultCards");
 if(adminResultBox)adminResultBox.addEventListener("click",event=>{
  const link=event.target.closest(".dashboard-whatsapp-share[data-share-city]");
  if(!link)return;
+ const mode=link.dataset.shareMode||"both";
+ if(mode==="message")return; // Keep the normal WhatsApp text-only link behavior.
  try{
   const file=createAdminResultCard(link.dataset.shareCity,link.dataset.shareValue,link.dataset.shareDate);
   const message=decodeURIComponent((link.href.split("?text=")[1]||""));
   if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
    event.preventDefault();
-   navigator.share({files:[file],title:"RK Bhai Result",text:message}).catch(error=>{if(error.name!=="AbortError")console.warn("Result share failed:",error);});
+   const payload={files:[file],title:"RK Bhai Result"};
+   if(mode==="both")payload.text=message;
+   navigator.share(payload).catch(error=>{if(error.name!=="AbortError")console.warn("Result share failed:",error);});
   }else{
+   if(mode==="card")event.preventDefault();
    downloadAdminResultCard(file);
-   // The existing WhatsApp link opens with the result and public archive URL.
+   // Combined mode also opens WhatsApp with the text and link.
   }
  }catch(error){console.warn("Result card could not be created:",error);}
 });
