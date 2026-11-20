@@ -65,7 +65,7 @@ async function renderAdminTopResults(){
    const publishedAt=now?.createdAt||now?.updatedAt||now?.resultDate;
    const clock=publishedAt?new Date(publishedAt).toLocaleTimeString("en-IN",{hour:"numeric",minute:"2-digit",hour12:true,timeZone:"Asia/Kolkata"}):"";
    const resultUrl="https://rk-bhai-results-portal.onrender.com/";
-   const message="❤️ "+city.toUpperCase()+" ❤️\\n👇 LIVE RESULT 👇\\n\\n*✅   (( "+value+" ))   ✅*\\n\\nDate : "+date+(clock?"\\n"+clock:"")+"\\n\\nपूरा रिजल्ट देखें: "+resultUrl;
+   const message=["❤️ "+city.toUpperCase()+" ❤️","👇 LIVE RESULT 👇","","*✅   (( "+value+" ))   ✅*","","Date : "+date,...(clock?[clock]:[]),"","पूरा रिजल्ट देखें:",resultUrl].join("\n");
    return '<article class="top-result-card"><h3>'+esc(city)+'</h3><p class="top-result-time">'+(time?'( '+esc(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+(prev?esc(prev.resultText):"XX")+'</span><span class="top-result-arrow">➡️</span><span class="top-current-wrap">'+(now?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(now?' result-blink':'')+'">'+esc(value)+'</span></span></div><a class="dashboard-whatsapp-share" '+(now?'href="https://wa.me/?text='+encodeURIComponent(message)+'" target="_blank" rel="noopener" data-share-city="'+esc(city)+'" data-share-value="'+esc(value)+'" data-share-date="'+esc(now.resultDate)+'"':'aria-disabled="true"')+'>WhatsApp पर कार्ड + लिंक शेयर करें</a></article>';
   }).join("");
  }catch(error){box.innerHTML='<p class="muted">रिजल्ट लोड नहीं हो पाए: '+esc(error.message)+'</p>';}
