@@ -1,7 +1,15 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-20T18:42:32.394Z",
+  "updatedAt": "2026-11-20T18:43:32.185Z",
   "results": [
+    {
+      "_id": "6b0094d1d55029230fe64a6b",
+      "title": "Gali",
+      "resultText": "47",
+      "resultDate": "2026-11-21T00:00:00.000Z",
+      "sourceUrl": "",
+      "createdAt": "2026-11-20T18:43:29.560Z"
+    },
     {
       "_id": "6b0016f7700e74d54fc54bd2",
       "title": "Delhi Bazar",
