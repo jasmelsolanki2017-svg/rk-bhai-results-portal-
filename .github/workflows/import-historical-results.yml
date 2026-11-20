@@ -1,0 +1,35 @@
+name: Import Historical Results
+
+on:
+  push:
+    paths:
+      - "scripts/import-historical-results.js"
+      - ".github/workflows/import-historical-results.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: automatic-result-sync
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm install --omit=dev
+      - name: Import verified historical results
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/import-historical-results.js
