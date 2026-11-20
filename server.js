@@ -123,6 +123,7 @@ const Result = mongoose.model("Result", ResultSchema);
 // Store one record for every public page load from either frontend.
 const VisitorVisit = mongoose.model("VisitorVisit", new mongoose.Schema({
   site: { type: String, enum: ["github_pages", "render"], required: true },
+  visitorId: { type: String, default: "", index: true },
   createdAt: { type: Date, default: Date.now, index: true }
 }, { versionKey: false }));
 
@@ -225,10 +226,14 @@ function indiaDateKey(date) {
 app.post("/api/visitor/track", async (req, res) => {
   try {
     const site = req.body?.site;
+    const visitorId = req.body?.visitorId;
     if (!["github_pages", "render"].includes(site)) {
       return res.status(400).json({ error: "Invalid visitor source." });
     }
-    await VisitorVisit.create({ site });
+    if (typeof visitorId !== "string" || !/^[a-f0-9-]{20,64}$/i.test(visitorId)) {
+      return res.status(400).json({ error: "Invalid visitor identifier." });
+    }
+    await VisitorVisit.create({ site, visitorId });
     res.setHeader("Cache-Control", "no-store");
     res.status(202).json({ ok: true });
   } catch (error) {
@@ -304,8 +309,24 @@ app.get("/api/admin/visitors", adminOnly, async (req, res) => {
         ]
       }
     }]);
+    // Count one anonymous browser identifier once per India calendar day.
+    const uniqueDaily = await VisitorVisit.aggregate([
+      { $match: { visitorId: { $type: "string", $ne: "" }, createdAt: { $gte: last30Start, $lt: tomorrowStart } } },
+      { $group: {
+        _id: {
+          day: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: "Asia/Kolkata" } },
+          visitorId: "$visitorId"
+        }
+      }},
+      { $group: { _id: "$_id.day", count: { $sum: 1 } } },
+      { $sort: { _id: 1 } }
+    ]);
     const totals = facet?.totals?.[0] || {};
     const countFor = (rows, key) => rows.find(row => row._id === key)?.count || 0;
+    const uniqueToday = countFor(uniqueDaily, todayKey);
+    const uniqueYesterday = countFor(uniqueDaily, indiaDateKey(yesterdayStart));
+    const uniqueLast7 = uniqueDaily.filter(row => row._id >= indiaDateKey(last7Start) && row._id <= todayKey).reduce((sum, row) => sum + row.count, 0);
+    const uniqueLast30 = uniqueDaily.reduce((sum, row) => sum + row.count, 0);
     res.setHeader("Cache-Control", "no-store");
     res.json({
       timezone: "Asia/Kolkata",
@@ -315,6 +336,13 @@ app.get("/api/admin/visitors", adminOnly, async (req, res) => {
       last30: totals.last30 || 0,
       total: totals.total || 0,
       recent5m: facet?.recent5m?.[0]?.count || 0,
+      newVisitors: {
+        today: uniqueToday,
+        yesterday: uniqueYesterday,
+        last7: uniqueLast7,
+        last30: uniqueLast30,
+        daily: uniqueDaily.filter(row => row._id >= indiaDateKey(last7Start))
+      },
       sites: {
         github_pages: { today: countFor(facet?.todayBySite || [], "github_pages"), total: countFor(facet?.allBySite || [], "github_pages") },
         render: { today: countFor(facet?.todayBySite || [], "render"), total: countFor(facet?.allBySite || [], "render") }
@@ -326,7 +354,6 @@ app.get("/api/admin/visitors", adminOnly, async (req, res) => {
     res.status(503).json({ error: "Visitor analytics load nahi ho paya." });
   }
 });
-
 app.get("/api/admin/export.xlsx", adminOnly, async (req, res) => {
   const [users, cities, results] = await Promise.all([
     User.find().select("name username mobile email active expiresAt createdAt").lean(),
