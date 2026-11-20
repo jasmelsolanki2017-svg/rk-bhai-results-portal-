@@ -867,9 +867,9 @@ body.theme-light .side-tools-menu{background:#fff;color:#20242b;border-color:#d8
 .live-result-ticker-viewport{min-width:0;overflow:hidden;white-space:nowrap;flex:1}
 .live-result-ticker-track{display:inline-flex;align-items:center;gap:28px;width:max-content;animation:rkResultTickerMove 38s linear infinite}
 .live-result-ticker:hover .live-result-ticker-track{animation-play-state:paused}
-.live-result-ticker-item{display:inline-flex;align-items:center;gap:8px;color:var(--text,#f5f5f5);font-size:12px}
-.live-result-ticker-item strong{color:#e6bd70;font-size:14px}
-.live-result-ticker-item small{color:var(--muted,#aaa);font-size:10px}
+.live-result-ticker-item{display:inline-flex;align-items:center;gap:8px;color:#ff4b4b;font-size:16px;font-weight:800}
+.live-result-ticker-item b{color:#ff4b4b;font-size:18px;font-weight:900}
+.live-result-ticker-item strong{color:#ff3030;font-size:25px;font-weight:1000;text-shadow:0 0 10px rgba(255,48,48,.25)}
 @keyframes rkResultTickerMove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 .top-result-actions{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:9px}
 .top-result-actions .top-chart-link{margin:0}
