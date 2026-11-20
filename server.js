@@ -25,7 +25,9 @@ const publicFrontendApiPaths = new Set([
   "/api/public/export.csv",
   "/api/public/poster",
   "/api/public/announcement",
-  "/api/visitor/track"
+  "/api/visitor/track",
+  "/api/visitor/heartbeat",
+  "/api/public/online"
 ]);
 app.use((req, res, next) => {
   if (!publicFrontendApiPaths.has(req.path)) return next();
@@ -122,6 +124,13 @@ const Result = mongoose.model("Result", ResultSchema);
 const VisitorVisit = mongoose.model("VisitorVisit", new mongoose.Schema({
   site: { type: String, enum: ["github_pages", "render"], required: true },
   createdAt: { type: Date, default: Date.now, index: true }
+}, { versionKey: false }));
+
+// One active presence record per browser tab; no IP or personal details are stored.
+const OnlineVisitor = mongoose.model("OnlineVisitor", new mongoose.Schema({
+  sessionId: { type: String, required: true, unique: true },
+  site: { type: String, enum: ["github_pages", "render"], required: true },
+  lastSeen: { type: Date, default: Date.now, index: true }
 }, { versionKey: false }));
 
 
@@ -225,6 +234,34 @@ app.post("/api/visitor/track", async (req, res) => {
   } catch (error) {
     console.error("Visitor tracking failed:", error.message);
     res.status(503).json({ error: "Visitor tracking temporarily unavailable." });
+  }
+});
+
+// Heartbeat refreshes active presence; a tab is online while seen in the last 90 seconds.
+app.post("/api/visitor/heartbeat", async (req, res) => {
+  try {
+    const { site, sessionId } = req.body || {};
+    if (!["github_pages", "render"].includes(site) || typeof sessionId !== "string" || !/^[a-f0-9-]{20,64}$/i.test(sessionId)) {
+      return res.status(400).json({ error: "Invalid online session." });
+    }
+    await OnlineVisitor.updateOne({ sessionId }, { $set: { site, lastSeen: new Date() } }, { upsert: true });
+    res.setHeader("Cache-Control", "no-store");
+    res.status(202).json({ ok: true });
+  } catch (error) {
+    console.error("Online heartbeat failed:", error.message);
+    res.status(503).json({ error: "Online status temporarily unavailable." });
+  }
+});
+
+app.get("/api/public/online", async (req, res) => {
+  try {
+    const activeSince = new Date(Date.now() - 90 * 1000);
+    const count = await OnlineVisitor.countDocuments({ lastSeen: { $gte: activeSince } });
+    res.setHeader("Cache-Control", "no-store");
+    res.json({ online: count });
+  } catch (error) {
+    console.error("Online count failed:", error.message);
+    res.status(503).json({ online: null });
   }
 });
 
