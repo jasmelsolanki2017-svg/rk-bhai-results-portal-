@@ -3,29 +3,11 @@
 <head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RK Bhai Admin</title><link rel="stylesheet" href="/style.css?v=20261120themesnotice1"></head>
 <body>
 <header class="pro-header"><div class="pro-brand"><div class="brand-mark">RK</div><div><div class="brand">RK <span>BHAI</span></div><p>PORTAL CONTROL CENTER</p></div></div><div class="pro-header-right"><span class="admin-live-dot">ADMIN WORKSPACE</span><a class="pro-nav-link" href="/">View Website ↗</a><button class="dashboard-menu-trigger" id="dashboardMenuOpen" type="button" aria-label="Open menu" aria-expanded="false">⋮</button></div></header>
-<div class="dashboard-menu-backdrop" id="dashboardMenuBackdrop" hidden></div><aside class="dashboard-side-menu" id="dashboardSideMenu" aria-label="Admin menu" aria-hidden="true"><div class="dashboard-menu-head"><strong>ADMIN MENU</strong><button type="button" id="dashboardMenuClose" aria-label="Close menu">×</button></div><a href="#chartSection">Monthly Records</a><a href="#recordSection">नया रिकॉर्ड जोड़ें</a><a href="/admin/users">User Management</a><a href="/admin/export.html">Excel Export</a><a href="/admin/backup.html">Database Backup & Restore</a><a href="/">Public Website</a><button type="button" data-dashboard-logout>Logout</button></aside>
+<div class="dashboard-menu-backdrop" id="dashboardMenuBackdrop" hidden></div><aside class="dashboard-side-menu" id="dashboardSideMenu" aria-label="Admin menu" aria-hidden="true"><div class="dashboard-menu-head"><strong>ADMIN MENU</strong><button type="button" id="dashboardMenuClose" aria-label="Close menu">×</button></div><a href="#chartSection">Monthly Records</a><a href="#recordSection">नया रिकॉर्ड जोड़ें</a><a href="/admin/users">User Management</a><a href="/admin/export.html">Excel Export</a><a href="/admin/backup.html">Database Backup & Restore</a><a href="/admin/visitors.html">Visitor Counter</a><a href="/">Public Website</a><button type="button" data-dashboard-logout>Logout</button></aside>
 <main class="pro-main">
 <section class="pro-welcome"><div><span class="eyebrow">DASHBOARD OVERVIEW</span><h1>Admin Dashboard</h1><p>Portal के रिकॉर्ड, users और database को एक जगह से manage करें।</p></div><div class="pro-welcome-icon">⌘</div></section>
 <section id="loginBox" class="admin-box pro-login" hidden><h2>Admin Login</h2><form id="loginForm"><input name="username" autocomplete="username" placeholder="Username" required><input name="password" type="password" autocomplete="current-password" placeholder="Password" required><button type="submit">Login</button></form></section>
 <section id="panel" hidden class="pro-dashboard">
-  <section id="visitorAnalytics" class="admin-box pro-card visitor-analytics">
-    <div class="admin-top"><div><div class="section-kicker">PUBLIC WEBSITE TRAFFIC</div><h2>Visitor Analytics</h2></div><button id="visitorRefresh" type="button" class="secondary">Refresh</button></div>
-    <p class="muted">GitHub Pages और Render दोनों के Page Visits यहाँ एक साथ गिने जाते हैं। हर बार पेज खुलने पर 1 Visit जुड़ता है; एक व्यक्ति के बार-बार खोलने पर हर बार गिना जाएगा।</p>
-    <div class="visitor-stat-grid">
-      <article class="visitor-stat"><span>आज</span><strong id="visitorToday">—</strong></article>
-      <article class="visitor-stat"><span>कल</span><strong id="visitorYesterday">—</strong></article>
-      <article class="visitor-stat"><span>पिछले 7 दिन</span><strong id="visitor7Days">—</strong></article>
-      <article class="visitor-stat"><span>पिछले 30 दिन</span><strong id="visitor30Days">—</strong></article>
-      <article class="visitor-stat"><span>कुल Visits</span><strong id="visitorTotal">—</strong></article>
-      <article class="visitor-stat"><span>पिछले 5 मिनट के Visits</span><strong id="visitorRecent">—</strong></article>
-    </div>
-    <div class="visitor-source-grid">
-      <article><strong>GitHub Pages</strong><span>आज: <b id="visitorGithubToday">—</b></span><span>कुल: <b id="visitorGithubTotal">—</b></span></article>
-      <article><strong>Render Website</strong><span>आज: <b id="visitorRenderToday">—</b></span><span>कुल: <b id="visitorRenderTotal">—</b></span></article>
-    </div>
-    <h3>पिछले 7 दिनों का रिकॉर्ड</h3><div id="visitorDaily" class="visitor-daily"><p class="muted">डेटा लोड हो रहा है…</p></div>
-    <p id="visitorAnalyticsMsg" class="muted" role="status"></p>
-  </section>
   <nav class="pro-shortcuts"><a href="#chartSection"><span>▦</span> Monthly Records</a><a href="#recordSection"><span>＋</span> Add Record</a><a href="/admin/users"><span>♙</span> User Management</a></nav>
   <section class="admin-box pro-card dashboard-latest-results" id="adminLatestResults"><div class="section-kicker">LIVE MARKET BOARD</div><h2>Latest Published Results</h2><div class="top-result-grid" id="adminTopResultCards"><p class="muted">रिजल्ट लोड हो रहे हैं…</p></div></section>
   <div class="pro-content-grid">
