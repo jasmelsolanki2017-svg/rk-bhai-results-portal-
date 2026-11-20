@@ -270,6 +270,16 @@ setInterval(renderRecent,30000);
 setInterval(checkForNewResults,60000);
 
  
+// Persistent dark/light theme toggle.
+const themeToggleButton=document.getElementById("themeToggle");
+const themeToggleLabel=document.getElementById("themeToggleLabel");
+function applyTheme(theme){const light=theme==="light";document.body.classList.toggle("theme-light",light);if(themeToggleLabel)themeToggleLabel.textContent=light?"डार्क मोड चालू करें":"लाइट मोड चालू करें";if(themeToggleButton)themeToggleButton.setAttribute("aria-pressed",String(light));try{localStorage.setItem("rkbhai-theme",light?"light":"dark");}catch(error){}}
+let savedTheme="dark";try{savedTheme=localStorage.getItem("rkbhai-theme")||"dark";}catch(error){}applyTheme(savedTheme);
+if(themeToggleButton)themeToggleButton.addEventListener("click",()=>applyTheme(document.body.classList.contains("theme-light")?"dark":"light"));
+
+// Public announcement banner managed from the admin dashboard.
+(async()=>{const box=document.getElementById("siteAnnouncement");if(!box)return;try{const response=await fetch("https://rk-bhai-results-portal.onrender.com/api/public/announcement",{cache:"no-store"});if(!response.ok)return;const notice=await response.json();if(!notice.enabled||!notice.message)return;const title=document.getElementById("announcementTitle"),message=document.getElementById("announcementMessage");if(title){title.textContent=notice.title||"महत्वपूर्ण सूचना";title.hidden=!notice.title;}if(message)message.textContent=notice.message;box.hidden=false;}catch(error){console.info("Announcement is currently unavailable",error);}})();
+
 // Installable app, native share, QR code and print-to-PDF tools.
 let deferredInstallPrompt = null;
 const installButton = document.getElementById("installApp");
