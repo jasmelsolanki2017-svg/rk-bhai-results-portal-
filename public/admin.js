@@ -64,7 +64,7 @@ async function renderAdminTopResults(){
    const date=now?new Date(now.resultDate).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",timeZone:"Asia/Kolkata"}):"";
    const publishedAt=now?.createdAt||now?.updatedAt||now?.resultDate;
    const clock=publishedAt?new Date(publishedAt).toLocaleTimeString("en-IN",{hour:"numeric",minute:"2-digit",hour12:true,timeZone:"Asia/Kolkata"}):"";
-   const resultUrl="https://github.com/jasmelsolanki2017-svg/rk-bhai-results-portal-";
+   const resultUrl="https://rk-bhai-results-portal.onrender.com/";
    const message=["❤️ "+city.toUpperCase()+" ❤️","👇 LIVE RESULT 👇","","*✅   (( "+value+" ))   ✅*","","Date : "+date,...(clock?[clock]:[]),"","पूरा रिजल्ट देखें:",resultUrl].join("\n");
    const shareAttrs=now?'href="https://wa.me/?text='+encodeURIComponent(message)+'" target="_blank" rel="noopener" data-share-city="'+esc(city)+'" data-share-value="'+esc(value)+'" data-share-date="'+esc(now.resultDate)+'"':'aria-disabled="true"';
    return '<article class="top-result-card"><h3>'+esc(city)+'</h3><p class="top-result-time">'+(time?'( '+esc(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+(prev?esc(prev.resultText):"XX")+'</span><span class="top-result-arrow">➡️</span><span class="top-current-wrap">'+(now?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(now?' result-blink':'')+'">'+esc(value)+'</span></span></div><div class="dashboard-share-options"><a class="dashboard-whatsapp-share" '+shareAttrs+' data-share-mode="both">कार्ड + मैसेज</a><a class="dashboard-whatsapp-share" '+shareAttrs+' data-share-mode="card">केवल कार्ड</a><a class="dashboard-whatsapp-share" '+shareAttrs+' data-share-mode="message">केवल मैसेज</a></div></article>';
@@ -98,8 +98,8 @@ function createAdminResultCard(city,value,resultDate){
  ctx.fillStyle="#ffffff";ctx.font="bold "+resultFont+"px Arial";ctx.fillText(resultText,540,925);
  ctx.strokeStyle="#d6a84f";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(170,1050);ctx.lineTo(910,1050);ctx.stroke();
  ctx.fillStyle="#f6d58d";ctx.font="bold 36px Arial";ctx.fillText("MORE RESULTS & OLD RECORDS",540,1120);
- ctx.fillStyle="#ffffff";ctx.font="bold 28px Arial";ctx.fillText("VISIT OUR GITHUB REPOSITORY",540,1180);
- ctx.fillStyle="#dce5f5";ctx.font="24px Arial";ctx.fillText("github.com/jasmelsolanki2017-svg/rk-bhai-results-portal-",540,1225);
+ ctx.fillStyle="#ffffff";ctx.font="bold 28px Arial";ctx.fillText("VISIT OUR WEBSITE",540,1180);
+ ctx.fillStyle="#dce5f5";ctx.font="24px Arial";ctx.fillText("rk-bhai-results-portal.onrender.com",540,1225);
  ctx.fillStyle="#c5a66c";ctx.font="26px Arial";ctx.fillText("THANK YOU FOR YOUR SUPPORT",540,1280);
  const data=canvas.toDataURL("image/png"),binary=atob(data.split(",")[1]),bytes=new Uint8Array(binary.length);
  for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
