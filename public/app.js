@@ -116,7 +116,16 @@ function formatUpdate(value){
   if(Number.isNaN(date.getTime()))return "";
   return date.toLocaleString("hi-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit",hour12:true});
 }
+function renderLiveResultTicker(){
+  const track=document.getElementById("liveResultTickerTrack");
+  if(!track)return;
+  const latest=[...recentRows].sort((a,b)=>new Date(b.createdAt||b.updatedAt||b.resultDate||0)-new Date(a.createdAt||a.updatedAt||a.resultDate||0)).slice(0,12);
+  if(!latest.length){track.innerHTML="<span>अभी कोई नया रिजल्ट उपलब्ध नहीं है</span>";return;}
+  const items=latest.map(row=>'<span class="live-result-ticker-item"><b>'+escapeHtml(row.title||"Result")+'</b><strong>'+escapeHtml(row.resultText||"—")+'</strong><small>'+escapeHtml(new Date(row.resultDate).toLocaleDateString("hi-IN",{day:"2-digit",month:"short",timeZone:"Asia/Kolkata"}))+'</small></span>').join("");
+  track.innerHTML=items+items;
+}
 function renderRecent(){
+  renderLiveResultTicker();
   const todayKey=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
   const todayStart=new Date(todayKey+"T00:00:00.000Z");
   const yesterdayKey=new Date(todayStart.getTime()-86400000).toISOString().slice(0,10);
@@ -158,11 +167,47 @@ function renderRecent(){
       const current=isGali&&galiBlinkWindow?"—":(currentRow?escapeHtml(currentRow.resultText):"—");
       const blinkLeft=isGali&&galiBlinkWindow&&!!previousRow;
       const blinkRight=shouldBlink&&!blinkLeft;
-      return '<article class="top-result-card"><h3>'+escapeHtml(city)+'</h3><p class="top-result-time">'+(time?'( '+escapeHtml(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous'+(blinkLeft?' result-blink':'')+'">'+(blinkLeft?'<span class="new-result-badge">NEW</span>':'')+previous+'</span><span class="top-result-arrow" aria-hidden="true">➡️</span><span class="top-current-wrap">'+(blinkRight?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(blinkRight?' result-blink':'')+'">'+current+'</span></span></div><a class="top-chart-link" href="#archive" data-chart-city="'+escapeHtml(city)+'">चार्ट देखें</a></article>';
+      return '<article class="top-result-card"><h3>'+escapeHtml(city)+'</h3><p class="top-result-time">'+(time?'( '+escapeHtml(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous'+(blinkLeft?' result-blink':'')+'">'+(blinkLeft?'<span class="new-result-badge">NEW</span>':'')+previous+'</span><span class="top-result-arrow" aria-hidden="true">➡️</span><span class="top-current-wrap">'+(blinkRight?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(blinkRight?' result-blink':'')+'">'+current+'</span></span></div><div class="top-result-actions"><a class="top-chart-link" href="#archive" data-chart-city="'+escapeHtml(city)+'">चार्ट देखें</a><button type="button" class="top-share-card" data-share-city="'+escapeHtml(city)+'" data-share-value="'+escapeHtml(currentRow?currentRow.resultText:"") +'" data-share-date="'+escapeHtml(currentRow?currentRow.resultDate:"") +'" '+(currentRow?'':'disabled')+'>शेयर कार्ड</button></div></article>';
     }).join("");
   }
 
 }
+async function makeResultShareCard(city,value,resultDate){
+  const canvas=document.createElement("canvas");
+  canvas.width=1080;canvas.height=1080;
+  const ctx=canvas.getContext("2d");
+  const gradient=ctx.createLinearGradient(0,0,1080,1080);
+  gradient.addColorStop(0,"#17140e");gradient.addColorStop(1,"#090909");
+  ctx.fillStyle=gradient;ctx.fillRect(0,0,1080,1080);
+  ctx.strokeStyle="#b88a3b";ctx.lineWidth=5;ctx.strokeRect(42,42,996,996);
+  ctx.textAlign="center";
+  ctx.fillStyle="#e6bd70";ctx.font="bold 58px Arial";ctx.fillText("RK BHAI",540,190);
+  ctx.fillStyle="#f5f0e6";ctx.font="bold 34px Arial";ctx.fillText("LIVE RESULT",540,290);
+  ctx.fillStyle="#d8d0c0";ctx.font="bold 54px Arial";
+  let label=String(city||"").slice(0,24);ctx.fillText(label,540,430);
+  ctx.fillStyle="#e6bd70";ctx.font="bold 150px Arial";ctx.fillText(String(value||"—").slice(0,12),540,650);
+  const date=resultDate?new Date(resultDate).toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric",timeZone:"Asia/Kolkata"}):new Date().toLocaleDateString("en-IN");
+  ctx.fillStyle="#d8d0c0";ctx.font="32px Arial";ctx.fillText(date,540,790);
+  ctx.fillStyle="#b8a27c";ctx.font="26px Arial";ctx.fillText("RK BHAI RESULTS & HISTORICAL ARCHIVE",540,920);
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
+  if(!blob)throw new Error("Card image could not be created");
+  const file=new File([blob],"rk-bhai-result.png",{type:"image/png"});
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+    await navigator.share({files:[file],title:"RK Bhai Result",text:city+" : "+value});
+  }else{
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement("a");link.href=url;link.download="rk-bhai-result.png";link.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+    alert("रिजल्ट कार्ड डाउनलोड हो गया। अब इसे WhatsApp पर शेयर कर सकते हैं।");
+  }
+}
+if(topResultCards)topResultCards.addEventListener("click",async event=>{
+  const button=event.target.closest("[data-share-city]");
+  if(!button)return;
+  try{button.disabled=true;await makeResultShareCard(button.dataset.shareCity,button.dataset.shareValue,button.dataset.shareDate);}
+  catch(error){if(error.name!=="AbortError")alert("शेयर कार्ड नहीं बन पाया।");}
+  finally{button.disabled=false;}
+});
 async function loadResults({notify=false}={}){
   try{
     const [rows,cities]=await Promise.all([getJson("/api/results?recent=2"),getJson("/api/public/cities")]);
