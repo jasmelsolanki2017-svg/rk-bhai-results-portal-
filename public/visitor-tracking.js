@@ -9,23 +9,33 @@
   const heartbeatEndpoint = endpoint + "/api/visitor/heartbeat";
   const onlineEndpoint = endpoint + "/api/public/online";
 
-  // Keep a random, tab-scoped identifier only; no IP address or personal details are collected.
+  // Anonymous browser ID persists across visits so the admin can count new visitors once per day.
+  const makeId = () => crypto.randomUUID ? crypto.randomUUID() : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === "x" ? r : (r & 3 | 8)).toString(16);
+  });
   let sessionId = "";
+  let visitorId = "";
   try {
     sessionId = sessionStorage.getItem("rkBhaiOnlineSession") || "";
     if (!/^[a-f0-9-]{20,64}$/i.test(sessionId)) {
-      sessionId = crypto.randomUUID ? crypto.randomUUID() : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
-        const r = Math.random() * 16 | 0;
-        return (c === "x" ? r : (r & 3 | 8)).toString(16);
-      });
+      sessionId = makeId();
       sessionStorage.setItem("rkBhaiOnlineSession", sessionId);
     }
-  } catch (_) {}
+    visitorId = localStorage.getItem("rkBhaiVisitorId") || "";
+    if (!/^[a-f0-9-]{20,64}$/i.test(visitorId)) {
+      visitorId = makeId();
+      localStorage.setItem("rkBhaiVisitorId", visitorId);
+    }
+  } catch (_) {
+    // If storage is unavailable, use a temporary identifier for this page visit.
+    visitorId = makeId();
+  }
 
   fetch(trackEndpoint, {
     method: "POST", mode: "cors", credentials: "omit", keepalive: true,
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ site })
+    body: JSON.stringify({ site, visitorId })
   }).catch(error => console.info("Visitor tracking is temporarily unavailable:", error));
 
   const onlineCount = document.getElementById("onlineMemberCount");
