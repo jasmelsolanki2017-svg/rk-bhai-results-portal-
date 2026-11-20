@@ -833,3 +833,8 @@ body.theme-light .side-tools-menu{background:#fff;color:#20242b;border-color:#d8
 #publicPoster .public-text-ad-card p{max-width:100%;margin:0 auto;white-space:normal;overflow-wrap:anywhere}
 #publicPoster .public-text-ad-button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
 @media(max-width:600px){#publicPoster.public-poster-wrap{padding:7px;margin-bottom:15px;border-radius:15px}#publicPoster .public-text-ad-card{padding:14px 11px}}
+
+
+/* Keep only the dark/light mode control compact; leave other menu items unchanged. */
+.side-tools-menu #themeToggle.more-tools-item{min-height:36px;margin:4px 0;padding:7px 10px;font-size:12px;gap:8px}
+.side-tools-menu #themeToggle.more-tools-item span{flex:0 0 20px;font-size:17px}
