@@ -1,8 +1,8 @@
 {
   "id": "/user.html",
-  "name": "RK Bhai User Panel",
-  "short_name": "RK User",
-  "description": "RK Bhai का निजी User Dashboard",
+  "name": "Satta King User Panel",
+  "short_name": "Satta King",
+  "description": "Satta King का निजी User Dashboard",
   "start_url": "/user.html",
   "scope": "/",
   "display": "standalone",
