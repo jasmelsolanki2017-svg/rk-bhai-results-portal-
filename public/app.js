@@ -162,9 +162,10 @@ function renderRecent(){
       const isGali=String(city).trim().toLocaleLowerCase("en")==="gali";
       const indiaHour=Number(new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Kolkata",hour:"2-digit",hourCycle:"h23"}).format(new Date()));
       const galiBlinkWindow=isGali&&indiaHour<14;
-      const currentRow=result.today;
+      const galiCarry=galiBlinkWindow&&!result.today&&!!result.yesterday;
+      const currentRow=result.today||(galiCarry?result.yesterday:null);
       const previousRow=result.yesterday;
-      const shouldBlink=isGali?galiBlinkWindow&&!!previousRow:!!result.today;
+      const shouldBlink=isGali?galiBlinkWindow&&!!currentRow:!!result.today;
       const previous=previousRow?escapeHtml(previousRow.resultText):"XX";
       const current=isGali&&galiBlinkWindow?"-":(currentRow?escapeHtml(currentRow.resultText):"—");
       const blinkLeft=isGali&&galiBlinkWindow&&!!previousRow;
