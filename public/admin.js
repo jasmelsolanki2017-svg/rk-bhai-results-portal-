@@ -15,8 +15,12 @@ async function api(url,opts={}){
 function showPanel(on){$("#loginBox").hidden=on;$("#panel").hidden=!on;}
 function showAdminView(view){
  const ads=view==="ads";
- $("#adminMainView").hidden=ads;
- $("#adManagementView").hidden=!ads;
+ const dashboard=$("#adminMainView");
+ const adWorkspace=$("#adManagementView");
+ dashboard.hidden=ads;
+ adWorkspace.hidden=!ads;
+ dashboard.style.display=ads?"none":"block";
+ adWorkspace.style.display=ads?"block":"none";
  if(ads) window.scrollTo({top:0,behavior:"smooth"});
 }
 $("#adsManagementOpen").addEventListener("click",()=>showAdminView("ads"));
