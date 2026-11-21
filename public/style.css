@@ -901,3 +901,18 @@ body.theme-light .side-tools-menu{background:#fff;color:#20242b;border-color:#d8
 @media(max-width:520px){.public-brand{gap:8px}.public-brand-mark{width:44px;min-width:44px;height:44px}.public-brand strong{font-size:17px;letter-spacing:1px}.public-brand small{font-size:8px;letter-spacing:1px}}
 
 .footer-policy-links{display:inline-flex;gap:12px;margin-left:10px}.footer-policy-links a{color:var(--gold,#d7ad55);text-decoration:underline;text-underline-offset:3px;font-weight:700}
+
+
+/* Homepage information and FAQ footer */
+.site-info-panel{margin:22px 0 0;padding:22px 20px;border:1px solid rgba(184,138,59,.3);border-radius:14px;background:linear-gradient(145deg,rgba(184,138,59,.08),rgba(15,15,15,.92));color:var(--text,#eee);line-height:1.8}
+.site-info-heading{margin-bottom:10px}.site-info-heading h2{margin:4px 0 0;color:var(--gold,#d7ad55);font-size:21px}.site-info-panel>p{margin:0;color:var(--muted,#b8ad9b);font-size:14px}
+.faq-panel details{padding:13px 0;border-top:1px solid rgba(255,255,255,.1)}.faq-panel details:first-of-type{border-top:0}.faq-panel summary{cursor:pointer;color:var(--text,#f5f5f5);font-size:14px;font-weight:750;list-style-position:inside}.faq-panel details p{margin:8px 0 0 20px;color:var(--muted,#b8ad9b);font-size:13px;line-height:1.75}
+body>footer.site-footer{padding:0 16px;border-top:1px solid #49391f;background:linear-gradient(180deg,#11100d,#080808);color:#b8ad9b;text-align:left}
+.site-footer-inner{width:min(1100px,100%);margin:auto;padding:28px 0 22px;display:flex;flex-direction:column;align-items:center;gap:13px;text-align:center}
+.site-footer-brand strong{color:var(--gold,#d7ad55);font-size:20px}.site-footer-brand p{margin:4px 0 0;font-size:13px}
+.site-footer .footer-policy-links{display:flex;justify-content:center;flex-wrap:wrap;gap:10px 20px;margin:0}
+.site-footer .footer-policy-links a{color:#e5c47e;text-decoration:none;font-size:13px}.site-footer .footer-policy-links a:hover{text-decoration:underline}
+.site-footer .footer-warning{max-width:760px;margin:0;color:#a99f8c;font-size:12px;line-height:1.75}
+.site-footer-inner>small{color:#817866;font-size:11px}
+body.theme-light .site-info-panel{background:#fff;border-color:#d9c79e;color:#263244}body.theme-light .site-info-panel>p,body.theme-light .faq-panel details p{color:#526071}body.theme-light .faq-panel summary{color:#263244}body.theme-light .faq-panel details{border-color:#e5e7eb}body.theme-light .site-footer{background:#f5f1e8!important;border-color:#d9c79e!important}body.theme-light .site-footer .footer-warning{color:#526071}body.theme-light .site-footer-inner>small{color:#667085}
+@media(max-width:520px){.site-info-panel{padding:17px 14px}.site-info-heading h2{font-size:19px}.site-footer-inner{gap:11px}}
