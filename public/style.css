@@ -941,3 +941,6 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
 .admin-ad-view-head p{margin:5px 0 0}
 .admin-ad-view-head button{border:1px solid #80632d;border-radius:8px;background:#252525;color:#eee;padding:10px 13px;font:inherit;cursor:pointer}
 @media(max-width:520px){.admin-ad-view-head{align-items:flex-start}.admin-ad-view-head button{width:100%}.pro-shortcuts .admin-ad-shortcut{justify-content:center}}
+
+/* Keep the admin dashboard and ad workspace visibility deterministic on mobile browsers. */
+#adminMainView[hidden],#adManagementView[hidden]{display:none!important}
