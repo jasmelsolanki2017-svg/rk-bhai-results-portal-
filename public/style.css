@@ -981,3 +981,10 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
 .popup-ad-button{margin-top:12px;padding:10px 20px;border-radius:999px;background:linear-gradient(135deg,#f4d58b,#bd8b35);color:#1a1206;font-size:13px;font-weight:850;box-shadow:0 5px 16px rgba(214,174,91,.2)}
 .popup-ad-close{right:9px;top:9px;width:30px;height:30px;border:1px solid rgba(244,213,139,.7);background:#17120b;color:#ffe4a4;font-size:21px;line-height:1}
 @media(max-width:380px){.popup-ad-card{width:min(92vw,350px);padding:19px 12px 13px}.popup-ad-card p{padding:11px 9px;line-height:1.58}}
+
+/* Readable popup ad content: render intentional line breaks */
+.popup-ad-card{width:min(92vw,390px);max-height:82vh;padding:22px 15px 16px;overflow-y:auto}
+.popup-ad-card h2{font-size:clamp(20px,5.2vw,24px);line-height:1.25;margin:5px 32px 13px}
+.popup-ad-description{white-space:pre-line!important;line-height:1.55!important;text-align:center;font-size:clamp(13px,3.5vw,15px)!important;padding:13px 12px!important}
+.popup-ad-close{width:32px;height:32px;font-size:22px;right:8px;top:8px}
+@media(max-width:380px){.popup-ad-card{width:92vw;padding:20px 11px 14px}.popup-ad-description{font-size:13px!important;line-height:1.48!important}}
