@@ -26,7 +26,7 @@ function showAdminView(view){
  if(ads) window.scrollTo({top:0,behavior:"smooth"});
 }
 function applyAdminRoute(){
- if(location.pathname.replace(/\\/+$/,"")==="/admin/advertisements")showAdminView("ads");
+ if(location.pathname==="/admin/advertisements"||location.pathname==="/admin/advertisements/")showAdminView("ads");
  else showAdminView("main");
 }
 
