@@ -1042,3 +1042,10 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
 .popup-ad-overlay{background:transparent!important;backdrop-filter:none!important;pointer-events:none;align-items:flex-start;justify-content:flex-end;padding:10px}
 .popup-ad-card{pointer-events:auto}
 @media(max-width:520px){.popup-ad-admin-item{display:block}.popup-ad-admin-actions{justify-content:flex-start;margin-top:10px}}
+
+
+/* Match the online-members badge to the original Live Data badge */
+.public-summary .online-members-pill{display:flex;align-items:center;justify-content:center;width:auto;max-width:100%;margin:0;padding:6px 10px;gap:6px;border:1px solid #42613c;border-radius:20px;background:transparent;color:#b6dfa7;font-size:11px;font-weight:600;white-space:nowrap}
+.public-summary .online-members-dot{width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:#76c66a;box-shadow:0 0 8px #76c66a}
+.public-summary .online-members-pill strong{color:#b6dfa7;font-size:inherit;font-weight:600;font-variant-numeric:tabular-nums}
+@media(max-width:600px){.public-summary .online-members-pill{padding:4px 8px;font-size:9px;gap:5px}.public-summary .online-members-dot{width:6px;height:6px;flex-basis:6px}.public-summary .online-members-pill strong{font-size:inherit}}
