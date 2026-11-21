@@ -169,7 +169,7 @@ function renderRecent(){
       const previousDisplayRow=isGali&&galiBlinkWindow?(currentRow||previousRow):previousRow;
       const previous=previousDisplayRow?escapeHtml(previousDisplayRow.resultText):"XX";
       const current=isGali&&galiBlinkWindow?"-":(currentRow?escapeHtml(currentRow.resultText):"—");
-      const blinkLeft=isGali&&galiBlinkWindow&&!!previousRow;
+      const blinkLeft=isGali&&galiBlinkWindow&&!!previousDisplayRow;
       const blinkRight=!isGali&&shouldBlink;
       return '<article class="top-result-card"><h3>'+escapeHtml(city)+'</h3><p class="top-result-time">'+(time?'( '+escapeHtml(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+(blinkLeft?'<span class="new-result-badge">NEW</span>':'')+previous+'</span><span class="top-result-arrow" aria-hidden="true">➡️</span><span class="top-current-wrap">'+(blinkRight?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(blinkRight?' result-blink':'')+'">'+current+'</span></span></div><div class="top-result-actions"><a class="top-chart-link" href="#archive" data-chart-city="'+escapeHtml(city)+'">चार्ट देखें</a><button type="button" class="top-share-card" data-share-city="'+escapeHtml(city)+'" data-share-value="'+escapeHtml(currentRow?currentRow.resultText:"") +'" data-share-date="'+escapeHtml(currentRow?currentRow.resultDate:"") +'" '+(currentRow?'':'disabled')+'>शेयर कार्ड</button></div></article>';
     }).join("");
