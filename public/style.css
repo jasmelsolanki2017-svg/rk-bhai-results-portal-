@@ -865,7 +865,7 @@ body.theme-light .side-tools-menu{background:#fff;color:#20242b;border-color:#d8
 .live-result-ticker{display:flex;align-items:center;gap:10px;min-width:0;margin:0 0 14px;padding:9px 12px;border:1px solid rgba(184,138,59,.38);border-radius:10px;background:rgba(184,138,59,.08);overflow:hidden}
 .live-result-ticker-label{flex:0 0 auto;padding:4px 8px;border-radius:6px;background:#8b2525;color:#fff;font-size:10px;font-weight:900;letter-spacing:1px}
 .live-result-ticker-viewport{min-width:0;overflow:hidden;white-space:nowrap;flex:1}
-.live-result-ticker-track{display:inline-flex;align-items:center;gap:28px;width:max-content;animation:rkResultTickerMove 18s linear infinite}
+.live-result-ticker-track{display:inline-flex;align-items:center;gap:28px;width:max-content;animation:rkResultTickerMove 9s linear infinite}
 .live-result-ticker:hover .live-result-ticker-track{animation-play-state:paused}
 .live-result-ticker-item{display:inline-flex;align-items:center;gap:8px;color:#ff4b4b;font-size:16px;font-weight:800}
 .live-result-ticker-item b{color:#ffffff;font-size:18px;font-weight:900}
