@@ -9,6 +9,8 @@ const path = require("path");
 const XLSX = require("xlsx");
 
 const app = express();
+// Render runs behind one trusted proxy; use the original client IP for login throttling.
+app.set("trust proxy", 1);
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json({ limit: "25mb" }));
 app.use(cookieParser());
@@ -192,13 +194,41 @@ app.use((req, res, next) => {
   next();
 });
 
-app.post("/api/admin/login", async (req, res) => {
+// Slow repeated admin password guesses from the same client IP.
+const adminLoginAttempts = new Map();
+const ADMIN_LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const ADMIN_LOGIN_MAX_ATTEMPTS = 10;
+function adminLoginRateLimit(req, res, next) {
+  const now = Date.now();
+  const key = req.ip || req.socket.remoteAddress || "unknown";
+  let record = adminLoginAttempts.get(key);
+  if (!record || record.resetAt <= now) {
+    record = { count: 0, resetAt: now + ADMIN_LOGIN_WINDOW_MS };
+  }
+  if (record.count >= ADMIN_LOGIN_MAX_ATTEMPTS) {
+    res.setHeader("Retry-After", String(Math.max(1, Math.ceil((record.resetAt - now) / 1000))));
+    return res.status(429).json({ error: "बहुत बार गलत login प्रयास हुए हैं। 15 मिनट बाद फिर कोशिश करें।" });
+  }
+  record.count += 1;
+  adminLoginAttempts.set(key, record);
+  // Keep the in-memory limiter bounded and discard expired entries.
+  if (adminLoginAttempts.size > 5000) {
+    for (const [ip, item] of adminLoginAttempts) {
+      if (item.resetAt <= now || adminLoginAttempts.size > 5000) adminLoginAttempts.delete(ip);
+      if (adminLoginAttempts.size <= 4000) break;
+    }
+  }
+  next();
+}
+
+app.post("/api/admin/login", adminLoginRateLimit, async (req, res) => {
   const { username, password } = req.body || {};
   if (!username || !password || !process.env.ADMIN_USERNAME || !adminPasswordHash || !process.env.JWT_SECRET)
     return res.status(400).json({ error: "Admin configuration missing" });
   const validUser = username === process.env.ADMIN_USERNAME;
   const validPass = await bcrypt.compare(password, adminPasswordHash);
   if (!validUser || !validPass) return res.status(401).json({ error: "Incorrect login" });
+  adminLoginAttempts.delete(req.ip || req.socket.remoteAddress || "unknown");
   const token = jwt.sign({ role: "admin" }, process.env.JWT_SECRET, { expiresIn: "8h" });
   res.cookie("admin_session", token, {
     httpOnly: true, sameSite: "strict", secure: process.env.NODE_ENV === "production",
