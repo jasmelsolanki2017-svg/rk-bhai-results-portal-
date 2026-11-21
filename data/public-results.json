@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-21T12:53:33.240Z",
+  "updatedAt": "2026-11-21T13:03:04.966Z",
   "results": [
     {
       "_id": "6b0168cd991ad7ffc7248cca",
@@ -33,14 +33,6 @@
       "resultDate": "2026-11-21T00:00:00.000Z",
       "sourceUrl": "",
       "createdAt": "2026-11-21T12:49:27.628Z"
-    },
-    {
-      "_id": "6b0094d1d55029230fe64a6b",
-      "title": "Gali",
-      "resultText": "47",
-      "resultDate": "2026-11-21T00:00:00.000Z",
-      "sourceUrl": "",
-      "createdAt": "2026-11-20T18:43:29.560Z"
     },
     {
       "_id": "6b0016f7700e74d54fc54bd2",
@@ -89,6 +81,14 @@
       "resultDate": "2026-11-20T00:00:00.000Z",
       "sourceUrl": "",
       "createdAt": "2026-11-20T15:12:27.374Z"
+    },
+    {
+      "_id": "6b0094d1d55029230fe64a6b",
+      "title": "Gali",
+      "resultText": "47",
+      "resultDate": "2026-11-20T00:00:00.000Z",
+      "sourceUrl": "",
+      "createdAt": "2026-11-20T18:43:29.560Z"
     },
     {
       "_id": "6aff121e215b3428d64ecd57",
