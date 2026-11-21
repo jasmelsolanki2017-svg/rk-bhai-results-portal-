@@ -17,14 +17,18 @@ function showAdminView(view){
  const ads=view==="ads";
  const dashboard=$("#adminMainView");
  const adWorkspace=$("#adManagementView");
+ const shortcuts=document.querySelector(".pro-shortcuts");
  dashboard.hidden=ads;
  adWorkspace.hidden=!ads;
  dashboard.style.display=ads?"none":"block";
  adWorkspace.style.display=ads?"block":"none";
+ if(shortcuts)shortcuts.hidden=ads;
  if(ads) window.scrollTo({top:0,behavior:"smooth"});
 }
-$("#adsManagementOpen").addEventListener("click",()=>showAdminView("ads"));
-$("#adsManagementBack").addEventListener("click",()=>showAdminView("main"));
+function applyAdminRoute(){
+ if(location.pathname.replace(/\\/+$/,"")==="/admin/advertisements")showAdminView("ads");
+ else showAdminView("main");
+}
 
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function dateValue(v){return new Date(v).toISOString().slice(0,10);}
@@ -238,7 +242,7 @@ titleInput.addEventListener("keydown",e=>{if(e.key==="Escape")suggestionBox.hidd
 
 $("#loginForm").addEventListener("submit",async e=>{
   e.preventDefault();msg.textContent="Login हो रहा है…";
-  try{const f=new FormData(e.target);await api("/api/admin/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});showPanel(true);await loadPosterManager();await loadPopupAdManager();await loadAnnouncementManager();await refresh();msg.textContent="Login सफल";}
+  try{const f=new FormData(e.target);await api("/api/admin/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});showPanel(true);applyAdminRoute();await loadPosterManager();await loadPopupAdManager();await loadAnnouncementManager();await refresh();msg.textContent="Login सफल";}
   catch(err){msg.textContent=err.message;}
 });
 $("#resultForm").addEventListener("submit",async e=>{
@@ -263,7 +267,7 @@ $("#logout").addEventListener("click",async()=>{
   try{await api("/api/admin/logout",{method:"POST"});showPanel(false);$("#loginForm").reset();msg.textContent="Logout हो गया";}
   catch(err){msg.textContent=err.message;showPanel(false);}
 });
-(async()=>{try{await api("/api/admin/session");showPanel(true);await loadPosterManager();await loadPopupAdManager();await loadAnnouncementManager();await refresh();msg.textContent="Admin session चालू है";}
+(async()=>{try{await api("/api/admin/session");showPanel(true);applyAdminRoute();await loadPosterManager();await loadPopupAdManager();await loadAnnouncementManager();await refresh();msg.textContent="Admin session चालू है";}
 catch{showPanel(false);}})();
 
 async function loadPopupAdManager(){try{const p=await api("/api/admin/popup-ad");$("#popupAdTitle").value=p.title||"";$("#popupAdDescription").value=p.description||"";$("#popupAdUrl").value=p.buttonUrl||"";$("#popupAdButton").value=p.buttonText||"अभी देखें";$("#popupAdDelay").value=String(p.delaySeconds??0);$("#popupAdFrequency").value=String(p.frequencyHours||24);$("#popupAdEnabled").checked=!!p.enabled;if(p.imageData)$("#popupAdPreview").innerHTML='<img src="'+p.imageData+'" alt="Popup ad preview">';}catch(e){$("#popupAdMsg").textContent="Popup Ad load error: "+e.message;}}
