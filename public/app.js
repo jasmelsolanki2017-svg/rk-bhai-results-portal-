@@ -41,7 +41,7 @@ function showNewResultNotice(rows){
   if("Notification" in window && Notification.permission==="granted"){
     const first=rows[0];
     try{
-      new Notification("RK Bhai पर नया रिजल्ट",{
+      new Notification("Satta King पर नया रिजल्ट",{
         body:rows.length===1?(first.title+" : "+first.resultText):rows.length+" नए रिजल्ट प्रकाशित हुए हैं।",
         icon:"./icon.svg",
         tag:"rk-bhai-new-results"
@@ -188,7 +188,7 @@ async function makeResultShareCard(city,value,resultDate){
   ctx.fillStyle=gradient;ctx.fillRect(0,0,1080,1350);
   ctx.strokeStyle="#b88a3b";ctx.lineWidth=5;ctx.strokeRect(42,42,996,1266);
   ctx.textAlign="center";
-  ctx.fillStyle="#e6bd70";ctx.font="bold 62px Arial";ctx.fillText("RK BHAI",540,170);
+  ctx.fillStyle="#e6bd70";ctx.font="bold 62px Arial";ctx.fillText("SATTA KING",540,170);
   ctx.fillStyle="#f5f0e6";ctx.font="bold 36px Arial";ctx.fillText("RESULTS PORTAL",540,225);
   ctx.strokeStyle="#80632d";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(180,275);ctx.lineTo(900,275);ctx.stroke();
   ctx.fillStyle="#d8d0c0";ctx.font="bold 40px Arial";ctx.fillText("TODAY'S RESULT",540,365);
@@ -208,9 +208,9 @@ async function makeResultShareCard(city,value,resultDate){
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
   if(!blob)throw new Error("Card image could not be created");
   const file=new File([blob],"rk-bhai-result.png",{type:"image/png"});
-  const shareText="RK BHAI RESULTS PORTAL\n"+String(city||"Result")+" : "+String(value||"—")+"\nDate: "+date+"\n\nपूरा रिजल्ट और पुराने रिकॉर्ड यहाँ देखें:\n"+siteUrl;
+  const shareText="SATTA KING 👑 RESULTS PORTAL\n"+String(city||"Result")+" : "+String(value||"—")+"\nDate: "+date+"\n\nपूरा रिजल्ट और पुराने रिकॉर्ड यहाँ देखें:\n"+siteUrl;
   if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-    await navigator.share({files:[file],title:"RK Bhai Result",text:shareText});
+    await navigator.share({files:[file],title:"Satta King Result",text:shareText});
   }else{
     const url=URL.createObjectURL(blob);
     const link=document.createElement("a");link.href=url;link.download="rk-bhai-result.png";link.click();
@@ -367,7 +367,7 @@ if (installButton) installButton.addEventListener("click", async () => {
 });
 const shareButton = document.getElementById("shareSite");
 if (shareButton) shareButton.addEventListener("click", async () => {
-  const shareData = { title: "RK Bhai Results & Historical Archive", text: "RK Bhai Portal देखें", url: location.origin };
+  const shareData = { title: "Satta King 👑 Results & Historical Archive", text: "Satta King Portal देखें", url: location.origin };
   try {
     if (navigator.share) await navigator.share(shareData);
     else if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(location.origin); alert("Website link copy हो गया।"); }
