@@ -959,3 +959,12 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
 .popup-ad-card p{font-size:14px;line-height:1.4;margin:9px 0}
 .popup-ad-button{margin-top:7px;padding:9px 18px;font-size:14px}
 .popup-ad-close{width:32px;height:32px;font-size:23px}
+
+/* Extra-small popup ad layout */
+.popup-ad-overlay{padding:8px}
+.popup-ad-card{width:min(78vw,260px);max-height:68vh;padding:12px 9px 10px;border-radius:12px}
+.popup-ad-card h2{font-size:15px;margin:4px 25px 7px}
+.popup-ad-image{max-height:25vh;max-width:100%;width:auto;margin:0 auto;border-radius:7px}
+.popup-ad-card p{font-size:12px;line-height:1.3;margin:7px 0}
+.popup-ad-button{margin-top:5px;padding:7px 13px;font-size:12px;border-radius:7px}
+.popup-ad-close{right:6px;top:6px;width:27px;height:27px;font-size:19px}
