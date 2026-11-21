@@ -188,7 +188,7 @@ async function makeResultShareCard(city,value,resultDate){
   ctx.fillStyle=gradient;ctx.fillRect(0,0,1080,1350);
   ctx.strokeStyle="#b88a3b";ctx.lineWidth=5;ctx.strokeRect(42,42,996,1266);
   ctx.textAlign="center";
-  ctx.fillStyle="#e6bd70";ctx.font="bold 62px Arial";ctx.fillText("SATTA KING 👑",540,170);
+  ctx.fillStyle="#e6bd70";ctx.font="bold 62px Arial";ctx.fillText("👑 Satta king 👑",540,170);
   ctx.fillStyle="#f5f0e6";ctx.font="bold 36px Arial";ctx.fillText("RESULTS PORTAL",540,225);
   ctx.strokeStyle="#80632d";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(180,275);ctx.lineTo(900,275);ctx.stroke();
   ctx.fillStyle="#d8d0c0";ctx.font="bold 40px Arial";ctx.fillText("TODAY'S RESULT",540,365);
@@ -208,12 +208,12 @@ async function makeResultShareCard(city,value,resultDate){
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
   if(!blob)throw new Error("Card image could not be created");
   const file=new File([blob],"satta-king-result.png",{type:"image/png"});
-  const shareText="SATTA KING 👑 RESULTS PORTAL\n"+String(city||"Result")+" : "+String(value||"—")+"\nDate: "+date+"\n\nपूरा रिजल्ट और पुराने रिकॉर्ड यहाँ देखें:\n"+siteUrl;
+  const shareText="👑 Satta king 👑 RESULTS PORTAL\n"+String(city||"Result")+" : "+String(value||"—")+"\nDate: "+date+"\n\nपूरा रिजल्ट और पुराने रिकॉर्ड यहाँ देखें:\n"+siteUrl;
   if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-    await navigator.share({files:[file],title:"Satta King Result",text:shareText});
+    await navigator.share({files:[file],title:"👑 Satta king 👑 Result",text:shareText});
   }else{
     const url=URL.createObjectURL(blob);
-    const link=document.createElement("a");link.href=url;link.download="rk-bhai-result.png";link.click();
+    const link=document.createElement("a");link.href=url;link.download="satta-king-result.png";link.click();
     setTimeout(()=>URL.revokeObjectURL(url),1500);
     if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(shareText);}catch(error){}}
     alert("रिजल्ट कार्ड डाउनलोड हो गया। शेयर करने के लिए वेबसाइट लिंक भी कॉपी कर दिया गया है।");
