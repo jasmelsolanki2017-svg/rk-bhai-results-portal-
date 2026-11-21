@@ -1024,3 +1024,21 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
 .popup-ad-button{margin-top:7px!important;padding:7px 11px!important;font-size:11px!important}
 .popup-ad-close{width:24px!important;height:24px!important;right:5px!important;top:5px!important;font-size:17px!important}
 @media(max-width:380px){.popup-ad-overlay{padding:60px 7px 7px!important}.popup-ad-card{width:min(70vw,220px)!important;max-width:220px!important;max-height:45vh!important;padding:11px 7px 8px!important}.popup-ad-section p{font-size:9px!important}}
+
+/* Multiple popup ad manager */
+.popup-ad-admin-list{display:grid;gap:10px;margin:16px 0 22px}
+.popup-ad-admin-item{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:13px;border:1px solid #554324;border-radius:12px;background:#14120e}
+.popup-ad-admin-info{min-width:0;flex:1}
+.popup-ad-admin-info strong{display:inline-block;color:#f2d28b;overflow-wrap:anywhere}
+.popup-ad-admin-info p{margin:7px 0 0;color:#c9c1b2;font-size:13px;overflow-wrap:anywhere}
+.popup-ad-admin-status{display:inline-block;margin-left:8px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:800}
+.popup-ad-admin-status.is-on{background:#173b27;color:#a6efbd}
+.popup-ad-admin-status.is-off{background:#3a2525;color:#f2aaaa}
+.popup-ad-admin-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.popup-ad-admin-actions button{padding:7px 10px;border:1px solid #80632d;border-radius:8px;background:#262018;color:#f5dfb4;font:inherit;font-size:12px;cursor:pointer}
+.popup-ad-admin-actions button.danger{border-color:#874747;background:#351d1d;color:#ffc1c1}
+#popupAdFormHeading{margin:18px 0 12px;color:var(--gold)}
+/* Popup floats in a corner without dimming or blocking the public page behind it */
+.popup-ad-overlay{background:transparent!important;backdrop-filter:none!important;pointer-events:none;align-items:flex-start;justify-content:flex-end;padding:10px}
+.popup-ad-card{pointer-events:auto}
+@media(max-width:520px){.popup-ad-admin-item{display:block}.popup-ad-admin-actions{justify-content:flex-start;margin-top:10px}}
