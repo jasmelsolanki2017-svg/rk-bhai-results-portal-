@@ -15,7 +15,8 @@ form.addEventListener("submit",async event=>{
     });
     const result=await response.json().catch(()=>({}));
     if(!response.ok) throw new Error(result.error||"Login नहीं हुआ। ID और Password जाँचें।");
-    window.location.replace("/admin");
+    const returnTo=location.pathname==="/admin/advertisements"?"/admin/advertisements":"/admin";
+    window.location.replace(returnTo);
   }catch(error){
     msg.textContent=error.message;
     button.disabled=false;
