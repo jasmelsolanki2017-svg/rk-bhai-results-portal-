@@ -1,7 +1,7 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
 
-const SOURCE_URL = "https://satta-king-fast.com/chl";
+const SOURCE_URL = "https://satta-king-fast.com/";
 const REPO = process.env.GITHUB_REPOSITORY || "jasmelsolanki2017-svg/rk-bhai-results-portal-";
 const SNAPSHOT_BRANCH = "public-data";
 const SOURCE_MARKETS = [
