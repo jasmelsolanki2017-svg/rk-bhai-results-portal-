@@ -882,3 +882,8 @@ body.theme-light .side-tools-menu{background:#fff;color:#20242b;border-color:#d8
 
 /* Ensure both values in the Gali homepage card blink */
 .top-result-card .top-previous.result-blink,.top-result-card .top-current.result-blink{display:inline-block;animation:topResultBlink 1s steps(2,start) infinite!important}
+
+
+/* Full SATTA KING name in the admin header mark. */
+.pro-brand .brand-mark{width:auto;min-width:0;padding:0 10px;font-size:11px;letter-spacing:.3px;white-space:nowrap}
+@media(max-width:600px){.pro-brand .brand-mark{font-size:9px;padding:0 7px}.pro-brand{gap:7px}}
