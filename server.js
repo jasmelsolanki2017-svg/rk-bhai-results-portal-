@@ -58,7 +58,7 @@ function hasAdminSession(req) {
 // Admin HTML routes are gated before static files are served. Without a valid
 // admin cookie, only the standalone username/password page is returned.
 app.use((req, res, next) => {
-  const adminPages = new Set(["/admin", "/admin/", "/admin/users", "/admin.html", "/admin-users.html"]);
+  const adminPages = new Set(["/admin", "/admin/", "/admin/advertisements", "/admin/users", "/admin.html", "/admin-users.html"]);
   if (!adminPages.has(req.path)) return next();
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
   res.setHeader("Pragma", "no-cache");
@@ -72,6 +72,7 @@ app.use((req, res, next) => {
 
 app.use(express.static(path.join(__dirname, "public")));
 app.get("/admin", (req, res) => res.sendFile(path.join(__dirname, "public", "admin.html")));
+app.get("/admin/advertisements", (req, res) => res.sendFile(path.join(__dirname, "public", "admin.html")));
 app.get("/user", (req, res) => res.sendFile(path.join(__dirname, "public", "user.html")));
 app.get("/admin/users", (req, res) => res.sendFile(path.join(__dirname, "public", "admin-users.html")));
 
