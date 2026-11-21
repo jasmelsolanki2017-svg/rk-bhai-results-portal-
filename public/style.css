@@ -218,7 +218,7 @@ body{background:radial-gradient(ellipse at 50% -18%,#4a3519 0,rgba(28,22,13,.82)
 .public-header{padding:0 22px;text-align:left;background:rgba(8,8,8,.94);border-bottom:1px solid #6b5229;box-shadow:0 10px 34px #0006}
 .public-header-inner{width:min(1240px,100%);min-height:88px;margin:auto;display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:28px}
 .public-brand{display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none;min-width:0}
-.public-brand-mark{width:48px;height:48px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(145deg,#f5d991,#a77728);color:#171109;font-size:18px;font-weight:1000;box-shadow:0 5px 18px #d7ad5533}
+.public-brand-mark{width:auto;min-width:48px;height:48px;padding:0 10px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(145deg,#f5d991,#a77728);color:#171109;font-size:10px;font-weight:1000;white-space:nowrap;box-shadow:0 5px 18px #d7ad5533}
 .public-brand strong{display:block;font-size:21px;line-height:1.1;letter-spacing:1.5px;color:#d7ad55}
 .public-brand strong b{color:#fff}
 .public-brand small{display:block;margin-top:5px;color:#a99a7b;font-size:9px;letter-spacing:2px}
@@ -278,7 +278,7 @@ body>footer{border-top:1px solid #332817;background:#090909;color:#9b8d70}
 @media(max-width:600px){
  .public-header{padding:0 13px}
  .public-header-inner{grid-template-columns:minmax(0,1fr) auto;gap:8px}
- .public-brand-mark{width:40px;height:40px;border-radius:12px}
+ .public-brand-mark{width:auto;height:40px;padding:0 8px;border-radius:12px;font-size:9px}
  .public-brand strong{font-size:18px}
  .public-brand small{font-size:8px;letter-spacing:1.2px}
  .public-header .live-clock{min-width:112px;max-width:120px;padding:6px 7px}
@@ -412,7 +412,7 @@ body>footer{border-top:1px solid #332817;background:#090909;color:#9b8d70}
  .public-header .live-clock small{font-size:8px}
  .header-menu-trigger{grid-column:3;grid-row:1;width:40px;height:40px}
  .public-brand{gap:8px}
- .public-brand-mark{width:37px;height:37px}
+ .public-brand-mark{width:auto;height:37px;padding:0 7px;font-size:8px}
  .public-brand strong{font-size:16px}
  .public-brand small{font-size:7px;letter-spacing:.8px}
  .side-tools-menu{padding:21px 15px}
