@@ -152,7 +152,7 @@ if (installButton) installButton.addEventListener("click", async () => {
 });
 const shareButton = document.getElementById("shareSite");
 if (shareButton) shareButton.addEventListener("click", async () => {
-  const shareData = { title: "RK Bhai Results & Historical Archive", text: "RK Bhai Portal देखें", url: location.origin };
+  const shareData = { title: "👑 Satta king 👑 Results & Historical Archive", text: "👑 Satta king 👑 Portal देखें", url: location.origin };
   try {
     if (navigator.share) await navigator.share(shareData);
     else if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(location.origin); alert("Website link copy हो गया।"); }
