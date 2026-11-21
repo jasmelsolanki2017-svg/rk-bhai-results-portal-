@@ -1,4 +1,4 @@
-# RK Bhai Results & Archive
+# 👑 Satta king 👑 Results & Archive
 
 A separate, mobile-first Node.js + Express + MongoDB application for admin-published informational results and historical records.
 
