@@ -166,7 +166,8 @@ function renderRecent(){
       const currentRow=result.today||(galiCarry?result.yesterday:null);
       const previousRow=result.yesterday;
       const shouldBlink=isGali?galiBlinkWindow&&!!currentRow:!!result.today;
-      const previous=previousRow?escapeHtml(previousRow.resultText):"XX";
+      const previousDisplayRow=isGali&&galiBlinkWindow?(currentRow||previousRow):previousRow;
+      const previous=previousDisplayRow?escapeHtml(previousDisplayRow.resultText):"XX";
       const current=isGali&&galiBlinkWindow?"-":(currentRow?escapeHtml(currentRow.resultText):"—");
       const blinkLeft=isGali&&galiBlinkWindow&&!!previousRow;
       const blinkRight=!isGali&&shouldBlink;
