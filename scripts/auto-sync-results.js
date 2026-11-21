@@ -69,7 +69,7 @@ function parseSourceDate(html) {
   if (monthly) {
     const month = new Date(Date.parse(monthly[1] + " 1, 2000")).getMonth() + 1;
     const today = getIndiaDateParts();
-    const rowPattern = new RegExp("(?:^|\\n)\\s*0?" + today.day + "\\s+(?:\\d{2}|XX|--|-)(?:\\s+(?:\\d{2}|XX|--|-)){1,8}(?:\\s|$)", "im");
+    const rowPattern = new RegExp("(?:^|\\s)0?" + today.day + "\\s+(?:\\d{2}|XX|--|-)(?:\\s+(?:\\d{2}|XX|--|-)){1,8}(?:\\s|$)", "im");
     if (Number(monthly[2]) === today.year && month === today.month && rowPattern.test(plain)) {
       return today;
     }
