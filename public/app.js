@@ -192,7 +192,9 @@ async function makeResultShareCard(city,value,resultDate){
   ctx.fillStyle="#d8d0c0";ctx.font="bold 40px Arial";ctx.fillText("TODAY'S RESULT",540,365);
   const label=String(city||"").slice(0,28);
   ctx.fillStyle="#e6bd70";ctx.font="bold 58px Arial";ctx.fillText(label,540,485);
-  const date=resultDate?new Date(resultDate).toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric",timeZone:"Asia/Kolkata"}):new Date().toLocaleDateString("en-IN");
+  const shareDateValue=resultDate?new Date(resultDate):new Date();
+  if(String(city||"").trim().toLocaleLowerCase("en")==="gali"&&resultDate)shareDateValue.setUTCDate(shareDateValue.getUTCDate()-1);
+  const date=shareDateValue.toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric",timeZone:"Asia/Kolkata"});
   ctx.fillStyle="#cfc6b5";ctx.font="32px Arial";ctx.fillText(date,540,550);
   ctx.fillStyle="#b88a3b";ctx.font="bold 30px Arial";ctx.fillText("PUBLISHED RESULT",540,680);
   ctx.fillStyle="#f5d78e";ctx.font="bold 190px Arial";ctx.fillText(String(value||"—").slice(0,12),540,890);
