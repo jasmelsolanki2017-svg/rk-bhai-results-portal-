@@ -445,10 +445,10 @@ if ("IntersectionObserver" in window && mobileNavItems.length) {
     const visible = entries.filter(entry => entry.isIntersecting).sort((a,b) => b.intersectionRatio-a.intersectionRatio)[0];
     if (!visible) return;
     const key = visible.target.id === "archive" ? "archive" :
-      (visible.target.id === "resultsHeading" || visible.target.id === "results" ? "results" : "home");
+      (visible.target.id === "top-result-section" ? "results" : "home");
     setMobileNavActive(key);
   }, {rootMargin:"-18% 0px -62% 0px",threshold:[0,.15,.35,.6]});
-  ["top","resultsHeading","archive"].forEach(id => {
+  ["top","top-result-section","archive"].forEach(id => {
     const target=document.getElementById(id);
     if(target) mobileNavObserver.observe(target);
   });
