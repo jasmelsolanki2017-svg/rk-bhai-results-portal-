@@ -916,3 +916,14 @@ body>footer.site-footer{padding:0 16px;border-top:1px solid #49391f;background:l
 .site-footer-inner>small{color:#817866;font-size:11px}
 body.theme-light .site-info-panel{background:#fff;border-color:#d9c79e;color:#263244}body.theme-light .site-info-panel>p,body.theme-light .faq-panel details p{color:#526071}body.theme-light .faq-panel summary{color:#263244}body.theme-light .faq-panel details{border-color:#e5e7eb}body.theme-light .site-footer{background:#f5f1e8!important;border-color:#d9c79e!important}body.theme-light .site-footer .footer-warning{color:#526071}body.theme-light .site-footer-inner>small{color:#667085}
 @media(max-width:520px){.site-info-panel{padding:17px 14px}.site-info-heading h2{font-size:19px}.site-footer-inner{gap:11px}}
+
+/* Homepage quick-use guide */
+.how-to-use-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+.how-to-use-grid article{padding:14px;border:1px solid rgba(184,138,59,.24);border-radius:10px;background:rgba(0,0,0,.18)}
+.how-to-use-grid article strong{display:block;color:var(--gold,#d7ad55);font-size:14px;margin-bottom:5px}
+.how-to-use-grid article p{margin:0;color:var(--muted,#b8ad9b);font-size:13px;line-height:1.7}
+.how-to-use-note{margin:13px 0 0!important;padding-top:10px;border-top:1px solid rgba(255,255,255,.1);font-size:12px!important}
+body.theme-light .how-to-use-grid article{background:#faf8f2;border-color:#e5d7b7}
+body.theme-light .how-to-use-grid article p{color:#526071}
+body.theme-light .how-to-use-note{border-color:#e5e7eb}
+@media(max-width:520px){.how-to-use-grid{grid-template-columns:1fr;gap:9px}.how-to-use-grid article{padding:12px}}
