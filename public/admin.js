@@ -13,6 +13,15 @@ async function api(url,opts={}){
   return data;
 }
 function showPanel(on){$("#loginBox").hidden=on;$("#panel").hidden=!on;}
+function showAdminView(view){
+ const ads=view==="ads";
+ $("#adminMainView").hidden=ads;
+ $("#adManagementView").hidden=!ads;
+ if(ads) window.scrollTo({top:0,behavior:"smooth"});
+}
+$("#adsManagementOpen").addEventListener("click",()=>showAdminView("ads"));
+$("#adsManagementBack").addEventListener("click",()=>showAdminView("main"));
+
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function dateValue(v){return new Date(v).toISOString().slice(0,10);}
 function monthKey(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");}
@@ -250,7 +259,7 @@ $("#logout").addEventListener("click",async()=>{
   try{await api("/api/admin/logout",{method:"POST"});showPanel(false);$("#loginForm").reset();msg.textContent="Logout हो गया";}
   catch(err){msg.textContent=err.message;showPanel(false);}
 });
-(async()=>{try{await api("/api/admin/session");showPanel(true);await loadPosterManager();await loadAnnouncementManager();await refresh();msg.textContent="Admin session चालू है";}
+(async()=>{try{await api("/api/admin/session");showPanel(true);await loadPosterManager();await loadPopupAdManager();await loadAnnouncementManager();await refresh();msg.textContent="Admin session चालू है";}
 catch{showPanel(false);}})();
 
 async function loadPopupAdManager(){try{const p=await api("/api/admin/popup-ad");$("#popupAdTitle").value=p.title||"";$("#popupAdDescription").value=p.description||"";$("#popupAdUrl").value=p.buttonUrl||"";$("#popupAdButton").value=p.buttonText||"अभी देखें";$("#popupAdDelay").value=String(p.delaySeconds??0);$("#popupAdFrequency").value=String(p.frequencyHours||24);$("#popupAdEnabled").checked=!!p.enabled;if(p.imageData)$("#popupAdPreview").innerHTML='<img src="'+p.imageData+'" alt="Popup ad preview">';}catch(e){$("#popupAdMsg").textContent="Popup Ad load error: "+e.message;}}
