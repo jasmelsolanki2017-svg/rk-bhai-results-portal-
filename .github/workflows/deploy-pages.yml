@@ -40,7 +40,7 @@ jobs:
           output.mkdir(exist_ok=True)
 
           # Copy only public-facing assets. Admin and user panel files stay on Render.
-          for name in ("style.css", "clock.js", "icon.svg", "brand-crown.svg"):
+          for name in ("style.css", "clock.js", "icon.svg", "brand-crown.svg", "disclaimer.html"):
               (output / name).write_bytes((source / name).read_bytes())
 
           html = (source / "index.html").read_text(encoding="utf-8")
@@ -68,9 +68,9 @@ jobs:
               icon["src"] = "./icon.svg"
           (output / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
 
-          sw = """const CACHE_NAME = "satta-king-pages-shell-v2";
+          sw = """const CACHE_NAME = "satta-king-pages-shell-v3";
           const BASE_URL = new URL("./", self.location.href);
-          const APP_SHELL = ["./", "./index.html", "./style.css", "./app.js", "./clock.js", "./manifest.json", "./icon.svg", "./brand-crown.svg"].map(path => new URL(path, BASE_URL).href);
+          const APP_SHELL = ["./", "./index.html", "./style.css", "./app.js", "./clock.js", "./manifest.json", "./icon.svg", "./brand-crown.svg", "./disclaimer.html"].map(path => new URL(path, BASE_URL).href);
 
           self.addEventListener("install", event => {
             event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
