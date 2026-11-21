@@ -1,7 +1,7 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
 
-const SOURCE_URL = "https://satta-king-fast.com/";
+const SOURCE_URL = "https://satta-king-fast.com/satta-king-online-result.php";
 const REPO = process.env.GITHUB_REPOSITORY || "jasmelsolanki2017-svg/rk-bhai-results-portal-";
 const SNAPSHOT_BRANCH = "public-data";
 const SOURCE_MARKETS = [
@@ -56,10 +56,25 @@ function parseSourceDate(html) {
   const plain = decodeHtml(html.replace(/<script\b[\s\S]*?<\/script>/gi, " ")
     .replace(/<style\b[\s\S]*?<\/style>/gi, " ")
     .replace(/<[^>]+>/g, " "));
-  const match = plain.match(/Satta King Fast Results of\s+([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/i);
-  if (!match) throw new Error("Source result date heading was not found; refusing to import unverified data.");
-  const month = new Date(Date.parse(match[1] + " 1, 2000")).getMonth() + 1;
-  return { year: Number(match[3]), month, day: Number(match[2]) };
+  // The source alternates between "Satta King" and "Satta Kings" in its daily heading.
+  const match = plain.match(/Satta Kings? Fast Results of\s+([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/i);
+  if (match) {
+    const month = new Date(Date.parse(match[1] + " 1, 2000")).getMonth() + 1;
+    return { year: Number(match[3]), month, day: Number(match[2]) };
+  }
+
+  // Some versions expose only the monthly chart heading. Accept today's date
+  // only when that exact day row exists in the source table.
+  const monthly = plain.match(/Monthly Satta King Result Chart of\s+([A-Za-z]+)\s+(\d{4})/i);
+  if (monthly) {
+    const month = new Date(Date.parse(monthly[1] + " 1, 2000")).getMonth() + 1;
+    const today = getIndiaDateParts();
+    const rowPattern = new RegExp("(?:^|\\n)\\s*0?" + today.day + "\\s+(?:\\d{2}|XX|--|-)(?:\\s+(?:\\d{2}|XX|--|-)){1,8}(?:\\s|$)", "im");
+    if (Number(monthly[2]) === today.year && month === today.month && rowPattern.test(plain)) {
+      return today;
+    }
+  }
+  throw new Error("Source result date heading/table was not found; refusing to import unverified data.");
 }
 
 function parseMarketValues(html, marketName) {
