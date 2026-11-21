@@ -418,7 +418,7 @@ app.post("/api/admin/restore", adminOnly, express.json({ limit: "25mb" }), async
   const data = backup && backup.collections;
   if (!backup || backup.app !== "rk-bhai-results-portal" || backup.version !== 1 ||
       !data || !Array.isArray(data.users) || !Array.isArray(data.cities) || !Array.isArray(data.results)) {
-    return res.status(400).json({ error: "यह सही RK Bhai backup file नहीं है।" });
+    return res.status(400).json({ error: "यह सही 👑 Satta king 👑 backup file नहीं है।" });
   }
   if (data.users.length > 5000 || data.cities.length > 5000 || data.results.length > 20000) {
     return res.status(413).json({ error: "Backup में records की संख्या तय सीमा से अधिक है।" });
