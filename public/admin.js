@@ -83,7 +83,7 @@ function createAdminResultCard(city,value,resultDate){
  ctx.fillStyle=glow;ctx.fillRect(0,0,1080,1350);
  ctx.strokeStyle="#d6a84f";ctx.lineWidth=7;ctx.strokeRect(34,34,1012,1282);ctx.strokeStyle="rgba(255,225,165,.38)";ctx.lineWidth=2;ctx.strokeRect(54,54,972,1242);
  ctx.textAlign="center";
- ctx.fillStyle="#f6d58d";ctx.font="bold 72px Arial";ctx.fillText("RK BHAI",540,170);
+ ctx.fillStyle="#f6d58d";ctx.font="bold 66px Arial";ctx.fillText("👑 Satta king 👑",540,170);
  ctx.fillStyle="#ffffff";ctx.font="bold 42px Arial";ctx.fillText("RESULTS PORTAL",540,232);
  ctx.strokeStyle="#d6a84f";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(170,292);ctx.lineTo(910,292);ctx.stroke();
  ctx.fillStyle="#ffffff";ctx.font="bold 44px Arial";ctx.fillText("TODAY'S RESULT",540,385);
@@ -103,7 +103,7 @@ function createAdminResultCard(city,value,resultDate){
  ctx.fillStyle="#c5a66c";ctx.font="26px Arial";ctx.fillText("THANK YOU FOR YOUR SUPPORT",540,1280);
  const data=canvas.toDataURL("image/png"),binary=atob(data.split(",")[1]),bytes=new Uint8Array(binary.length);
  for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
- return new File([bytes],"rk-bhai-result.png",{type:"image/png"});
+ return new File([bytes],"satta-king-result.png",{type:"image/png"});
 }
 function downloadAdminResultCard(file){
  const url=URL.createObjectURL(file),link=document.createElement("a");link.href=url;link.download=file.name;link.click();
@@ -120,7 +120,7 @@ if(adminResultBox)adminResultBox.addEventListener("click",event=>{
   const message=decodeURIComponent((link.href.split("?text=")[1]||""));
   if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
    event.preventDefault();
-   const payload={files:[file],title:"RK Bhai Result"};
+   const payload={files:[file],title:"👑 Satta king 👑 Result"};
    if(mode==="both")payload.text=message;
    navigator.share(payload).catch(error=>{if(error.name!=="AbortError")console.warn("Result share failed:",error);});
   }else{
