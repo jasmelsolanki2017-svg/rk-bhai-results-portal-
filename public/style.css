@@ -899,3 +899,5 @@ body.theme-light .side-tools-menu{background:#fff;color:#20242b;border-color:#d8
 .user-dashboard-header .brand{display:flex;align-items:center;justify-content:center;gap:10px}
 .user-dashboard-header .dashboard-brand-icon{width:42px;height:42px;border-radius:12px;vertical-align:middle}
 @media(max-width:520px){.public-brand{gap:8px}.public-brand-mark{width:44px;min-width:44px;height:44px}.public-brand strong{font-size:17px;letter-spacing:1px}.public-brand small{font-size:8px;letter-spacing:1px}}
+
+.footer-policy-links{display:inline-flex;gap:12px;margin-left:10px}.footer-policy-links a{color:var(--gold,#d7ad55);text-decoration:underline;text-underline-offset:3px;font-weight:700}
