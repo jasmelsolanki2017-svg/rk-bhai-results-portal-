@@ -1,7 +1,15 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-21T01:15:33.109Z",
+  "updatedAt": "2026-11-21T02:13:56.424Z",
   "results": [
+    {
+      "_id": "6b00fe61a76f5b81aaa786d1",
+      "title": "Disawar",
+      "resultText": "76",
+      "resultDate": "2026-11-21T00:00:00.000Z",
+      "sourceUrl": "",
+      "createdAt": "2026-11-21T02:13:53.171Z"
+    },
     {
       "_id": "6b0094d1d55029230fe64a6b",
       "title": "Gali",
