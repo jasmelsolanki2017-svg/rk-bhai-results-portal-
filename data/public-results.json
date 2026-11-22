@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-22T15:05:45.772Z",
+  "updatedAt": "2026-11-22T15:12:59.934Z",
   "results": [
     {
       "_id": "6b02b9f314035aaa3c696b9a",
@@ -33,6 +33,14 @@
       "resultDate": "2026-11-22T12:00:00.000Z",
       "sourceUrl": "https://satta-king-fast.com/",
       "createdAt": "2026-11-22T11:18:35.001Z"
+    },
+    {
+      "_id": "6b03067971789588327254a0",
+      "title": "Chandigarh City",
+      "resultText": "07",
+      "resultDate": "2026-11-22T00:00:00.000Z",
+      "sourceUrl": "",
+      "createdAt": "2026-11-22T15:12:57.109Z"
     },
     {
       "_id": "6b0168cd991ad7ffc7248cca",
