@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-22T09:46:17.497Z",
+  "updatedAt": "2026-11-22T09:46:30.139Z",
   "results": [
     {
       "_id": "6b0230306d3e9be71a253481",
@@ -9,6 +9,14 @@
       "resultDate": "2026-11-22T12:00:00.000Z",
       "sourceUrl": "https://satta-king-fast.com/",
       "createdAt": "2026-11-21T23:58:38.705Z"
+    },
+    {
+      "_id": "6b02b9f314035aaa3c696b9a",
+      "title": "Delhi Bazar",
+      "resultText": "07",
+      "resultDate": "2026-11-22T00:00:00.000Z",
+      "sourceUrl": "",
+      "createdAt": "2026-11-22T09:46:27.262Z"
     },
     {
       "_id": "6b0168cd991ad7ffc7248cca",
