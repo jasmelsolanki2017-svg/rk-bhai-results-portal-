@@ -205,7 +205,7 @@ async function makeResultShareCard(city,value,resultDate){
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
   if(!blob)throw new Error("Card image could not be created");
   const file=new File([blob],"satta-king-result.png",{type:"image/png"});
-  const shareText="👑 Satta king 👑 RESULTS PORTAL\n"+String(city||"Result")+" : "+String(value||"—")+"\nDate: "+date;
+  const shareText="👑 Satta king 👑 RESULTS PORTAL\n"+String(city||"Result")+" : "+String(value||"—")+"\nDate: "+date+"\n\nWebsite: https://jasmelsolanki2017-svg.github.io/rk-bhai-results-portal-/";
   if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
     await navigator.share({files:[file],title:"👑 Satta king 👑 Result",text:shareText});
   }else{
