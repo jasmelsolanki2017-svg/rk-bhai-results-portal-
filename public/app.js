@@ -179,7 +179,6 @@ function renderRecent(){
 
 }
 async function makeResultShareCard(city,value,resultDate){
-  const siteUrl="https://jasmelsolanki2017-svg.github.io/rk-bhai-results-portal-/";
   const canvas=document.createElement("canvas");
   canvas.width=1080;canvas.height=1350;
   const ctx=canvas.getContext("2d");
@@ -202,21 +201,18 @@ async function makeResultShareCard(city,value,resultDate){
   ctx.fillStyle="#f5d78e";ctx.font="bold 190px Arial";ctx.fillText(String(value||"—").slice(0,12),540,890);
   ctx.strokeStyle="#80632d";ctx.beginPath();ctx.moveTo(180,980);ctx.lineTo(900,980);ctx.stroke();
   ctx.fillStyle="#e6bd70";ctx.font="bold 34px Arial";ctx.fillText("CHECK MORE RESULTS & OLD RECORDS",540,1070);
-  ctx.fillStyle="#f5f0e6";ctx.font="30px Arial";ctx.fillText("VISIT OUR WEBSITE",540,1140);
-  ctx.fillStyle="#d8d0c0";ctx.font="27px Arial";ctx.fillText("jasmelsolanki2017-svg.github.io/rk-bhai-results-portal-",540,1195);
   ctx.fillStyle="#9f8a64";ctx.font="24px Arial";ctx.fillText("THANK YOU FOR YOUR SUPPORT",540,1260);
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
   if(!blob)throw new Error("Card image could not be created");
   const file=new File([blob],"satta-king-result.png",{type:"image/png"});
-  const shareText="👑 Satta king 👑 RESULTS PORTAL\n"+String(city||"Result")+" : "+String(value||"—")+"\nDate: "+date+"\n\nपूरा रिजल्ट और पुराने रिकॉर्ड यहाँ देखें:\n"+siteUrl;
+  const shareText="👑 Satta king 👑 RESULTS PORTAL\n"+String(city||"Result")+" : "+String(value||"—")+"\nDate: "+date;
   if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
     await navigator.share({files:[file],title:"👑 Satta king 👑 Result",text:shareText});
   }else{
     const url=URL.createObjectURL(blob);
     const link=document.createElement("a");link.href=url;link.download="satta-king-result.png";link.click();
     setTimeout(()=>URL.revokeObjectURL(url),1500);
-    if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(shareText);}catch(error){}}
-    alert("रिजल्ट कार्ड डाउनलोड हो गया। शेयर करने के लिए वेबसाइट लिंक भी कॉपी कर दिया गया है।");
+    alert("रिजल्ट कार्ड डाउनलोड हो गया।");
   }
 }
 if(topResultCards)topResultCards.addEventListener("click",async event=>{
