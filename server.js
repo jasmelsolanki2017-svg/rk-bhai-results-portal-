@@ -230,10 +230,10 @@ app.post("/api/admin/login", adminLoginRateLimit, async (req, res) => {
   const validPass = await bcrypt.compare(password, adminPasswordHash);
   if (!validUser || !validPass) return res.status(401).json({ error: "Incorrect login" });
   adminLoginAttempts.delete(req.ip || req.socket.remoteAddress || "unknown");
-  const token = jwt.sign({ role: "admin" }, process.env.JWT_SECRET, { expiresIn: "8h" });
+  const token = jwt.sign({ role: "admin" }, process.env.JWT_SECRET, { expiresIn: "365d" });
   res.cookie("admin_session", token, {
     httpOnly: true, sameSite: "strict", secure: process.env.NODE_ENV === "production",
-    maxAge: 8 * 60 * 60 * 1000, path: "/"
+    maxAge: 365 * 24 * 60 * 60 * 1000, path: "/"
   });
   res.json({ ok: true });
 });
