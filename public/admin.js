@@ -86,7 +86,7 @@ async function renderAdminTopResults(){
    const blinkRight=!isGali&&shouldBlink;
    const info=cities.find(c=>c.cityName===city)||{},time=info.expectedTime||info.resultTime||info.time||fixed[city.trim().toLowerCase()]||"";
    const value=isGali?"-":(now?String(now.resultText):"WAIT");
-   const date=now?new Date(now.resultDate).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",timeZone:"Asia/Kolkata"}):"";
+   const date=now?new Date(now.resultDate).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",timeZone:"UTC"}):"";
    const publishedAt=now?.createdAt||now?.updatedAt||now?.resultDate;
    const clock=publishedAt?new Date(publishedAt).toLocaleTimeString("en-IN",{hour:"numeric",minute:"2-digit",hour12:true,timeZone:"Asia/Kolkata"}):"";
    const message=["❤️ "+city.toUpperCase()+" ❤️","👇 LIVE RESULT 👇","","*✅   (( "+(isGali&&now?now.resultText:value)+" ))   ✅*","","Date : "+date,...(clock?[clock]:[])].join("\n");
@@ -112,7 +112,7 @@ function createAdminResultCard(city,value,resultDate){
  ctx.strokeStyle="#d6a84f";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(170,292);ctx.lineTo(910,292);ctx.stroke();
  ctx.fillStyle="#ffffff";ctx.font="bold 44px Arial";ctx.fillText("TODAY'S RESULT",540,385);
  ctx.fillStyle="#f6d58d";ctx.font="bold 76px Arial";ctx.fillText(String(city||"").toUpperCase().slice(0,24),540,520);
- const date=resultDate?new Date(resultDate).toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric",timeZone:"Asia/Kolkata"}):new Date().toLocaleDateString("en-IN");
+ const date=resultDate?new Date(resultDate).toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric",timeZone:"UTC"}):new Date().toLocaleDateString("en-IN");
  ctx.fillStyle="#e4e9f2";ctx.font="36px Arial";ctx.fillText(date,540,590);
  const panel=ctx.createLinearGradient(150,0,930,0);panel.addColorStop(0,"#30233d");panel.addColorStop(.5,"#49351d");panel.addColorStop(1,"#30233d");
  ctx.fillStyle=panel;ctx.beginPath();ctx.roundRect(115,665,850,335,34);ctx.fill();
