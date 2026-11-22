@@ -71,7 +71,16 @@ async function renderAdminTopResults(){
   const todayStart=new Date(today+"T00:00:00.000Z"),yesterday=new Date(todayStart.getTime()-86400000).toISOString().slice(0,10);
   const byCity=new Map();
   rows.filter(r=>r.published!==false&&!r.deleted).forEach(r=>{const day=new Date(r.resultDate).toISOString().slice(0,10);if(day!==today&&day!==yesterday)return;if(!byCity.has(r.title))byCity.set(r.title,{today:null,yesterday:null});const slot=byCity.get(r.title);if(day===today)slot.today=r;else slot.yesterday=r;});
-  const visible=[...new Set([...cities.map(c=>c.cityName),...byCity.keys()])].filter(n=>n&&!hiddenCityNames.has(n)).sort((a,b)=>a.localeCompare(b,"hi"));
+  // Put the market with the most recently added result first.
+  const latestEntryByCity=new Map();
+  rows.filter(r=>r.published!==false&&!r.deleted).forEach(r=>{
+   const stamp=Date.parse(r.createdAt||r.updatedAt||r.resultDate)||0;
+   const oldStamp=latestEntryByCity.get(r.title)||0;
+   if(stamp>oldStamp)latestEntryByCity.set(r.title,stamp);
+  });
+  const visible=[...new Set([...cities.map(c=>c.cityName),...byCity.keys()])]
+   .filter(n=>n&&!hiddenCityNames.has(n))
+   .sort((a,b)=>(latestEntryByCity.get(b)||0)-(latestEntryByCity.get(a)||0)||a.localeCompare(b,"hi"));
   if(!visible.length){box.innerHTML='<p class="muted">अभी कोई प्रकाशित रिजल्ट नहीं है।</p>';return;}
   const fixed={"disawar":"05:00 AM","desawar":"05:00 AM","faridabad":"06:20 PM","ghaziabad":"10:05 PM","gali":"12:05 AM","delhi bazar":"03:15 PM","shri ganesh":"04:45 PM","shree ganesh":"04:45 PM"};
   const indiaHour=Number(new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Kolkata",hour:"2-digit",hourCycle:"h23"}).format(new Date()));
