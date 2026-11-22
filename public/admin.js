@@ -70,20 +70,28 @@ async function renderAdminTopResults(){
   const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
   const todayStart=new Date(today+"T00:00:00.000Z"),yesterday=new Date(todayStart.getTime()-86400000).toISOString().slice(0,10);
   const byCity=new Map();
-  rows.filter(r=>r.published!==false&&!r.deleted).forEach(r=>{const day=new Date(r.resultDate).toISOString().slice(0,10);if(day!==today&&day!==yesterday)return;if(!byCity.has(r.title))byCity.set(r.title,{today:null,yesterday:null});const slot=byCity.get(r.title);if(day===""+today)slot.today=r;else slot.yesterday=r;});
+  rows.filter(r=>r.published!==false&&!r.deleted).forEach(r=>{const day=new Date(r.resultDate).toISOString().slice(0,10);if(day!==today&&day!==yesterday)return;if(!byCity.has(r.title))byCity.set(r.title,{today:null,yesterday:null});const slot=byCity.get(r.title);if(day===today)slot.today=r;else slot.yesterday=r;});
   const visible=[...new Set([...cities.map(c=>c.cityName),...byCity.keys()])].filter(n=>n&&!hiddenCityNames.has(n)).sort((a,b)=>a.localeCompare(b,"hi"));
   if(!visible.length){box.innerHTML='<p class="muted">अभी कोई प्रकाशित रिजल्ट नहीं है।</p>';return;}
   const fixed={"disawar":"05:00 AM","desawar":"05:00 AM","faridabad":"06:20 PM","ghaziabad":"10:05 PM","gali":"12:05 AM","delhi bazar":"03:15 PM","shri ganesh":"04:45 PM","shree ganesh":"04:45 PM"};
+  const indiaHour=Number(new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Kolkata",hour:"2-digit",hourCycle:"h23"}).format(new Date()));
+  const galiBlinkWindow=indiaHour<14;
   box.innerHTML=visible.map(city=>{
-   const result=byCity.get(city)||{},now=result.today,prev=result.yesterday;
+   const result=byCity.get(city)||{},isGali=String(city).trim().toLocaleLowerCase("en")==="gali";
+   const now=isGali?(galiBlinkWindow?(result.today||(result.yesterday?result.yesterday:null)):(result.today||result.yesterday)):result.today;
+   const prev=isGali&&!galiBlinkWindow&&!result.today?null:result.yesterday;
+   const previousDisplay=isGali?(now||prev):prev;
+   const shouldBlink=isGali?!!now&&(galiBlinkWindow||!result.today):!!now;
+   const blinkLeft=isGali&&shouldBlink&&!!previousDisplay;
+   const blinkRight=!isGali&&shouldBlink;
    const info=cities.find(c=>c.cityName===city)||{},time=info.expectedTime||info.resultTime||info.time||fixed[city.trim().toLowerCase()]||"";
-   const value=now?String(now.resultText):"WAIT";
+   const value=isGali?"-":(now?String(now.resultText):"WAIT");
    const date=now?new Date(now.resultDate).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",timeZone:"Asia/Kolkata"}):"";
    const publishedAt=now?.createdAt||now?.updatedAt||now?.resultDate;
    const clock=publishedAt?new Date(publishedAt).toLocaleTimeString("en-IN",{hour:"numeric",minute:"2-digit",hour12:true,timeZone:"Asia/Kolkata"}):"";
-    const message=["❤️ "+city.toUpperCase()+" ❤️","👇 LIVE RESULT 👇","","*✅   (( "+value+" ))   ✅*","","Date : "+date,...(clock?[clock]:[])].join("\n");
-   const shareAttrs=now?'href="https://wa.me/?text='+encodeURIComponent(message)+'" target="_blank" rel="noopener" data-share-city="'+esc(city)+'" data-share-value="'+esc(value)+'" data-share-date="'+esc(now.resultDate)+'"':'aria-disabled="true"';
-   return '<article class="top-result-card"><h3>'+esc(city)+'</h3><p class="top-result-time">'+(time?'( '+esc(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+(prev?esc(prev.resultText):"XX")+'</span><span class="top-result-arrow">➡️</span><span class="top-current-wrap">'+(now?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(now?' result-blink':'')+'">'+esc(value)+'</span></span></div><div class="dashboard-share-options"><a class="dashboard-whatsapp-share" '+shareAttrs+' data-share-mode="both">कार्ड + मैसेज</a><a class="dashboard-whatsapp-share" '+shareAttrs+' data-share-mode="card">केवल कार्ड</a><a class="dashboard-whatsapp-share" '+shareAttrs+' data-share-mode="message">केवल मैसेज</a></div></article>';
+   const message=["❤️ "+city.toUpperCase()+" ❤️","👇 LIVE RESULT 👇","","*✅   (( "+(isGali&&now?now.resultText:value)+" ))   ✅*","","Date : "+date,...(clock?[clock]:[])].join("\n");
+   const shareAttrs=now?'href="https://wa.me/?text='+encodeURIComponent(message)+'" target="_blank" rel="noopener" data-share-city="'+esc(city)+'" data-share-value="'+esc(isGali?now.resultText:value)+'" data-share-date="'+esc(now.resultDate)+'"':'aria-disabled="true"';
+   return '<article class="top-result-card"><h3>'+esc(city)+'</h3><p class="top-result-time">'+(time?'( '+esc(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+(blinkLeft?'<span class="new-result-badge">NEW</span>':'')+(previousDisplay?esc(previousDisplay.resultText):"XX")+'</span><span class="top-result-arrow">➡️</span><span class="top-current-wrap">'+(blinkRight?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(blinkRight?' result-blink':'')+'">'+esc(value)+'</span></span></div><div class="dashboard-share-options"><a class="dashboard-whatsapp-share" '+shareAttrs+' data-share-mode="both">कार्ड + मैसेज</a><a class="dashboard-whatsapp-share" '+shareAttrs+' data-share-mode="card">केवल कार्ड</a><a class="dashboard-whatsapp-share" '+shareAttrs+' data-share-mode="message">केवल मैसेज</a></div></article>';
   }).join("");
  }catch(error){box.innerHTML='<p class="muted">रिजल्ट लोड नहीं हो पाए: '+esc(error.message)+'</p>';}
 }
