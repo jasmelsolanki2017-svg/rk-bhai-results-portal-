@@ -44,6 +44,24 @@ function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&l
 function dateValue(v){return new Date(v).toISOString().slice(0,10);}
 function monthKey(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");}
 
+async function loadAutoSyncStatus(){
+ const box=$("#autoSyncStatus");if(!box)return;
+ box.textContent="Sync status लोड हो रहा है…";
+ try{
+  const url="https://raw.githubusercontent.com/jasmelsolanki2017-svg/rk-bhai-results-portal-/public-data/data/auto-sync-status.json?ts="+Date.now();
+  const response=await fetch(url,{cache:"no-store",signal:AbortSignal.timeout(10000)});
+  if(!response.ok)throw new Error("Status उपलब्ध नहीं ("+response.status+")");
+  const data=await response.json();
+  const labels={success:"सफल",failed:"फेल",running:"चल रहा है",skipped:"आज का रिजल्ट नहीं मिला"};
+  const color=data.status==="success"?"#35c979":data.status==="failed"?"#ff6b6b":data.status==="running"?"#e7b84c":"#9ca3af";
+  const when=data.checkedAt?new Date(data.checkedAt).toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short",timeZone:"Asia/Kolkata"}):"समय उपलब्ध नहीं";
+  box.innerHTML='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0"><strong style="color:'+color+'">'+esc(labels[data.status]||data.status||"Unknown")+'</strong><span class="muted">Last check: '+esc(when)+'</span></div><p style="margin:6px 0;white-space:pre-wrap">'+esc(data.message||"कोई विवरण नहीं")+'</p><p class="muted" style="margin:4px 0">Source: '+esc(data.sourceUrl||"—")+' · Attempts: '+esc(data.attempts??"—")+(data.httpStatus?" · HTTP "+esc(data.httpStatus):"")+'</p>';
+ }catch(error){
+  box.innerHTML='<span class="muted">अभी sync status उपलब्ध नहीं है। अगली automatic run के बाद यहाँ दिखाई देगा। ('+esc(error.message)+')</span>';
+ }
+}
+$("#refreshAutoSyncStatus")?.addEventListener("click",loadAutoSyncStatus);
+
 async function refresh(){
   // Start the month chart immediately; the larger all-results request must
   // never block the chart from appearing.
@@ -266,7 +284,7 @@ titleInput.addEventListener("keydown",e=>{if(e.key==="Escape")suggestionBox.hidd
 
 $("#loginForm").addEventListener("submit",async e=>{
   e.preventDefault();msg.textContent="Login हो रहा है…";
-  try{const f=new FormData(e.target);await api("/api/admin/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});showPanel(true);applyAdminRoute();await loadPosterManager();await loadPopupAdManager();await loadBlinkMessages();await loadAnnouncementManager();await refresh();msg.textContent="Login सफल";}
+  try{const f=new FormData(e.target);await api("/api/admin/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});showPanel(true);applyAdminRoute();await loadAutoSyncStatus();await loadPosterManager();await loadPopupAdManager();await loadBlinkMessages();await loadAnnouncementManager();await refresh();msg.textContent="Login सफल";}
   catch(err){msg.textContent=err.message;}
 });
 $("#resultForm").addEventListener("submit",async e=>{
@@ -291,7 +309,7 @@ $("#logout").addEventListener("click",async()=>{
   try{await api("/api/admin/logout",{method:"POST"});showPanel(false);$("#loginForm").reset();msg.textContent="Logout हो गया";}
   catch(err){msg.textContent=err.message;showPanel(false);}
 });
-(async()=>{try{await api("/api/admin/session");showPanel(true);applyAdminRoute();await loadPosterManager();await loadPopupAdManager();await loadBlinkMessages();await loadAnnouncementManager();await refresh();msg.textContent="Admin session चालू है";}
+(async()=>{try{await api("/api/admin/session");showPanel(true);applyAdminRoute();await loadAutoSyncStatus();await loadPosterManager();await loadPopupAdManager();await loadBlinkMessages();await loadAnnouncementManager();await refresh();msg.textContent="Admin session चालू है";}
 catch{showPanel(false);}})();
 
 
