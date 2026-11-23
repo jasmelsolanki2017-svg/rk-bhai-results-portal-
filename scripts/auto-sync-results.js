@@ -466,12 +466,39 @@ async function main() {
         $lt: new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + 1))
       }
     };
-    const existing = await Result.findOne(dayFilter).select("resultText").lean();
-    if (existing && String(existing.resultText || "").trim() !== evidence.value) {
+    const existing = await Result.findOne(dayFilter)
+      .select("resultText resultSource sourceUrl")
+      .sort({ createdAt: -1 })
+      .lean();
+    if (existing) {
+      const existingValue = String(existing.resultText || "").trim();
+      // Legacy records without resultSource are manual unless they carry an auto-source URL.
+      const isManual = existing.resultSource === "manual" ||
+        (!existing.resultSource && !String(existing.sourceUrl || "").trim());
+      if (existingValue === evidence.value) {
+        sourceDiagnostics.push({
+          result: isManual ? "manual_match" : "already_matches",
+          market: market.title, existingValue, incomingValue: evidence.value,
+          candidateSources: evidence.sources
+        });
+        insertedOrUpdated++;
+        console.log(isManual ? "Manual result already matches verified source; preserved:" : "Already matches verified source:", market.title, evidence.value);
+        continue;
+      }
+      if (isManual) {
+        conflicts.push(market.title);
+        sourceDiagnostics.push({
+          result: "manual_result_protected", market: market.title,
+          existingValue, incomingValue: evidence.value,
+          candidateSources: evidence.sources
+        });
+        console.log("Manual result differs from verified sources; preserved for admin review:", market.title, existingValue, evidence.value);
+        continue;
+      }
       conflicts.push(market.title);
       sourceDiagnostics.push({
         result: "same_day_conflict", market: market.title,
-        existingValue: existing.resultText, incomingValue: evidence.value,
+        existingValue, incomingValue: evidence.value,
         candidateSources: evidence.sources
       });
       continue;
@@ -481,7 +508,8 @@ async function main() {
       { $set: {
         title: market.title, resultText: evidence.value, resultDate: date,
         published: true, deleted: false, sourceUrl: evidence.sources.join(", "),
-        verificationMeta: evidence, ownerUserId: null, cityId: null
+        resultSource: "automatic", verificationMeta: evidence,
+        ownerUserId: null, cityId: null
       }, $setOnInsert: { createdAt: new Date() } },
       { upsert: true }
     );
