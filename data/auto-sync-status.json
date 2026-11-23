@@ -1,0 +1,10 @@
+{
+  "app": "rk-bhai-results-portal",
+  "status": "running",
+  "message": "सोर्स वेबसाइट से रिजल्ट डेटा लिया जा रहा है।",
+  "sourceUrl": "https://satta-king-fast.com/",
+  "sourceDiagnostics": [],
+  "attempts": 0,
+  "httpStatus": null,
+  "checkedAt": "2026-11-23T12:49:58.650Z"
+}
