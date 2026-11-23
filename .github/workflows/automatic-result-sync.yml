@@ -19,6 +19,7 @@ concurrency:
 
 jobs:
   sync:
+    if: false # TEMPORARILY PAUSED: prevent unverified results from being published
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
