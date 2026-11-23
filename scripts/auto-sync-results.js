@@ -74,7 +74,9 @@ function getIndiaDateParts(date = new Date()) {
 function getGaliResultDateParts(date = new Date()) {
   const parts = getIndiaDateParts(date);
   const hour = Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", hour: "2-digit", hourCycle: "h23" }).format(date));
-  if (hour >= 12) return parts;
+  // Gali results published from 11:00 PM through 11:59 PM belong to today.
+  // From 12:00 AM until 10:59 PM, attribute the result to the previous date.
+  if (hour >= 23) return parts;
   const previous = new Date(Date.UTC(parts.year, parts.month - 1, parts.day) - 86400000);
   return { year: previous.getUTCFullYear(), month: previous.getUTCMonth() + 1, day: previous.getUTCDate() };
 }
