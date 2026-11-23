@@ -26,8 +26,18 @@ function showAdminView(view){
  if(ads) window.scrollTo({top:0,behavior:"smooth"});
 }
 function applyAdminRoute(){
- if(location.pathname==="/admin/advertisements"||location.pathname==="/admin/advertisements/")showAdminView("ads");
- else showAdminView("main");
+ const isAds=location.pathname==="/admin/advertisements"||location.pathname==="/admin/advertisements/";
+ showAdminView(isAds?"ads":"main");
+ if(!isAds)return;
+ const section=new URLSearchParams(location.search).get("section")||"home";
+ const map={popup:"popupAdManager",blink:"blinkMessageManager",text:"posterManager",notice:"announcementManager"};
+ const ids=["announcementManager","popupAdManager","blinkMessageManager","posterManager"];
+ ids.forEach(id=>{const el=document.getElementById(id);if(el)el.hidden=section!=="home"&&map[section]!==id;});
+ const home=document.getElementById("adManagerHome"),back=document.getElementById("adManagerBack");
+ if(home)home.hidden=section!=="home";
+ if(back)back.hidden=section==="home";
+ const heading=document.querySelector(".admin-ad-view-head h2");
+ if(heading)heading.textContent=section==="home"?"Advertisement Management":({popup:"Popup Advertisement",blink:"Blinking Message Ad",text:"Text Advertisement",notice:"Maintenance / Announcement"}[section]||"Advertisement Management");
 }
 
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
