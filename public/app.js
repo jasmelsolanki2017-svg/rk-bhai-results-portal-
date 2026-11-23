@@ -147,8 +147,10 @@ function renderRecent(){
   const query=(citySearch?.value||"").trim().toLocaleLowerCase("hi");
   const fixedTimes={"disawar":"05:00 AM","desawar":"05:00 AM","faridabad":"06:20 PM","ghaziabad":"10:05 PM","gali":"12:05 AM","delhi bazar":"03:15 PM","shri ganesh":"04:45 PM","shree ganesh":"04:45 PM","chandigarh":"08:30 PM"};
   const getCityTime=city=>{
+    const cityKey=String(city).trim().toLocaleLowerCase("en");
+    if(cityKey==="chandigarh")return "08:30 PM";
     const info=recentCities.find(item=>item.cityName===city)||{};
-    return info.expectedTime||info.resultTime||info.time||fixedTimes[String(city).trim().toLocaleLowerCase("en")]||"";
+    return info.expectedTime||info.resultTime||info.time||fixedTimes[cityKey]||"";
   };
   const nowParts=new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Kolkata",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(new Date()).split(":").map(Number);
   const nowMinutes=nowParts[0]*60+nowParts[1];
