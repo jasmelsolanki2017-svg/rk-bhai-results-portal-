@@ -145,7 +145,7 @@ function renderRecent(){
   const todayStat=document.getElementById("statToday");
   if(todayStat)todayStat.textContent=recentRows.filter(r=>dateKey(r.resultDate)===todayKey).length;
   const query=(citySearch?.value||"").trim().toLocaleLowerCase("hi");
-  const fixedTimes={"disawar":"05:00 AM","desawar":"05:00 AM","faridabad":"06:20 PM","ghaziabad":"10:05 PM","gali":"12:05 AM","delhi bazar":"03:15 PM","shri ganesh":"04:45 PM","shree ganesh":"04:45 PM"};
+  const fixedTimes={"disawar":"05:00 AM","desawar":"05:00 AM","faridabad":"06:20 PM","ghaziabad":"10:05 PM","gali":"12:05 AM","delhi bazar":"03:15 PM","shri ganesh":"04:45 PM","shree ganesh":"04:45 PM","chandigarh":"08:30 PM"};
   const getCityTime=city=>{
     const info=recentCities.find(item=>item.cityName===city)||{};
     return info.expectedTime||info.resultTime||info.time||fixedTimes[String(city).trim().toLocaleLowerCase("en")]||"";
