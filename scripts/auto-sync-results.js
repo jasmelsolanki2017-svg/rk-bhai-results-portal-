@@ -104,7 +104,10 @@ function parseSourceDate(html) {
     if (i <= 1) found = { year: Number(match[3]), month: monthNumber(match[1]), day: Number(match[2]) };
     else if (i === 2) found = { year: Number(match[3]), month: Number(match[2]), day: Number(match[1]) };
     else found = { year: Number(match[3]), month: monthNumber(match[2]), day: Number(match[1]) };
-    if (found.month && found.year === today.year && found.month === today.month && found.day === today.day) return found;
+    const previous = new Date(Date.UTC(today.year, today.month - 1, today.day) - 86400000);
+    const isToday = found.year === today.year && found.month === today.month && found.day === today.day;
+    const isYesterday = found.year === previous.getUTCFullYear() && found.month === previous.getUTCMonth() + 1 && found.day === previous.getUTCDate();
+    if (found.month && (isToday || isYesterday)) return found;
     if (found.month && !staleDate) staleDate = found;
   }
 
