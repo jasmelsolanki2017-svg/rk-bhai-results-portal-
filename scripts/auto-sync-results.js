@@ -294,7 +294,7 @@ async function updatePublicSnapshot() {
     $or: [{ ownerUserId: null }, { ownerUserId: { $exists: false } }, { cityId: { $in: approvedCityIds } }]
   };
   const results = await Result.find(filter)
-    .select("title resultText resultDate sourceUrl createdAt")
+    .select("title resultText resultDate sourceUrl verificationMeta createdAt")
     .sort({ resultDate: -1, title: 1 }).limit(20000).lean();
   const cityMap = new Map();
   for (const city of approvedCities) {
