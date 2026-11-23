@@ -1,21 +1,10 @@
 {
   "app": "rk-bhai-results-portal",
-  "status": "success",
-  "message": "3 मार्केट रिकॉर्ड sync हुए। Source: https://satta-king-fast.com/",
-  "sourceUrl": "https://satta-king-fast.com/",
-  "sourceDiagnostics": [
-    {
-      "url": "https://satta-king-fast.com/",
-      "status": 200,
-      "result": "accepted",
-      "marketsFound": [
-        "Disawar",
-        "Delhi Bazar",
-        "Shree Ganesh"
-      ]
-    }
-  ],
-  "attempts": 1,
-  "httpStatus": 200,
-  "checkedAt": "2026-11-23T12:50:12.031Z"
+  "status": "running",
+  "message": "सोर्स वेबसाइट से रिजल्ट डेटा लिया जा रहा है।",
+  "sourceUrl": "https://kingsofsatta.com/",
+  "sourceDiagnostics": [],
+  "attempts": 0,
+  "httpStatus": null,
+  "checkedAt": "2026-11-23T12:57:31.543Z"
 }
