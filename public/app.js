@@ -145,7 +145,35 @@ function renderRecent(){
   const todayStat=document.getElementById("statToday");
   if(todayStat)todayStat.textContent=recentRows.filter(r=>dateKey(r.resultDate)===todayKey).length;
   const query=(citySearch?.value||"").trim().toLocaleLowerCase("hi");
+  const fixedTimes={"disawar":"05:00 AM","desawar":"05:00 AM","faridabad":"06:20 PM","ghaziabad":"10:05 PM","gali":"12:05 AM","delhi bazar":"03:15 PM","shri ganesh":"04:45 PM","shree ganesh":"04:45 PM"};
+  const getCityTime=city=>{
+    const info=recentCities.find(item=>item.cityName===city)||{};
+    return info.expectedTime||info.resultTime||info.time||fixedTimes[String(city).trim().toLocaleLowerCase("en")]||"";
+  };
+  const nowParts=new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Kolkata",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(new Date()).split(":").map(Number);
+  const nowMinutes=nowParts[0]*60+nowParts[1];
   const entries=[...byCity.entries()].filter(([city])=>city.toLocaleLowerCase("hi").includes(query)).sort((a,b)=>{
+    const priority=item=>{
+      if(item[1].today)return 2;
+      const raw=getCityTime(item[0]);
+      const match=String(raw).match(/(\\d{1,2}):(\\d{2})\\s*(AM|PM)/i);
+      if(!match)return 3;
+      let hour=Number(match[1])%12;
+      if(match[3].toUpperCase()==="PM")hour+=12;
+      const minutes=hour*60+Number(match[2]);
+      return minutes>=nowMinutes?0:1;
+    };
+    const pa=priority(a),pb=priority(b);
+    if(pa!==pb)return pa-pb;
+    const toMinutes=city=>{
+      const match=String(getCityTime(city)).match(/(\\d{1,2}):(\\d{2})\\s*(AM|PM)/i);
+      if(!match)return 9999;
+      let hour=Number(match[1])%12;
+      if(match[3].toUpperCase()==="PM")hour+=12;
+      return hour*60+Number(match[2]);
+    };
+    if(pa===0)return toMinutes(a[0])-toMinutes(b[0]);
+    if(pa===1)return toMinutes(b[0])-toMinutes(a[0]);
     const latestTime=item=>Math.max(...[item[1].today,item[1].yesterday].filter(Boolean).map(row=>new Date(row.createdAt||row.updatedAt||row.resultDate||0).getTime()),0);
     return latestTime(b)-latestTime(a);
   });
@@ -158,8 +186,7 @@ function renderRecent(){
   if(topResultCards){
     topResultCards.innerHTML=entries.map(([city,result])=>{
       const cityInfo=recentCities.find(item=>item.cityName===city)||{};
-      const fixedTimes={"disawar":"05:00 AM","desawar":"05:00 AM","faridabad":"06:20 PM","ghaziabad":"10:05 PM","gali":"12:05 AM","delhi bazar":"03:15 PM","shri ganesh":"04:45 PM","shree ganesh":"04:45 PM"};
-      const time=cityInfo.expectedTime||cityInfo.resultTime||cityInfo.time||fixedTimes[String(city).trim().toLocaleLowerCase("en")]||"";
+      const time=getCityTime(city);
       const isGali=String(city).trim().toLocaleLowerCase("en")==="gali";
       const indiaHour=Number(new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Kolkata",hour:"2-digit",hourCycle:"h23"}).format(new Date()));
       const galiBlinkWindow=isGali&&indiaHour<14;
@@ -174,7 +201,10 @@ function renderRecent(){
       const current=isGali?"-":(currentRow?escapeHtml(currentRow.resultText):"—");
       const blinkLeft=isGali&&shouldBlink&&!!previousDisplayRow;
       const blinkRight=!isGali&&shouldBlink;
-      return '<article class="top-result-card"><h3>'+escapeHtml(city)+'</h3><p class="top-result-time">'+(time?'( '+escapeHtml(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous-wrap">'+(blinkLeft?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-previous'+(blinkLeft?' result-blink':'')+'">'+previous+'</span></span><span class="top-result-arrow" aria-hidden="true">➡️</span><span class="top-current-wrap">'+(blinkRight?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(blinkRight?' result-blink':'')+'">'+current+'</span></span></div><div class="top-result-actions"><a class="top-chart-link" href="#archive" data-chart-city="'+escapeHtml(city)+'">चार्ट देखें</a><button type="button" class="top-share-card" data-share-city="'+escapeHtml(city)+'" data-share-value="'+escapeHtml(currentRow?currentRow.resultText:"") +'" data-share-date="'+escapeHtml(currentRow?currentRow.resultDate:"") +'" '+(currentRow?'':'disabled')+'>शेयर कार्ड</button></div></article>';
+      const upcoming=!result.today&&!!time;
+      const nextCard=upcoming&&entries.findIndex(([name])=>name===city)===0;
+      const statusText=result.today?"आज का रिजल्ट आ गया":(nextCard?"अगला रिजल्ट":"रिजल्ट का इंतज़ार है");
+      return '<article class="top-result-card'+(nextCard?' next-result-card':'')+'"><div class="result-card-topline"><span class="result-card-status'+(result.today?' is-published':'')+'">'+(nextCard?'⌛ अगला रिजल्ट':statusText)+'</span>'+(nextCard?'<span class="next-result-tag">NEXT</span>':'')+'</div><h3>'+escapeHtml(city)+'</h3><p class="top-result-time">'+(time?'( '+escapeHtml(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous-wrap">'+(blinkLeft?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-previous'+(blinkLeft?' result-blink':'')+'">'+previous+'</span></span><span class="top-result-arrow" aria-hidden="true">➡️</span><span class="top-current-wrap">'+(blinkRight?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(blinkRight?' result-blink':'')+'">'+current+'</span></span></div><div class="top-result-actions"><a class="top-chart-link" href="#archive" data-chart-city="'+escapeHtml(city)+'">चार्ट देखें</a><button type="button" class="top-share-card" data-share-city="'+escapeHtml(city)+'" data-share-value="'+escapeHtml(currentRow?currentRow.resultText:"") +'" data-share-date="'+escapeHtml(currentRow?currentRow.resultDate:"") +'" '+(currentRow?'':'disabled')+'>शेयर कार्ड</button></div></article>';
     }).join("");
   }
 
