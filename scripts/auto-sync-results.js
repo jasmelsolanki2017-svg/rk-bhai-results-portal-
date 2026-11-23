@@ -586,8 +586,8 @@ function getSmartSyncWindow(date = new Date()) {
     const [hour, minute] = MARKET_SCHEDULES[market.title].split(":").map(Number);
     const scheduled = hour * 60 + minute;
     const elapsed = (nowMinutes - scheduled + 1440) % 1440;
-    // Start five minutes before the published time; keep checking for up to 60 minutes after it.
-    if (elapsed <= 60 || elapsed >= 1435) due.push({ market, elapsed });
+    // Start five minutes before the published time; keep checking for up to 180 minutes after it.
+    if (elapsed <= 180 || elapsed >= 1435) due.push({ market, elapsed });
   }
   return due;
 }
@@ -602,7 +602,7 @@ async function smartMain() {
 
   let remaining = due.map(item => item.market);
   const startedAt = Date.now();
-  const maxRuntimeMs = 65 * 60 * 1000;
+  const maxRuntimeMs = 185 * 60 * 1000;
   await publishSyncStatus("running",
     "Smart Auto Sync चालू: " + remaining.map(m => m.title).join(", ") +
     " — तय समय से 5 मिनट पहले शुरू, पुष्टि होने तक लगभग हर मिनट जाँच। Chandigarh City मैनुअल है।");
