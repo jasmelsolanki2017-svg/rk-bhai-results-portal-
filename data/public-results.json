@@ -1,7 +1,15 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-22T19:20:47.236Z",
+  "updatedAt": "2026-11-23T01:32:34.927Z",
   "results": [
+    {
+      "_id": "6b0397ae6d3e9be71a255327",
+      "title": "Disawar",
+      "resultText": "59",
+      "resultDate": "2026-11-23T12:00:00.000Z",
+      "sourceUrl": "https://satta-king-fast.com/",
+      "createdAt": "2026-11-23T01:32:28.818Z"
+    },
     {
       "_id": "6b02b9f314035aaa3c696b9a",
       "title": "Delhi Bazar",
