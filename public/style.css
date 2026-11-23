@@ -1109,3 +1109,14 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
 .ad-design-presets button{padding:4px 7px!important;font-size:10px!important}
 .ad-design-preview{margin-top:6px!important;padding:7px!important;min-height:42px!important;border-width:1px!important;border-radius:8px!important;font-size:11px!important}
 .ad-design-preview p{margin:3px 0 5px!important;line-height:1.25!important}
+
+
+/* Separate blinking-message ad card */
+.blink-message-card{padding:10px;border:1px solid var(--blink-border,#d6ad55);border-radius:10px;background:var(--blink-bg,#20170d);color:var(--blink-text,#fff0c2);font-weight:800;text-align:center;animation:blinkMessagePulse var(--blink-speed,1s) ease-in-out infinite}
+.blink-message-preview{margin-top:9px;min-height:45px;display:grid;place-items:center;overflow-wrap:anywhere}
+.public-blink-message{position:fixed;z-index:9997;top:72px;right:10px;width:min(68vw,245px);max-height:35vh;overflow:auto;padding:12px 30px 11px 11px;border:2px solid var(--blink-border,#d6ad55);border-radius:13px;background:var(--blink-bg,#20170d);color:var(--blink-text,#fff0c2);box-shadow:0 7px 22px rgba(0,0,0,.42);font-size:13px;font-weight:800;text-align:center;animation:blinkMessagePulse var(--blink-speed,1s) ease-in-out infinite;overflow-wrap:anywhere}
+.public-blink-message strong{display:block;margin-bottom:5px;font-size:14px}
+.public-blink-message p{margin:0;line-height:1.4;white-space:pre-line}
+.public-blink-message button{position:absolute;top:3px;right:5px;width:22px;height:22px;border:0;border-radius:50%;background:rgba(0,0,0,.22);color:inherit;font-size:18px;line-height:1;cursor:pointer}
+@keyframes blinkMessagePulse{0%,100%{opacity:1;filter:brightness(1)}50%{opacity:.28;filter:brightness(1.35)}}
+@media(max-width:520px){.public-blink-message{top:68px;right:7px;width:min(70vw,220px);padding:10px 27px 9px 9px;font-size:12px}.public-blink-message strong{font-size:13px}}
