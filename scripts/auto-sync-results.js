@@ -77,14 +77,14 @@ function parseSourceDate(html) {
     .replace(/<[^>]+>/g, " "));
   // Daily pages may show two date columns: today's date first, yesterday's second.
   // Trust the first date in the explicit heading, not merely the presence of a date somewhere.
-  const timewise = plain.match(/(?:Timewise\\s+)?(?:Superfast\\s+)?Satta\\s+Kings?\\s+Results?\\s+of\\s+([A-Za-z]+)\\s+(\\d{1,2}),?\\s+(\\d{4})\\s*(?:&|and)\\s*([A-Za-z]+)\\s+(\\d{1,2}),?\\s*(\\d{4})?/i);
+  const timewise = plain.match(/(?:Timewise\s+)?(?:Superfast\s+)?Satta\s+Kings?\s+Results?\s+of\s+([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})\s*(?:&|and)\s*([A-Za-z]+)\s+(\d{1,2}),?\s*(\d{4})?/i);
   if (timewise) {
     const month = new Date(Date.parse(timewise[1] + " 1, 2000")).getMonth() + 1;
     return { year: Number(timewise[3]), month, day: Number(timewise[2]) };
   }
 
   // Other source variants use a single-date heading.
-  const match = plain.match(/Satta Kings? Fast Results of\\s+([A-Za-z]+)\\s+(\\d{1,2}),?\\s+(\\d{4})/i);
+  const match = plain.match(/Satta Kings? Fast Results of\s+([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/i);
   if (match) {
     const month = new Date(Date.parse(match[1] + " 1, 2000")).getMonth() + 1;
     return { year: Number(match[3]), month, day: Number(match[2]) };
@@ -96,7 +96,7 @@ function parseSourceDate(html) {
   if (monthly) {
     const month = new Date(Date.parse(monthly[1] + " 1, 2000")).getMonth() + 1;
     const today = getIndiaDateParts();
-    const rowPattern = new RegExp("(?:^|\\s)0?" + today.day + "\\s+(?:\\d{2}|XX|--|-)(?:\\s+(?:\\d{2}|XX|--|-)){1,8}(?:\\s|$)", "im");
+    const rowPattern = new RegExp("(?:^|\s)0?" + today.day + "\s+(?:\d{2}|XX|--|-)(?:\s+(?:\d{2}|XX|--|-)){1,8}(?:\s|$)", "im");
     if (Number(monthly[2]) === today.year && month === today.month && rowPattern.test(plain)) {
       return today;
     }
