@@ -6,8 +6,6 @@ on:
     paths:
       - 'scripts/auto-sync-results.js'
       - '.github/workflows/automatic-result-sync.yml'
-  schedule:
-    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 permissions:
