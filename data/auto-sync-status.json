@@ -1,10 +1,194 @@
 {
   "app": "rk-bhai-results-portal",
-  "status": "running",
-  "message": "10 स्रोतों की तारीख और रिजल्ट जाँचे जा रहे हैं; पुष्टि से पहले कुछ प्रकाशित नहीं होगा।",
+  "status": "partial",
+  "message": "2 मार्केट रिकॉर्ड दो जाँच और दो अलग डोमेन के मिलान के बाद sync हुए। पुष्टि बाकी: Delhi Bazar. पुराने रिकॉर्ड से टकराव: Ghaziabad; पुराने रिकॉर्ड सुरक्षित रखे।",
   "sourceUrl": "https://kingsofsatta.com/",
-  "sourceDiagnostics": [],
-  "attempts": 0,
-  "httpStatus": null,
-  "checkedAt": "2026-11-23T17:30:41.153Z"
+  "sourceDiagnostics": [
+    {
+      "pass": "first_check",
+      "url": "https://gali-results.com/",
+      "status": 403,
+      "result": "fetch_failed"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://sattaking.in/chart/gali",
+      "status": 403,
+      "result": "fetch_failed"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://kingsofsatta.com/",
+      "status": 200,
+      "result": "no_values",
+      "marketsFound": []
+    },
+    {
+      "pass": "first_check",
+      "url": "https://sattaking.live/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Disawar",
+        "Faridabad",
+        "Ghaziabad",
+        "Shree Ganesh"
+      ]
+    },
+    {
+      "pass": "first_check",
+      "url": "https://satta-king-fast.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Faridabad"
+      ]
+    },
+    {
+      "pass": "first_check",
+      "url": "https://sattafree.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Faridabad",
+        "Ghaziabad",
+        "Delhi Bazar",
+        "Shree Ganesh"
+      ]
+    },
+    {
+      "pass": "first_check",
+      "url": "https://1xsatta.today/",
+      "status": 200,
+      "result": "date_not_recognized"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://satta-superfast.com/",
+      "status": 200,
+      "result": "no_values",
+      "marketsFound": []
+    },
+    {
+      "pass": "first_check",
+      "url": "https://www.satta-king-gali.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Faridabad",
+        "Ghaziabad",
+        "Shree Ganesh"
+      ]
+    },
+    {
+      "pass": "first_check",
+      "url": "https://galidisawer.com/",
+      "status": null,
+      "result": "request_error",
+      "message": "The operation was aborted due to timeout"
+    },
+    {
+      "pass": "recheck",
+      "url": "https://satta-king-fast.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Faridabad"
+      ]
+    },
+    {
+      "pass": "recheck",
+      "url": "https://gali-results.com/",
+      "status": 403,
+      "result": "fetch_failed"
+    },
+    {
+      "pass": "recheck",
+      "url": "https://sattaking.in/chart/gali",
+      "status": 403,
+      "result": "fetch_failed"
+    },
+    {
+      "pass": "recheck",
+      "url": "https://sattaking.live/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Disawar",
+        "Faridabad",
+        "Ghaziabad",
+        "Shree Ganesh"
+      ]
+    },
+    {
+      "pass": "recheck",
+      "url": "https://sattafree.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Faridabad",
+        "Ghaziabad",
+        "Delhi Bazar",
+        "Shree Ganesh"
+      ]
+    },
+    {
+      "pass": "recheck",
+      "url": "https://galidisawer.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Faridabad",
+        "Ghaziabad",
+        "Gali",
+        "Delhi Bazar",
+        "Shree Ganesh"
+      ]
+    },
+    {
+      "pass": "recheck",
+      "url": "https://1xsatta.today/",
+      "status": 200,
+      "result": "date_not_recognized"
+    },
+    {
+      "pass": "recheck",
+      "url": "https://satta-superfast.com/",
+      "status": 200,
+      "result": "no_values",
+      "marketsFound": []
+    },
+    {
+      "pass": "recheck",
+      "url": "https://kingsofsatta.com/",
+      "status": 200,
+      "result": "no_values",
+      "marketsFound": []
+    },
+    {
+      "pass": "recheck",
+      "url": "https://www.satta-king-gali.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Faridabad",
+        "Ghaziabad",
+        "Shree Ganesh"
+      ]
+    },
+    {
+      "result": "same_day_conflict",
+      "market": "Ghaziabad",
+      "existingValue": "37",
+      "incomingValue": "73",
+      "candidateSources": [
+        "https://sattafree.com/",
+        "https://sattaking.live/",
+        "https://galidisawer.com/"
+      ]
+    }
+  ],
+  "attempts": 20,
+  "httpStatus": 200,
+  "checkedAt": "2026-11-23T17:33:47.652Z"
 }
