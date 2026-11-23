@@ -24,7 +24,7 @@ const STATUS_FILE = "data/auto-sync-status.json";
 let sourceFetchAttempts = 0;
 let sourceHttpStatus = null;
 const SOURCE_MARKETS = [
-  { source: ["DESAWAR", "DESAWAR", "DISAWAR"], title: "Disawar" },
+  { source: ["DESAWER", "DESAWAR", "DISAWAR"], title: "Disawar" },
   { source: ["FARIDABAD"], title: "Faridabad" },
   { source: ["GHAZIABAD"], title: "Ghaziabad" },
   { source: ["GALI"], title: "Gali" },
