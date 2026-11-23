@@ -467,7 +467,7 @@ async function main() {
       }
     };
     const existing = await Result.findOne(dayFilter)
-      .select("resultText resultSource sourceUrl")
+      .select("resultText resultSource sourceUrl syncReview")
       .sort({ createdAt: -1 })
       .lean();
     if (existing) {
@@ -486,10 +486,21 @@ async function main() {
         continue;
       }
       if (isManual) {
+        const priorReview = existing.syncReview;
+        if (priorReview && priorReview.automaticValue === evidence.value &&
+            ["manual", "automatic"].includes(priorReview.choice)) {
+          sourceDiagnostics.push({
+            result: "manual_conflict_reviewed", market: market.title,
+            existingValue, incomingValue: evidence.value,
+            decision: priorReview.choice, candidateSources: evidence.sources
+          });
+          console.log("Previously reviewed manual/automatic difference; keeping admin decision:", market.title, priorReview.choice);
+          continue;
+        }
         conflicts.push(market.title);
         sourceDiagnostics.push({
           result: "manual_result_protected", market: market.title,
-          existingValue, incomingValue: evidence.value,
+          resultDate: date.toISOString(), existingValue, incomingValue: evidence.value,
           candidateSources: evidence.sources
         });
         console.log("Manual result differs from verified sources; preserved for admin review:", market.title, existingValue, evidence.value);
