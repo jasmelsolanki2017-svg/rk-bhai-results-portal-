@@ -1,10 +1,176 @@
 {
   "app": "rk-bhai-results-portal",
-  "status": "running",
-  "message": "Smart Auto Sync चालू: Gali — तय समय से 5 मिनट पहले शुरू, पुष्टि होने तक लगभग हर मिनट जाँच। Chandigarh City मैनुअल है।",
+  "status": "success",
+  "message": "Smart Auto Sync ने पुष्टि के बाद रिजल्ट जाँच पूरी कर दी। जाँचे गए मार्केट: Gali।",
   "sourceUrl": "https://kingsofsatta.com/",
-  "sourceDiagnostics": [],
-  "attempts": 0,
-  "httpStatus": null,
-  "checkedAt": "2026-11-23T20:55:58.897Z"
+  "sourceDiagnostics": [
+    {
+      "pass": "first_check",
+      "url": "https://satta-king-fast.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Gali"
+      ]
+    },
+    {
+      "pass": "first_check",
+      "url": "https://gali-results.com/",
+      "status": 403,
+      "result": "fetch_failed"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://sattaking.in/chart/gali",
+      "status": 403,
+      "result": "fetch_failed"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://kingsofsatta.com/",
+      "status": 200,
+      "result": "no_values",
+      "marketsFound": []
+    },
+    {
+      "pass": "first_check",
+      "url": "https://sattafree.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Gali"
+      ]
+    },
+    {
+      "pass": "first_check",
+      "url": "https://sattaking.live/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Gali"
+      ]
+    },
+    {
+      "pass": "first_check",
+      "url": "https://galidisawer.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Gali"
+      ]
+    },
+    {
+      "pass": "first_check",
+      "url": "https://1xsatta.today/",
+      "status": 200,
+      "result": "date_not_recognized"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://satta-superfast.com/",
+      "status": 200,
+      "result": "no_values",
+      "marketsFound": []
+    },
+    {
+      "pass": "first_check",
+      "url": "https://www.satta-king-gali.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Gali"
+      ]
+    },
+    {
+      "pass": "recheck",
+      "url": "https://gali-results.com/",
+      "status": 403,
+      "result": "fetch_failed"
+    },
+    {
+      "pass": "recheck",
+      "url": "https://sattaking.in/chart/gali",
+      "status": 403,
+      "result": "fetch_failed"
+    },
+    {
+      "pass": "recheck",
+      "url": "https://satta-king-fast.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Gali"
+      ]
+    },
+    {
+      "pass": "recheck",
+      "url": "https://www.satta-king-gali.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Gali"
+      ]
+    },
+    {
+      "pass": "recheck",
+      "url": "https://sattaking.live/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Gali"
+      ]
+    },
+    {
+      "pass": "recheck",
+      "url": "https://sattafree.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Gali"
+      ]
+    },
+    {
+      "pass": "recheck",
+      "url": "https://kingsofsatta.com/",
+      "status": 200,
+      "result": "no_values",
+      "marketsFound": []
+    },
+    {
+      "pass": "recheck",
+      "url": "https://galidisawer.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Gali"
+      ]
+    },
+    {
+      "pass": "recheck",
+      "url": "https://satta-superfast.com/",
+      "status": 200,
+      "result": "no_values",
+      "marketsFound": []
+    },
+    {
+      "pass": "recheck",
+      "url": "https://1xsatta.today/",
+      "status": 200,
+      "result": "date_not_recognized"
+    },
+    {
+      "result": "manual_match",
+      "market": "Gali",
+      "existingValue": "52",
+      "incomingValue": "52",
+      "candidateSources": [
+        "https://satta-king-fast.com/",
+        "https://sattafree.com/",
+        "https://sattaking.live/"
+      ]
+    }
+  ],
+  "attempts": 20,
+  "httpStatus": 200,
+  "checkedAt": "2026-11-23T20:56:49.597Z"
 }
