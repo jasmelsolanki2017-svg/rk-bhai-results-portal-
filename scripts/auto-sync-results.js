@@ -75,8 +75,16 @@ function parseSourceDate(html) {
   const plain = decodeHtml(html.replace(/<script\b[\s\S]*?<\/script>/gi, " ")
     .replace(/<style\b[\s\S]*?<\/style>/gi, " ")
     .replace(/<[^>]+>/g, " "));
-  // The source alternates between "Satta King" and "Satta Kings" in its daily heading.
-  const match = plain.match(/Satta Kings? Fast Results of\s+([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/i);
+  // Daily pages may show two date columns: today's date first, yesterday's second.
+  // Trust the first date in the explicit heading, not merely the presence of a date somewhere.
+  const timewise = plain.match(/(?:Timewise\\s+)?(?:Superfast\\s+)?Satta\\s+Kings?\\s+Results?\\s+of\\s+([A-Za-z]+)\\s+(\\d{1,2}),?\\s+(\\d{4})\\s*(?:&|and)\\s*([A-Za-z]+)\\s+(\\d{1,2}),?\\s*(\\d{4})?/i);
+  if (timewise) {
+    const month = new Date(Date.parse(timewise[1] + " 1, 2000")).getMonth() + 1;
+    return { year: Number(timewise[3]), month, day: Number(timewise[2]) };
+  }
+
+  // Other source variants use a single-date heading.
+  const match = plain.match(/Satta Kings? Fast Results of\\s+([A-Za-z]+)\\s+(\\d{1,2}),?\\s+(\\d{4})/i);
   if (match) {
     const month = new Date(Date.parse(match[1] + " 1, 2000")).getMonth() + 1;
     return { year: Number(match[3]), month, day: Number(match[2]) };
@@ -121,8 +129,11 @@ function parseMarketValues(html, marketNames) {
     if (/^(?:\d{2}|XX|--|WAIT|-)$/.test(line)) values.push(line);
     if (values.length >= 2) break;
   }
-  if (values.length < 2) return null;
-  const current = values[1];
+  if (!values.length) return null;
+
+  // Result tables list the current date column first and the previous date second.
+  // Never fall back to yesterday's value when today's cell is --, XX, WAIT, or blank.
+  const current = values[0];
   return /^\d{2}$/.test(current) ? current : null;
 }
 
