@@ -1120,3 +1120,10 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
 .public-blink-message button{position:absolute;top:3px;right:5px;width:22px;height:22px;border:0;border-radius:50%;background:rgba(0,0,0,.22);color:inherit;font-size:18px;line-height:1;cursor:pointer}
 @keyframes blinkMessagePulse{0%,100%{opacity:1;filter:brightness(1)}50%{opacity:.28;filter:brightness(1.35)}}
 @media(max-width:520px){.public-blink-message{top:68px;right:7px;width:min(70vw,220px);padding:10px 27px 9px 9px;font-size:12px}.public-blink-message strong{font-size:13px}}
+
+
+/* Keep the floating blink-message ad away from the popup-ad position */
+.public-blink-message{top:auto!important;right:12px!important;bottom:18px!important;left:auto!important;z-index:9998!important;width:min(62vw,220px)!important;max-height:25vh!important}
+@media(max-width:520px){.public-blink-message{top:auto!important;bottom:16px!important;right:8px!important;width:min(58vw,190px)!important;max-height:22vh!important}}
+/* The full-screen popup ad always takes priority; blink card stays behind it. */
+.popup-ad-overlay{z-index:10000!important}
