@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-23T13:12:49.166Z",
+  "updatedAt": "2026-11-23T13:13:32.063Z",
   "results": [
     {
       "_id": "6b040b6e88a8362f0b1817bc",
@@ -17,14 +17,6 @@
       "resultDate": "2026-11-23T12:00:00.000Z",
       "sourceUrl": "https://satta-king-fast.com/",
       "createdAt": "2026-11-23T01:32:28.818Z"
-    },
-    {
-      "_id": "6b0438416d3e9be71a256af2",
-      "title": "Ghaziabad",
-      "resultText": "37",
-      "resultDate": "2026-11-23T12:00:00.000Z",
-      "sourceUrl": "https://kingsofsatta.com/",
-      "createdAt": "2026-11-23T12:57:35.737Z"
     },
     {
       "_id": "6b0436d5664f43b4d6ea1627",
