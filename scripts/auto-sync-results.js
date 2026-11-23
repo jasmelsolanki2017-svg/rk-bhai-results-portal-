@@ -198,9 +198,11 @@ async function publishSyncStatus(status, message) {
 
 async function fetchSourceHtml(passLabel) {
   const today = getIndiaDateParts();
-  const observations = [];
-  for (const sourceUrl of SOURCE_URLS) {
-    activeSourceUrl = sourceUrl;
+
+  // Check all source domains concurrently so a slow/blocked domain cannot
+  // consume the whole five-minute schedule window. Each source still fails
+  // independently; HTTP 403/timeouts do not stop the remaining sources.
+  const observations = await Promise.all(SOURCE_URLS.map(async sourceUrl => {
     sourceFetchAttempts++;
     try {
       console.log("Checking", passLabel, "source:", sourceUrl);
@@ -215,14 +217,14 @@ async function fetchSourceHtml(passLabel) {
       sourceHttpStatus = response.status;
       if (!response.ok) {
         sourceDiagnostics.push({ pass: passLabel, url: sourceUrl, status: response.status, result: "fetch_failed" });
-        continue;
+        return null;
       }
       const lastModified = response.headers.get("last-modified");
       if (lastModified) {
         const modifiedDate = getIndiaDateParts(new Date(lastModified));
         if (modifiedDate.year !== today.year || modifiedDate.month !== today.month || modifiedDate.day !== today.day) {
           sourceDiagnostics.push({ pass: passLabel, url: sourceUrl, status: response.status, result: "stale_last_modified", lastModified });
-          continue;
+          return null;
         }
       }
       const html = await response.text();
@@ -230,11 +232,11 @@ async function fetchSourceHtml(passLabel) {
       try { sourceDate = parseSourceDate(html); }
       catch (error) {
         sourceDiagnostics.push({ pass: passLabel, url: sourceUrl, status: response.status, result: "date_not_recognized" });
-        continue;
+        return null;
       }
       if (sourceDate.year !== today.year || sourceDate.month !== today.month || sourceDate.day !== today.day) {
         sourceDiagnostics.push({ pass: passLabel, url: sourceUrl, status: response.status, result: "stale_date", sourceDate });
-        continue;
+        return null;
       }
       const marketResults = {};
       for (const market of SOURCE_MARKETS) {
@@ -246,15 +248,15 @@ async function fetchSourceHtml(passLabel) {
         result: Object.keys(marketResults).length ? "dated_values_found" : "no_values",
         marketsFound: Object.keys(marketResults)
       });
-      if (Object.keys(marketResults).length) {
-        observations.push({ url: sourceUrl, host: new URL(sourceUrl).hostname.toLowerCase(), sourceDate, lastModified: lastModified || null, marketResults });
-      }
+      if (!Object.keys(marketResults).length) return null;
+      return { url: sourceUrl, host: new URL(sourceUrl).hostname.toLowerCase(), sourceDate, lastModified: lastModified || null, marketResults };
     } catch (error) {
-      sourceHttpStatus = null;
       sourceDiagnostics.push({ pass: passLabel, url: sourceUrl, status: null, result: "request_error", message: error.message });
+      return null;
     }
-  }
-  return observations;
+  }));
+
+  return observations.filter(Boolean);
 }
 
 function buildConsensus(observations) {
