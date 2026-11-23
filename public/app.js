@@ -155,29 +155,25 @@ function renderRecent(){
   const nowParts=new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Kolkata",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(new Date()).split(":").map(Number);
   const nowMinutes=nowParts[0]*60+nowParts[1];
   const entries=[...byCity.entries()].filter(([city])=>city.toLocaleLowerCase("hi").includes(query)).sort((a,b)=>{
-    const priority=item=>{
-      if(item[1].today)return 2;
-      const raw=getCityTime(item[0]);
-      const match=String(raw).match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-      if(!match)return 3;
-      let hour=Number(match[1])%12;
-      if(match[3].toUpperCase()==="PM")hour+=12;
-      const minutes=hour*60+Number(match[2]);
-      return minutes>=nowMinutes?0:1;
-    };
-    const pa=priority(a),pb=priority(b);
-    if(pa!==pb)return pa-pb;
+    const aPublished=!!a[1].today,bPublished=!!b[1].today;
+    if(aPublished!==bPublished)return aPublished?-1:1;
+    const latestTime=item=>Math.max(...[item[1].today,item[1].yesterday].filter(Boolean).map(row=>new Date(row.createdAt||row.updatedAt||row.resultDate||0).getTime()),0);
+    if(aPublished&&bPublished)return latestTime(b)-latestTime(a);
     const toMinutes=city=>{
-      const match=String(getCityTime(city)).match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+      const match=String(getCityTime(city)).match(/(\\d{1,2}):(\\d{2})\\s*(AM|PM)/i);
       if(!match)return 9999;
       let hour=Number(match[1])%12;
       if(match[3].toUpperCase()==="PM")hour+=12;
       return hour*60+Number(match[2]);
     };
-    if(pa===0)return toMinutes(a[0])-toMinutes(b[0]);
-    if(pa===1)return toMinutes(b[0])-toMinutes(a[0]);
-    const latestTime=item=>Math.max(...[item[1].today,item[1].yesterday].filter(Boolean).map(row=>new Date(row.createdAt||row.updatedAt||row.resultDate||0).getTime()),0);
-    return latestTime(b)-latestTime(a);
+    const delta=city=>{
+      const minutes=toMinutes(city);
+      if(minutes===9999)return 9999;
+      let value=minutes-nowMinutes;
+      if(value < -720)value+=1440;
+      return value;
+    };
+    return delta(a[0])-delta(b[0]);
   });
   if(!entries.length){if(topResultCards)topResultCards.innerHTML='<p class="muted">अभी कोई प्रकाशित रिजल्ट नहीं है।</p>';return;}
   const yesterdayLabel=new Date(todayStart.getTime()-86400000).toLocaleDateString("hi-IN",{day:"2-digit",month:"short"});
