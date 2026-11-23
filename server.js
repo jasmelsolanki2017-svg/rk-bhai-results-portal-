@@ -28,6 +28,7 @@ const publicFrontendApiPaths = new Set([
   "/api/public/poster",
   "/api/public/announcement",
   "/api/public/popup-ad",
+  "/api/public/popup-ads",
   "/api/public/blink-messages",
   "/api/visitor/track",
   "/api/visitor/heartbeat",
