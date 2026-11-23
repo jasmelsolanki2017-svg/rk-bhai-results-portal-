@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-23T12:51:33.313Z",
+  "updatedAt": "2026-11-23T12:51:42.066Z",
   "results": [
     {
       "_id": "6b040b6e88a8362f0b1817bc",
@@ -25,6 +25,14 @@
       "resultDate": "2026-11-23T12:00:00.000Z",
       "sourceUrl": "https://satta-king-fast.com/",
       "createdAt": "2026-11-23T11:15:11.617Z"
+    },
+    {
+      "_id": "6b0436d5664f43b4d6ea1627",
+      "title": "Faridabad",
+      "resultText": "81",
+      "resultDate": "2026-11-23T00:00:00.000Z",
+      "sourceUrl": "",
+      "createdAt": "2026-11-23T12:51:33.904Z"
     },
     {
       "_id": "6b02b9f314035aaa3c696b9a",
