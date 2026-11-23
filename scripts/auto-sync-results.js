@@ -72,91 +72,114 @@ function getIndiaDateParts(date = new Date()) {
 }
 
 function parseSourceDate(html) {
-  const plain = decodeHtml(html.replace(/<script\b[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style\b[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " "));
-  // Daily pages may show two date columns: today's date first, yesterday's second.
-  // Trust the first date in the explicit heading, not merely the presence of a date somewhere.
-  const timewise = plain.match(/(?:Timewise\s+)?(?:Superfast\s+)?Satta\s+Kings?\s+Results?\s+of\s+([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})\s*(?:&|and)\s*([A-Za-z]+)\s+(\d{1,2}),?\s*(\d{4})?/i);
-  if (timewise) {
-    const currentMonth = new Date(Date.parse(timewise[1] + " 1, 2000")).getMonth() + 1;
-    const previousMonth = new Date(Date.parse(timewise[4] + " 1, 2000")).getMonth() + 1;
-    const currentDate = { year: Number(timewise[3]), month: currentMonth, day: Number(timewise[2]) };
-    const previousYear = timewise[6] ? Number(timewise[6]) : Number(timewise[3]);
-    const expectedPrevious = new Date(Date.UTC(currentDate.year, currentDate.month - 1, currentDate.day) - 86400000);
-    const shownPrevious = new Date(Date.UTC(previousYear, previousMonth - 1, Number(timewise[5])));
-    // Reject mismatched or out-of-order date columns (including month/year rollover).
-    if (shownPrevious.getTime() !== expectedPrevious.getTime()) {
-      throw new Error("Timewise table date columns are not consecutive; refusing to import.");
-    }
-    return currentDate;
+  const plain = decodeHtml(html
+    .replace(/<script\\b[\\s\\S]*?<\\/script>/gi, " ")
+    .replace(/<style\\b[\\s\\S]*?<\\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+  ).replace(/\\s+/g, " ").trim();
+  const today = getIndiaDateParts();
+  const monthNames = "January February March April May June July August September October November December".split(" ");
+  const monthNumber = name => {
+    const index = monthNames.findIndex(month => month.toLowerCase().startsWith(String(name).toLowerCase().slice(0, 3)));
+    return index < 0 ? 0 : index + 1;
+  };
+  const candidates = [
+    /(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\\s+([A-Za-z]+)\\s+(\\d{1,2}),?\\s+(\\d{4})/i,
+    /([A-Za-z]+)\\s+(\\d{1,2}),?\\s+(\\d{4})/i,
+    /(?:^|\\s)(\\d{1,2})[\\/-](\\d{1,2})[\\/-](\\d{4})(?:\\s|$)/,
+    /(?:^|\\s)(\\d{1,2})\\s+([A-Za-z]+)\\s+(\\d{4})(?:\\s|$)/
+  ];
+  for (let i = 0; i < candidates.length; i++) {
+    const match = plain.match(candidates[i]);
+    if (!match) continue;
+    let found;
+    if (i <= 1) found = { year: Number(match[3]), month: monthNumber(match[1]), day: Number(match[2]) };
+    else if (i === 2) found = { year: Number(match[3]), month: Number(match[2]), day: Number(match[1]) };
+    else found = { year: Number(match[3]), month: monthNumber(match[2]), day: Number(match[1]) };
+    if (found.month) return found;
   }
 
-  // Other source variants use a single-date heading.
-  const match = plain.match(/Satta Kings? Fast Results of\s+([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/i);
-  if (match) {
-    const month = new Date(Date.parse(match[1] + " 1, 2000")).getMonth() + 1;
-    return { year: Number(match[3]), month, day: Number(match[2]) };
-  }
-
-  // Some versions expose only the monthly chart heading. Accept today's date
-  // only when that exact day row exists in the source table.
-  const monthly = plain.match(/Monthly Satta King Result Chart of\s+([A-Za-z]+)\s+(\d{4})/i);
+  // Chart-only sites often omit a full date but show the current month and
+  // a row for today's day. Require BOTH signals and an explicit live/today section.
+  const monthly = plain.match(/(?:monthly chart|complete month chart|daily results by game|record chart|सभी गेम का रिकॉर्ड चार्ट)[^\\n]{0,100}?([A-Za-z]+)\\s+(\\d{4})/i)
+    || plain.match(/\\b(January|February|March|April|May|June|July|August|September|October|November|December)\\s+(\\d{4})\\b/i);
   if (monthly) {
-    const month = new Date(Date.parse(monthly[1] + " 1, 2000")).getMonth() + 1;
-    const today = getIndiaDateParts();
-    const rowPattern = new RegExp("(?:^|\\s)0?" + today.day + "\\s+(?:\\d{2}|XX|--|-)(?:\\s+(?:\\d{2}|XX|--|-)){1,8}(?:\\s|$)", "im");
-    if (Number(monthly[2]) === today.year && month === today.month && rowPattern.test(plain)) {
-      return today;
-    }
+    const month = monthNumber(monthly[1]);
+    const year = Number(monthly[2]);
+    const liveContext = /today|live result|आज के रिजल्ट|आज का रिजल्ट/i.test(plain);
+    const dayRow = new RegExp("(?:^|\\\\s)0?" + today.day + "(?:\\\\s|\\\\|)", "im");
+    if (year === today.year && month === today.month && liveContext && dayRow.test(plain)) return today;
   }
-  throw new Error("Source result date heading/table was not found; refusing to import unverified data.");
+  throw new Error("Source date not recognized: no current dated heading or current-month chart row.");
 }
-
 function parseMarketValues(html, marketNames) {
-  const withoutNoise = html
-    .replace(/<script\b[\s\S]*?<\/script>/gi, "\n")
-    .replace(/<style\b[\s\S]*?<\/style>/gi, "\n");
-  const text = decodeHtml(withoutNoise
-    .replace(/<\/(h[1-6]|p|div|tr|td|th|li|br|section|article)>/gi, "\n")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<[^>]+>/g, " "))
-    .replace(/\r/g, "\n")
-    .split("\n")
-    .map(line => line.replace(/\s+/g, " ").trim().toUpperCase())
-    .filter(Boolean);
-
-  // Ignore the separate "Live" block above the dated two-column table.
-  // If the dated Timewise table is absent, fail closed instead of guessing.
-  const timewiseStart = text.findIndex(line =>
-    line.includes("TIMEWISE") && line.includes("SATTA") && line.includes("RESULTS OF")
-  );
-  if (timewiseStart < 0) return null;
-  text.splice(0, timewiseStart);
-
   const aliases = Array.isArray(marketNames) ? marketNames : [marketNames];
-  const normalizedAliases = aliases.map(name => String(name).toUpperCase().replace(/[^A-Z0-9 ]/g, "").trim());
-  const start = text.findIndex(line => normalizedAliases.includes(line.replace(/[^A-Z0-9 ]/g, "").trim()));
-  if (start < 0) return null;
+  const normalize = value => decodeHtml(String(value || ""))
+    .replace(/<[^>]+>/g, " ").replace(/&nbsp;/gi, " ")
+    .replace(/[^A-Z0-9\\u0900-\\u097F ]/gi, " ")
+    .replace(/\\s+/g, " ").trim().toUpperCase();
+  const aliasSet = aliases.map(normalize);
+  const marketCodes = {
+    "DISAWAR": ["DSWR", "DISAWER", "DESAWAR", "DESAWER"],
+    "FARIDABAD": ["FRBD"],
+    "GHAZIABAD": ["GABD"],
+    "GALI": ["GALI"],
+    "DELHI BAZAR": ["DLBZ", "DELHI BAZAAR"],
+    "SHREE GANESH": ["SRGN", "SHRI GANESH"]
+  };
+  const codes = (marketCodes[aliasSet[0]] || []).map(normalize);
+  const today = getIndiaDateParts();
 
-  const values = [];
-  for (let i = start + 1; i < Math.min(text.length, start + 18); i++) {
-    const line = text[i];
-    // Stop at the next market row; never borrow values from a later market.
-    if (/^[A-Z][A-Z ]{2,30}$/.test(line) && line !== "RECORD CHART") break;
-    if (/^\d{1,2}:\d{2}\s*(AM|PM)?$/.test(line)) continue;
-    if (/^(?:\d{2}|XX|--|WAIT|-)$/.test(line)) values.push(line);
-    if (values.length >= 2) break;
+  // Preferred: read the exact day row from monthly chart tables.
+  const tables = [...String(html || "").matchAll(/<table\\b[^>]*>([\\s\\S]*?)<\\/table>/gi)];
+  for (const table of tables) {
+    const rows = [...table[1].matchAll(/<tr\\b[^>]*>([\\s\\S]*?)<\\/tr>/gi)].map(row =>
+      [...row[1].matchAll(/<t[dh]\\b[^>]*>([\\s\\S]*?)<\\/t[dh]>/gi)].map(cell => normalize(cell[1]))
+    ).filter(row => row.length > 1);
+    if (rows.length < 2) continue;
+    const header = rows.find(row => /^(DATE|DAY|तारीख)$/.test(row[0]) || /^(?:NOV|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|DEC)\\s*0?\\d{1,2}$/.test(row[0]));
+    if (!header) continue;
+    let column = header.findIndex((cell, index) => index > 0 && (aliasSet.some(alias => cell.includes(alias)) || codes.some(code => cell === code)));
+    if (column < 0) continue;
+    const dayRow = rows.find(row => {
+      const match = row[0].match(/(?:^|\\s)0?(\\d{1,2})(?:\\s|$)/);
+      return match && Number(match[1]) === today.day;
+    });
+    if (dayRow && dayRow[column] && /^\\d{2}$/.test(dayRow[column])) return dayRow[column];
   }
-  // Two cells are required. A single value may be yesterday's value when today's cell is blank.
-  if (values.length < 2) return null;
 
-  // The first cell is today's date column; the second is yesterday's.
-  // Never fall back to yesterday when today's cell is --, XX, WAIT, or blank.
-  const current = values[0];
-  return /^\d{2}$/.test(current) ? current : null;
+  // Fallback: live "Yesterday / Today" or "कल / आज" result blocks.
+  const withoutNoise = String(html || "")
+    .replace(/<script\\b[\\s\\S]*?<\\/script>/gi, "\\n")
+    .replace(/<style\\b[\\s\\S]*?<\\/style>/gi, "\\n");
+  const lines = decodeHtml(withoutNoise
+    .replace(/<\\/(h[1-6]|p|div|tr|td|th|li|br|section|article)>/gi, "\\n")
+    .replace(/<br\\s*\\/?\\s*>/gi, "\\n")
+    .replace(/<[^>]+>/g, " "))
+    .replace(/\\r/g, "\\n").split("\\n")
+    .map(line => line.replace(/\\s+/g, " ").trim().toUpperCase()).filter(Boolean);
+  const matchesMarket = line => {
+    const value = normalize(line);
+    return aliasSet.some(alias => value === alias || value.endsWith(alias) || value.startsWith(alias + " "));
+  };
+  const start = lines.findIndex(matchesMarket);
+  if (start < 0) return null;
+  let sawToday = false;
+  for (let i = start + 1; i < Math.min(lines.length, start + 20); i++) {
+    const line = lines[i];
+    if (/^(?:TODAY|आज)$/.test(line)) {
+      sawToday = true;
+      continue;
+    }
+    if (sawToday) {
+      const value = line.match(/(?:^|\\s)(\\d{2})(?:\\s|$)/);
+      if (value) return value[1];
+      if (/^(?:--|XX|WAIT|PENDING|अभी नहीं)$/.test(line)) return null;
+    }
+    if (matchesMarket(line)) break;
+  }
+  return null;
 }
-
 
 async function publishSyncStatus(status, message) {
   const token = process.env.GITHUB_TOKEN;
