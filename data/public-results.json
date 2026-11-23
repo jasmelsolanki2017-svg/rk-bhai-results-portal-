@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-23T18:08:42.316Z",
+  "updatedAt": "2026-11-23T18:14:13.460Z",
   "results": [
     {
       "_id": "6b040b6e88a8362f0b1817bc",
@@ -18,7 +18,7 @@
           "sattafree.com",
           "galidisawer.com"
         ],
-        "checkedAt": "2026-11-23T18:08:30.025Z",
+        "checkedAt": "2026-11-23T18:14:02.403Z",
         "firstPassDomains": [
           "sattafree.com",
           "galidisawer.com"
@@ -45,30 +45,26 @@
       "title": "Faridabad",
       "resultText": "81",
       "resultDate": "2026-11-23T12:00:00.000Z",
-      "sourceUrl": "https://satta-king-fast.com/, https://sattafree.com/, https://sattaking.live/, https://galidisawer.com/",
+      "sourceUrl": "https://sattafree.com/, https://sattaking.live/, https://galidisawer.com/",
       "verificationMeta": {
         "value": "81",
         "sources": [
-          "https://satta-king-fast.com/",
           "https://sattafree.com/",
           "https://sattaking.live/",
           "https://galidisawer.com/"
         ],
         "domains": [
-          "satta-king-fast.com",
           "sattafree.com",
           "sattaking.live",
           "galidisawer.com"
         ],
-        "checkedAt": "2026-11-23T18:08:30.025Z",
+        "checkedAt": "2026-11-23T18:14:02.402Z",
         "firstPassDomains": [
-          "satta-king-fast.com",
           "sattafree.com",
           "sattaking.live",
           "galidisawer.com"
         ],
         "recheckDomains": [
-          "satta-king-fast.com",
           "sattafree.com",
           "sattaking.live",
           "galidisawer.com"
@@ -95,7 +91,7 @@
           "sattaking.live",
           "galidisawer.com"
         ],
-        "checkedAt": "2026-11-23T18:08:30.025Z",
+        "checkedAt": "2026-11-23T18:14:02.403Z",
         "firstPassDomains": [
           "sattafree.com",
           "sattaking.live",
