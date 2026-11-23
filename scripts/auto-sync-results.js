@@ -4,6 +4,9 @@ const mongoose = require("mongoose");
 const SOURCE_URL = "https://satta-king-fast.com/";
 const REPO = process.env.GITHUB_REPOSITORY || "jasmelsolanki2017-svg/rk-bhai-results-portal-";
 const SNAPSHOT_BRANCH = "public-data";
+const STATUS_FILE = "data/auto-sync-status.json";
+let sourceFetchAttempts = 0;
+let sourceHttpStatus = null;
 const SOURCE_MARKETS = [
   { source: "DESAWAR", title: "Disawar" },
   { source: "FARIDABAD", title: "Faridabad" },
@@ -105,6 +108,76 @@ function parseMarketValues(html, marketName) {
   return /^\d{2}$/.test(current) ? current : null;
 }
 
+
+async function publishSyncStatus(status, message) {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) throw new Error("GitHub Actions token is missing; sync status could not be published.");
+  const apiUrl = "https://api.github.com/repos/" + REPO + "/contents/" + STATUS_FILE;
+  const headers = {
+    Authorization: "Bearer " + token,
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28"
+  };
+  const statusData = {
+    app: "rk-bhai-results-portal",
+    status,
+    message: String(message || "").slice(0, 500),
+    sourceUrl: SOURCE_URL,
+    attempts: sourceFetchAttempts,
+    httpStatus: sourceHttpStatus,
+    checkedAt: new Date().toISOString()
+  };
+  const currentResponse = await fetch(apiUrl + "?ref=" + SNAPSHOT_BRANCH, { headers });
+  let sha;
+  if (currentResponse.ok) sha = (await currentResponse.json()).sha;
+  else if (currentResponse.status !== 404) throw new Error("Sync status lookup failed: HTTP " + currentResponse.status);
+  const payload = {
+    message: "Update automatic result sync status",
+    content: Buffer.from(JSON.stringify(statusData, null, 2) + "\n", "utf8").toString("base64"),
+    branch: SNAPSHOT_BRANCH
+  };
+  if (sha) payload.sha = sha;
+  const write = await fetch(apiUrl, {
+    method: "PUT",
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  if (!write.ok) throw new Error("Sync status write failed: HTTP " + write.status + " " + (await write.text()).slice(0, 200));
+  console.log("Automatic sync status published:", status);
+}
+
+async function fetchSourceHtml() {
+  const maxAttempts = 3;
+  let lastError;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    sourceFetchAttempts = attempt;
+    console.log("Fetching source website, attempt", attempt + " of " + maxAttempts);
+    try {
+      const response = await fetch(SOURCE_URL, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; RKBhaiResultsSync/1.0)",
+          "Accept": "text/html,application/xhtml+xml",
+          "Accept-Language": "en-IN,en;q=0.9,hi;q=0.8"
+        },
+        signal: AbortSignal.timeout(20000)
+      });
+      sourceHttpStatus = response.status;
+      if (response.ok) return await response.text();
+      lastError = new Error("Source website returned HTTP " + response.status);
+    } catch (error) {
+      lastError = error;
+      sourceHttpStatus = null;
+    }
+    console.warn("Source fetch attempt", attempt, "failed:", lastError.message);
+    if (attempt < maxAttempts) {
+      const delayMs = 3000 * Math.pow(2, attempt - 1);
+      console.log("Retrying source fetch in", delayMs / 1000, "seconds.");
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+  }
+  throw new Error("Source fetch failed after " + maxAttempts + " attempts: " + (lastError?.message || "Unknown error"));
+}
+
 async function updatePublicSnapshot() {
   const token = process.env.GITHUB_TOKEN;
   if (!token) throw new Error("GitHub Actions token is missing.");
@@ -182,16 +255,13 @@ async function updatePublicSnapshot() {
 
 async function main() {
   if (!process.env.MONGODB_URI) throw new Error("Add MONGODB_URI as a GitHub Actions repository secret.");
-  const response = await fetch(SOURCE_URL, {
-    headers: { "User-Agent": "Mozilla/5.0 (compatible; RKBhaiResultsSync/1.0)" },
-    signal: AbortSignal.timeout(20000)
-  });
-  if (!response.ok) throw new Error("Source website returned HTTP " + response.status);
-  const html = await response.text();
+  await publishSyncStatus("running", "सोर्स वेबसाइट से रिजल्ट डेटा लिया जा रहा है।");
+  const html = await fetchSourceHtml();
   const sourceDate = parseSourceDate(html);
   const today = getIndiaDateParts();
   if (sourceDate.year !== today.year || sourceDate.month !== today.month || sourceDate.day !== today.day) {
     console.log("Source page is not dated today (IST); no results imported. Source date:", sourceDate);
+    await publishSyncStatus("skipped", "सोर्स पेज पर आज की तारीख का रिजल्ट नहीं मिला; कोई डेटा नहीं बदला गया।");
     return;
   }
 
@@ -214,8 +284,14 @@ async function main() {
   }
   if (insertedOrUpdated) await updatePublicSnapshot();
   else console.log("No new source values found; database and snapshot left unchanged.");
+  await publishSyncStatus("success", insertedOrUpdated ? insertedOrUpdated + " मार्केट रिकॉर्ड sync हुए।" : "कोई नया प्रकाशित रिजल्ट नहीं मिला; पुराना डेटा सुरक्षित रखा गया।");
 }
 
 main()
-  .catch(error => { console.error("Automatic result sync failed:", error); process.exitCode = 1; })
+  .catch(async error => {
+    console.error("Automatic result sync failed:", error);
+    try { await publishSyncStatus("failed", error.message || "Automatic result sync failed."); }
+    catch (statusError) { console.error("Could not publish sync failure status:", statusError.message); }
+    process.exitCode = 1;
+  })
   .finally(async () => { if (mongoose.connection.readyState) await mongoose.disconnect(); });
