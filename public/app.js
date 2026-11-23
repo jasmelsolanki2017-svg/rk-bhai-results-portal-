@@ -130,31 +130,42 @@ function renderLiveResultTicker(){
 }
 function renderRecent(){
   renderLiveResultTicker();
-  const todayKey=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+  const indiaDateKey=value=>new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(value));
+  const normalizeMarketName=value=>String(value||"").trim().toLocaleLowerCase("en").replace(/\s+city$/i,"").replace(/\s+/g," ");
+  const todayKey=indiaDateKey(new Date());
   const todayStart=new Date(todayKey+"T00:00:00.000Z");
-  const yesterdayKey=new Date(todayStart.getTime()-86400000).toISOString().slice(0,10);
+  const yesterdayKey=indiaDateKey(todayStart.getTime()-86400000);
   const byCity=new Map();
+  const cityLabels=new Map();
+  recentCities.forEach(city=>{
+    const key=normalizeMarketName(city.cityName);
+    if(!key)return;
+    if(!byCity.has(key))byCity.set(key,{today:null,yesterday:null});
+    if(!cityLabels.has(key)||/\bcity$/i.test(String(cityLabels.get(key))))cityLabels.set(key,String(city.cityName||"").replace(/\s+city$/i,"").trim());
+  });
   recentRows.forEach(row=>{
-    const dayKey=dateKey(row.resultDate);
-    if(!byCity.has(row.title))byCity.set(row.title,{today:null,yesterday:null});
-    const item=byCity.get(row.title);
+    const key=normalizeMarketName(row.title);
+    if(!key)return;
+    if(!byCity.has(key))byCity.set(key,{today:null,yesterday:null});
+    if(!cityLabels.has(key))cityLabels.set(key,String(row.title||"").replace(/\s+city$/i,"").trim());
+    const item=byCity.get(key);
+    const dayKey=indiaDateKey(row.resultDate);
     if(dayKey===todayKey)item.today=row;
     if(dayKey===yesterdayKey)item.yesterday=row;
   });
-  recentCities.forEach(city=>{if(!byCity.has(city.cityName))byCity.set(city.cityName,{today:null,yesterday:null});});
   const todayStat=document.getElementById("statToday");
   if(todayStat)todayStat.textContent=recentRows.filter(r=>dateKey(r.resultDate)===todayKey).length;
   const query=(citySearch?.value||"").trim().toLocaleLowerCase("hi");
   const fixedTimes={"disawar":"05:00 AM","desawar":"05:00 AM","faridabad":"06:20 PM","ghaziabad":"10:05 PM","gali":"12:05 AM","delhi bazar":"03:15 PM","shri ganesh":"04:45 PM","shree ganesh":"04:45 PM","chandigarh":"08:30 PM"};
   const getCityTime=city=>{
-    const cityKey=String(city).trim().toLocaleLowerCase("en").replace(/\\s+city$/,"");
+    const cityKey=normalizeMarketName(city);
     if(cityKey==="chandigarh")return "08:30 PM";
     const info=recentCities.find(item=>item.cityName===city)||{};
     return info.expectedTime||info.resultTime||info.time||fixedTimes[cityKey]||"";
   };
   const nowParts=new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Kolkata",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(new Date()).split(":").map(Number);
   const nowMinutes=nowParts[0]*60+nowParts[1];
-  const entries=[...byCity.entries()].filter(([city])=>city.toLocaleLowerCase("hi").includes(query)).sort((a,b)=>{
+  const entries=[...byCity.entries()].map(([key,result])=>[cityLabels.get(key)||key,result]).filter(([city])=>city.toLocaleLowerCase("hi").includes(query)).sort((a,b)=>{
     const aPublished=!!a[1].today,bPublished=!!b[1].today;
     if(aPublished!==bPublished)return aPublished?-1:1;
     const latestTime=item=>Math.max(...[item[1].today,item[1].yesterday].filter(Boolean).map(row=>new Date(row.createdAt||row.updatedAt||row.resultDate||0).getTime()),0);
@@ -190,7 +201,7 @@ function renderRecent(){
     return hour*60+Number(match[2]);
   };
   const upcomingEntries=[...entries];
-  if(!upcomingEntries.some(([city])=>String(city).trim().toLocaleLowerCase("en").replace(/\\s+city$/,"")==="chandigarh")){
+  if(!upcomingEntries.some(([city])=>normalizeMarketName(city)==="chandigarh")){
     upcomingEntries.push(["Chandigarh",{today:null,yesterday:null}]);
   }
   const upcomingCandidates=upcomingEntries
