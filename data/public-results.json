@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-23T17:30:07.254Z",
+  "updatedAt": "2026-11-23T17:33:45.303Z",
   "results": [
     {
       "_id": "6b040b6e88a8362f0b1817bc",
@@ -60,12 +60,11 @@
           "sattaking.live",
           "galidisawer.com"
         ],
-        "checkedAt": "2026-11-23T17:29:57.278Z",
+        "checkedAt": "2026-11-23T17:33:34.903Z",
         "firstPassDomains": [
           "satta-king-fast.com",
           "sattafree.com",
-          "sattaking.live",
-          "galidisawer.com"
+          "sattaking.live"
         ],
         "recheckDomains": [
           "satta-king-fast.com",
@@ -82,23 +81,26 @@
       "title": "Shree Ganesh",
       "resultText": "88",
       "resultDate": "2026-11-23T12:00:00.000Z",
-      "sourceUrl": "https://sattaking.live/, https://galidisawer.com/",
+      "sourceUrl": "https://sattafree.com/, https://sattaking.live/, https://galidisawer.com/",
       "verificationMeta": {
         "value": "88",
         "sources": [
+          "https://sattafree.com/",
           "https://sattaking.live/",
           "https://galidisawer.com/"
         ],
         "domains": [
+          "sattafree.com",
           "sattaking.live",
           "galidisawer.com"
         ],
-        "checkedAt": "2026-11-23T17:29:57.278Z",
+        "checkedAt": "2026-11-23T17:33:34.903Z",
         "firstPassDomains": [
-          "sattaking.live",
-          "galidisawer.com"
+          "sattafree.com",
+          "sattaking.live"
         ],
         "recheckDomains": [
+          "sattafree.com",
           "sattaking.live",
           "galidisawer.com"
         ],
