@@ -1,10 +1,10 @@
 {
   "app": "rk-bhai-results-portal",
   "status": "running",
-  "message": "Smart Auto Sync चालू: Ghaziabad, Gali — तय समय से 5 मिनट पहले शुरू, पुष्टि होने तक लगभग हर मिनट जाँच। Chandigarh City मैनुअल है।",
+  "message": "Smart Auto Sync चालू: Gali — तय समय से 5 मिनट पहले शुरू, पुष्टि होने तक लगभग हर मिनट जाँच। Chandigarh City मैनुअल है।",
   "sourceUrl": "https://kingsofsatta.com/",
   "sourceDiagnostics": [],
   "attempts": 0,
   "httpStatus": null,
-  "checkedAt": "2026-11-23T19:29:28.894Z"
+  "checkedAt": "2026-11-23T20:44:59.868Z"
 }
