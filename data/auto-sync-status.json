@@ -1,10 +1,21 @@
 {
   "app": "rk-bhai-results-portal",
-  "status": "running",
-  "message": "सोर्स वेबसाइट से रिजल्ट डेटा लिया जा रहा है।",
+  "status": "success",
+  "message": "3 मार्केट रिकॉर्ड sync हुए। Source: https://kingsofsatta.com/",
   "sourceUrl": "https://kingsofsatta.com/",
-  "sourceDiagnostics": [],
-  "attempts": 0,
-  "httpStatus": null,
-  "checkedAt": "2026-11-23T12:57:31.543Z"
+  "sourceDiagnostics": [
+    {
+      "url": "https://kingsofsatta.com/",
+      "status": 200,
+      "result": "accepted",
+      "marketsFound": [
+        "Ghaziabad",
+        "Delhi Bazar",
+        "Shree Ganesh"
+      ]
+    }
+  ],
+  "attempts": 1,
+  "httpStatus": 200,
+  "checkedAt": "2026-11-23T12:57:46.263Z"
 }
