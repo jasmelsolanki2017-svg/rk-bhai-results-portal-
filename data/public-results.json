@@ -1,15 +1,7 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-23T13:13:32.063Z",
+  "updatedAt": "2026-11-23T13:14:22.507Z",
   "results": [
-    {
-      "_id": "6b040b6e88a8362f0b1817bc",
-      "title": "Delhi Bazar",
-      "resultText": "07",
-      "resultDate": "2026-11-23T12:00:00.000Z",
-      "sourceUrl": "https://kingsofsatta.com/",
-      "createdAt": "2026-11-23T09:46:22.557Z"
-    },
     {
       "_id": "6b0397ae6d3e9be71a255327",
       "title": "Disawar",
@@ -17,6 +9,14 @@
       "resultDate": "2026-11-23T12:00:00.000Z",
       "sourceUrl": "https://satta-king-fast.com/",
       "createdAt": "2026-11-23T01:32:28.818Z"
+    },
+    {
+      "_id": "6b040b6e88a8362f0b1817bc",
+      "title": "Delhi Bazar",
+      "resultText": "84",
+      "resultDate": "2026-11-23T00:00:00.000Z",
+      "sourceUrl": "https://kingsofsatta.com/",
+      "createdAt": "2026-11-23T09:46:22.557Z"
     },
     {
       "_id": "6b0436d5664f43b4d6ea1627",
