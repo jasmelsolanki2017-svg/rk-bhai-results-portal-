@@ -2,12 +2,14 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 
 const SOURCE_URLS = [
-  "https://satta-king-fast.com/",
+  // Preferred sources, in priority order
   "https://kingsofsatta.com/",
-  "https://www.satta-king-gali.com/",
-  "https://satta-superfast.com/",
   "https://1xsatta.today/",
-  "https://gali-results.com/"
+  "https://gali-results.com/",
+  // Backup sources
+  "https://satta-king-fast.com/",
+  "https://www.satta-king-gali.com/",
+  "https://satta-superfast.com/"
 ];
 let activeSourceUrl = SOURCE_URLS[0];
 const sourceDiagnostics = [];
