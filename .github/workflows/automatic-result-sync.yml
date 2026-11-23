@@ -32,7 +32,7 @@ jobs:
         run: node --check scripts/auto-sync-results.js
 
   sync:
-    if: false # KEEP PAUSED until source independence and parser output are manually verified
+    needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
