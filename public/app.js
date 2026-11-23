@@ -199,8 +199,12 @@ function renderRecent(){
   }
   const upcomingCandidates=upcomingEntries
     .filter(([city,result])=>!result.today&&parseCityMinutes(getCityTime(city))!==null)
-    .map(([city,result])=>({city,result,time:getCityTime(city),minutes:parseCityMinutes(getCityTime(city))}))
-    .sort((a,b)=>((a.minutes-nowMinutes+1440)%1440)-((b.minutes-nowMinutes+1440)%1440));
+    .map(([city,result])=>({city,result,time:getCityTime(city),minutes:parseCityMinutes(getCityTime(city)),due:parseCityMinutes(getCityTime(city))<=nowMinutes}))
+    .sort((a,b)=>{
+      if(a.due!==b.due)return a.due?-1:1;
+      if(a.due&&b.due)return b.minutes-a.minutes;
+      return a.minutes-b.minutes;
+    });
   const nextMarket=upcomingCandidates[0]||null;
   if(nextResultHighlight){
     nextResultHighlight.innerHTML=nextMarket
