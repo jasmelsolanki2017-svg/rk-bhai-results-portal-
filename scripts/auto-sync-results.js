@@ -79,8 +79,17 @@ function parseSourceDate(html) {
   // Trust the first date in the explicit heading, not merely the presence of a date somewhere.
   const timewise = plain.match(/(?:Timewise\s+)?(?:Superfast\s+)?Satta\s+Kings?\s+Results?\s+of\s+([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})\s*(?:&|and)\s*([A-Za-z]+)\s+(\d{1,2}),?\s*(\d{4})?/i);
   if (timewise) {
-    const month = new Date(Date.parse(timewise[1] + " 1, 2000")).getMonth() + 1;
-    return { year: Number(timewise[3]), month, day: Number(timewise[2]) };
+    const currentMonth = new Date(Date.parse(timewise[1] + " 1, 2000")).getMonth() + 1;
+    const previousMonth = new Date(Date.parse(timewise[4] + " 1, 2000")).getMonth() + 1;
+    const currentDate = { year: Number(timewise[3]), month: currentMonth, day: Number(timewise[2]) };
+    const previousYear = timewise[6] ? Number(timewise[6]) : Number(timewise[3]);
+    const expectedPrevious = new Date(Date.UTC(currentDate.year, currentDate.month - 1, currentDate.day) - 86400000);
+    const shownPrevious = new Date(Date.UTC(previousYear, previousMonth - 1, Number(timewise[5])));
+    // Reject mismatched or out-of-order date columns (including month/year rollover).
+    if (shownPrevious.getTime() !== expectedPrevious.getTime()) {
+      throw new Error("Timewise table date columns are not consecutive; refusing to import.");
+    }
+    return currentDate;
   }
 
   // Other source variants use a single-date heading.
@@ -96,7 +105,7 @@ function parseSourceDate(html) {
   if (monthly) {
     const month = new Date(Date.parse(monthly[1] + " 1, 2000")).getMonth() + 1;
     const today = getIndiaDateParts();
-    const rowPattern = new RegExp("(?:^|\s)0?" + today.day + "\s+(?:\d{2}|XX|--|-)(?:\s+(?:\d{2}|XX|--|-)){1,8}(?:\s|$)", "im");
+    const rowPattern = new RegExp("(?:^|\\s)0?" + today.day + "\\s+(?:\\d{2}|XX|--|-)(?:\\s+(?:\\d{2}|XX|--|-)){1,8}(?:\\s|$)", "im");
     if (Number(monthly[2]) === today.year && month === today.month && rowPattern.test(plain)) {
       return today;
     }
@@ -349,8 +358,24 @@ async function main() {
       console.log("No published result for", market.title, "- skipped.");
       continue;
     }
+    const dayFilter = {
+      title: market.title,
+      resultDate: {
+        $gte: new Date(Date.UTC(sourceDate.year, sourceDate.month - 1, sourceDate.day)),
+        $lt: new Date(Date.UTC(sourceDate.year, sourceDate.month - 1, sourceDate.day + 1))
+      }
+    };
+    const existing = await Result.findOne(dayFilter).select("resultText").lean();
+    if (existing && String(existing.resultText || "").trim() !== resultText) {
+      console.warn("Conflict: existing same-day result differs; keeping existing record for manual review:", market.title);
+      sourceDiagnostics.push({
+        url: activeSourceUrl, result: "same_day_conflict",
+        market: market.title, existingValue: existing.resultText, incomingValue: resultText
+      });
+      continue;
+    }
     await Result.updateOne(
-      { title: market.title, resultDate: { $gte: new Date(Date.UTC(sourceDate.year, sourceDate.month - 1, sourceDate.day)), $lt: new Date(Date.UTC(sourceDate.year, sourceDate.month - 1, sourceDate.day + 1)) } },
+      dayFilter,
       { $set: { title: market.title, resultText, resultDate: date, published: true, deleted: false, sourceUrl: activeSourceUrl, ownerUserId: null, cityId: null }, $setOnInsert: { createdAt: new Date() } },
       { upsert: true }
     );
