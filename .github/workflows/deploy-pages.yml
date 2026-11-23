@@ -38,11 +38,8 @@ jobs:
           source = Path("public")
           output = Path("_site")
           output.mkdir(exist_ok=True)
-          (output / "theme-test").mkdir(exist_ok=True)
-          (output / "theme-test" / "index.html").write_bytes((source / "theme-test" / "index.html").read_bytes())
-
           # Copy only public-facing assets. Admin and user panel files stay on Render.
-          for name in ("style.css", "clock.js", "icon.svg", "brand-crown.svg", "disclaimer.html", "visitor-tracking.js", "refresh-button.js", "theme-test.html"):
+          for name in ("style.css", "clock.js", "icon.svg", "brand-crown.svg", "disclaimer.html", "visitor-tracking.js", "refresh-button.js"):
               (output / name).write_bytes((source / name).read_bytes())
 
           html = (source / "index.html").read_text(encoding="utf-8")
