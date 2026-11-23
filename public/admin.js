@@ -121,7 +121,7 @@ async function renderAdminTopResults(){
    const shouldBlink=isGali?!!now&&(galiBlinkWindow||!result.today):!!now;
    const blinkLeft=isGali&&shouldBlink&&!!previousDisplay;
    const blinkRight=!isGali&&shouldBlink;
-   const info=cities.find(c=>c.cityName===city)||{},time=info.expectedTime||info.resultTime||info.time||fixed[city.trim().toLowerCase()]||"";
+   const info=cities.find(c=>c.cityName===city)||{},cityKey=city.trim().toLowerCase().replace(/\s+city$/,""),time=cityKey==="chandigarh"?"08:30 PM":(info.expectedTime||info.resultTime||info.time||fixed[cityKey]||"");
    const value=isGali?"-":(now?String(now.resultText):"WAIT");
    const date=now?new Date(now.resultDate).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",timeZone:"UTC"}):"";
    const publishedAt=now?.createdAt||now?.updatedAt||now?.resultDate;
