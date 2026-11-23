@@ -156,7 +156,7 @@ function renderRecent(){
     const priority=item=>{
       if(item[1].today)return 2;
       const raw=getCityTime(item[0]);
-      const match=String(raw).match(/(\\d{1,2}):(\\d{2})\\s*(AM|PM)/i);
+      const match=String(raw).match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
       if(!match)return 3;
       let hour=Number(match[1])%12;
       if(match[3].toUpperCase()==="PM")hour+=12;
@@ -166,7 +166,7 @@ function renderRecent(){
     const pa=priority(a),pb=priority(b);
     if(pa!==pb)return pa-pb;
     const toMinutes=city=>{
-      const match=String(getCityTime(city)).match(/(\\d{1,2}):(\\d{2})\\s*(AM|PM)/i);
+      const match=String(getCityTime(city)).match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
       if(!match)return 9999;
       let hour=Number(match[1])%12;
       if(match[3].toUpperCase()==="PM")hour+=12;
@@ -183,6 +183,24 @@ function renderRecent(){
   const newestResult=[...recentRows].sort((a,b)=>new Date(b.createdAt||b.updatedAt||b.resultDate||0).getTime()-new Date(a.createdAt||a.updatedAt||a.resultDate||0).getTime())[0];
   const newestResultKey=newestResult?resultKey(newestResult):null;
   const cell=(row,isToday=false)=>{if(!row)return isToday?'<span class="wait-badge">WAIT</span>':'<span class="no-result">XX</span>';return '<span'+(isToday?' class="result-blink"':'')+'>'+escapeHtml(row.resultText)+'</span>'+(isToday?' <span class="new-result-badge">NEW</span>':'');};
+  const nextResultHighlight=document.getElementById("nextResultHighlight");
+  const parseCityMinutes=value=>{
+    const match=String(value||"").match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if(!match)return null;
+    let hour=Number(match[1])%12;
+    if(match[3].toUpperCase()==="PM")hour+=12;
+    return hour*60+Number(match[2]);
+  };
+  const upcomingCandidates=entries
+    .filter(([city,result])=>!result.today&&parseCityMinutes(getCityTime(city))!==null)
+    .map(([city,result])=>({city,result,time:getCityTime(city),minutes:parseCityMinutes(getCityTime(city))}))
+    .sort((a,b)=>((a.minutes-nowMinutes+1440)%1440)-((b.minutes-nowMinutes+1440)%1440));
+  const nextMarket=upcomingCandidates[0]||null;
+  if(nextResultHighlight){
+    nextResultHighlight.innerHTML=nextMarket
+      ?'<div class="next-market-card"><div class="next-market-kicker"><span class="next-market-pulse"></span> अगला आने वाला रिजल्ट</div><div class="next-market-main"><div><h3>'+escapeHtml(nextMarket.city)+'</h3><p>आज का रिजल्ट आने वाला है</p></div><div class="next-market-time">'+escapeHtml(nextMarket.time)+'</div></div><div class="next-market-foot">रिजल्ट प्रकाशित होते ही यहाँ अपडेट दिखाई देगा</div></div>'
+      :'<div class="next-market-empty">अभी अगला रिजल्ट समय उपलब्ध नहीं है।</div>';
+  }
   if(topResultCards){
     topResultCards.innerHTML=entries.map(([city,result])=>{
       const cityInfo=recentCities.find(item=>item.cityName===city)||{};
@@ -202,7 +220,7 @@ function renderRecent(){
       const blinkLeft=isGali&&shouldBlink&&!!previousDisplayRow;
       const blinkRight=!isGali&&shouldBlink;
       const upcoming=!result.today&&!!time;
-      const nextCard=upcoming&&entries.findIndex(([name])=>name===city)===0;
+      const nextCard=false;
       const statusText=result.today?"आज का रिजल्ट आ गया":(nextCard?"अगला रिजल्ट":"रिजल्ट का इंतज़ार है");
       return '<article class="top-result-card'+(nextCard?' next-result-card':'')+'"><div class="result-card-topline"><span class="result-card-status'+(result.today?' is-published':'')+'">'+(nextCard?'⌛ अगला रिजल्ट':statusText)+'</span>'+(nextCard?'<span class="next-result-tag">NEXT</span>':'')+'</div><h3>'+escapeHtml(city)+'</h3><p class="top-result-time">'+(time?'( '+escapeHtml(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous-wrap">'+(blinkLeft?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-previous'+(blinkLeft?' result-blink':'')+'">'+previous+'</span></span><span class="top-result-arrow" aria-hidden="true">➡️</span><span class="top-current-wrap">'+(blinkRight?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(blinkRight?' result-blink':'')+'">'+current+'</span></span></div><div class="top-result-actions"><a class="top-chart-link" href="#archive" data-chart-city="'+escapeHtml(city)+'">चार्ट देखें</a><button type="button" class="top-share-card" data-share-city="'+escapeHtml(city)+'" data-share-value="'+escapeHtml(currentRow?currentRow.resultText:"") +'" data-share-date="'+escapeHtml(currentRow?currentRow.resultDate:"") +'" '+(currentRow?'':'disabled')+'>शेयर कार्ड</button></div></article>';
     }).join("");
