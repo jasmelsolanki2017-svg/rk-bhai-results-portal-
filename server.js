@@ -120,6 +120,7 @@ const ResultSchema = new mongoose.Schema({
   published: { type: Boolean, default: false },
   deleted: { type: Boolean, default: false },
   sourceUrl: { type: String, default: "" },
+  resultSource: { type: String, enum: ["manual", "automatic"], default: "manual", index: true },
   ownerUserId: { type: mongoose.Schema.Types.ObjectId, ref: "PortalUser", default: null, index: true },
   cityId: { type: mongoose.Schema.Types.ObjectId, ref: "PortalCity", default: null, index: true },
   createdAt: { type: Date, default: Date.now }
@@ -927,7 +928,7 @@ app.post("/api/admin/results", adminOnly, async (req, res) => {
   const ownerCity = approvedCities.find(city => String(city.cityName).trim().toLocaleLowerCase("en") === cleanTitle.toLocaleLowerCase("en"));
   const row = await Result.create({
     title: cleanTitle, resultText, resultDate,
-    published: published === true, sourceUrl: sourceUrl || "",
+    published: published === true, sourceUrl: sourceUrl || "", resultSource: "manual",
     ...(ownerCity ? { ownerUserId: ownerCity.userId, cityId: ownerCity._id } : {})
   });
   res.status(201).json(row);
@@ -936,6 +937,8 @@ app.patch("/api/admin/results/:id", adminOnly, async (req, res) => {
   const allowed = {};
   for (const key of ["title", "resultText", "resultDate", "published", "sourceUrl"])
     if (req.body && Object.prototype.hasOwnProperty.call(req.body, key)) allowed[key] = req.body[key];
+  // Any admin edit is an explicit manual override and must be protected from auto-sync.
+  allowed.resultSource = "manual";
   const existing = await Result.findById(req.params.id);
   if (!existing) return res.status(404).json({ error: "Record not found" });
   const nextTitle = String(allowed.title ?? existing.title).trim();
