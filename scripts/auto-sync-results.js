@@ -1,19 +1,28 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
 
-const SOURCE_URL = "https://satta-king-fast.com/";
+const SOURCE_URLS = [
+  "https://satta-king-fast.com/",
+  "https://kingsofsatta.com/",
+  "https://www.satta-king-gali.com/",
+  "https://satta-superfast.com/",
+  "https://1xsatta.today/",
+  "https://gali-results.com/"
+];
+let activeSourceUrl = SOURCE_URLS[0];
+const sourceDiagnostics = [];
 const REPO = process.env.GITHUB_REPOSITORY || "jasmelsolanki2017-svg/rk-bhai-results-portal-";
 const SNAPSHOT_BRANCH = "public-data";
 const STATUS_FILE = "data/auto-sync-status.json";
 let sourceFetchAttempts = 0;
 let sourceHttpStatus = null;
 const SOURCE_MARKETS = [
-  { source: "DESAWAR", title: "Disawar" },
-  { source: "FARIDABAD", title: "Faridabad" },
-  { source: "GHAZIABAD", title: "Ghaziabad" },
-  { source: "GALI", title: "Gali" },
-  { source: "DELHI BAZAR", title: "Delhi Bazar" },
-  { source: "SHRI GANESH", title: "Shree Ganesh" }
+  { source: ["DESAWAR", "DESAWAR", "DISAWAR"], title: "Disawar" },
+  { source: ["FARIDABAD"], title: "Faridabad" },
+  { source: ["GHAZIABAD"], title: "Ghaziabad" },
+  { source: ["GALI"], title: "Gali" },
+  { source: ["DELHI BAZAR", "DELHI BAZAR"], title: "Delhi Bazar" },
+  { source: ["SHRI GANESH", "SHREE GANESH"], title: "Shree Ganesh" }
 ];
 
 const Result = mongoose.model("Result", new mongoose.Schema({
@@ -80,7 +89,7 @@ function parseSourceDate(html) {
   throw new Error("Source result date heading/table was not found; refusing to import unverified data.");
 }
 
-function parseMarketValues(html, marketName) {
+function parseMarketValues(html, marketNames) {
   const withoutNoise = html
     .replace(/<script\b[\s\S]*?<\/script>/gi, "\n")
     .replace(/<style\b[\s\S]*?<\/style>/gi, "\n");
@@ -93,7 +102,9 @@ function parseMarketValues(html, marketName) {
     .map(line => line.replace(/\s+/g, " ").trim().toUpperCase())
     .filter(Boolean);
 
-  const start = text.findIndex(line => line === marketName || line.replace(/[^A-Z0-9 ]/g, "").trim() === marketName);
+  const aliases = Array.isArray(marketNames) ? marketNames : [marketNames];
+  const normalizedAliases = aliases.map(name => String(name).toUpperCase().replace(/[^A-Z0-9 ]/g, "").trim());
+  const start = text.findIndex(line => normalizedAliases.includes(line.replace(/[^A-Z0-9 ]/g, "").trim()));
   if (start < 0) return null;
 
   const values = [];
@@ -122,7 +133,8 @@ async function publishSyncStatus(status, message) {
     app: "rk-bhai-results-portal",
     status,
     message: String(message || "").slice(0, 500),
-    sourceUrl: SOURCE_URL,
+    sourceUrl: activeSourceUrl,
+    sourceDiagnostics,
     attempts: sourceFetchAttempts,
     httpStatus: sourceHttpStatus,
     checkedAt: new Date().toISOString()
@@ -147,35 +159,76 @@ async function publishSyncStatus(status, message) {
 }
 
 async function fetchSourceHtml() {
-  const maxAttempts = 3;
-  let lastError;
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    sourceFetchAttempts = attempt;
-    console.log("Fetching source website, attempt", attempt + " of " + maxAttempts);
+  let lastError = null;
+  const today = getIndiaDateParts();
+
+  for (const sourceUrl of SOURCE_URLS) {
+    activeSourceUrl = sourceUrl;
+    sourceFetchAttempts++;
     try {
-      const response = await fetch(SOURCE_URL, {
+      console.log("Checking result source:", sourceUrl);
+      const response = await fetch(sourceUrl, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; RKBhaiResultsSync/1.0)",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36",
           "Accept": "text/html,application/xhtml+xml",
           "Accept-Language": "en-IN,en;q=0.9,hi;q=0.8"
         },
-        signal: AbortSignal.timeout(20000)
+        signal: AbortSignal.timeout(12000)
       });
       sourceHttpStatus = response.status;
-      if (response.ok) return await response.text();
-      lastError = new Error("Source website returned HTTP " + response.status);
+      if (!response.ok) {
+        lastError = new Error("HTTP " + response.status);
+        sourceDiagnostics.push({ url: sourceUrl, status: response.status, result: "fetch_failed" });
+        console.warn("Source unavailable:", sourceUrl, "HTTP", response.status);
+        continue;
+      }
+
+      const html = await response.text();
+      let sourceDate;
+      try {
+        sourceDate = parseSourceDate(html);
+      } catch (error) {
+        lastError = error;
+        sourceDiagnostics.push({ url: sourceUrl, status: response.status, result: "date_not_recognized" });
+        console.warn("Source date not recognized:", sourceUrl);
+        continue;
+      }
+
+      if (sourceDate.year !== today.year || sourceDate.month !== today.month || sourceDate.day !== today.day) {
+        lastError = new Error("Source page is not dated today (IST)");
+        sourceDiagnostics.push({ url: sourceUrl, status: response.status, result: "stale_date", sourceDate });
+        console.warn("Source is not showing today's result:", sourceUrl, sourceDate);
+        continue;
+      }
+
+      const marketResults = {};
+      for (const market of SOURCE_MARKETS) {
+        const value = parseMarketValues(html, market.source);
+        if (value) marketResults[market.title] = value;
+      }
+
+      if (!Object.keys(marketResults).length) {
+        lastError = new Error("Today's page found, but no market result matched the expected format");
+        sourceDiagnostics.push({ url: sourceUrl, status: response.status, result: "format_not_recognized" });
+        console.warn("No valid market values parsed from:", sourceUrl);
+        continue;
+      }
+
+      sourceDiagnostics.push({
+        url: sourceUrl, status: response.status, result: "accepted",
+        marketsFound: Object.keys(marketResults)
+      });
+      console.log("Using source:", sourceUrl, "markets found:", Object.keys(marketResults).join(", "));
+      return { marketResults, sourceDate };
     } catch (error) {
       lastError = error;
       sourceHttpStatus = null;
-    }
-    console.warn("Source fetch attempt", attempt, "failed:", lastError.message);
-    if (attempt < maxAttempts) {
-      const delayMs = 3000 * Math.pow(2, attempt - 1);
-      console.log("Retrying source fetch in", delayMs / 1000, "seconds.");
-      await new Promise(resolve => setTimeout(resolve, delayMs));
+      sourceDiagnostics.push({ url: sourceUrl, status: null, result: "request_error", message: error.message });
+      console.warn("Source request failed:", sourceUrl, error.message);
     }
   }
-  throw new Error("Source fetch failed after " + maxAttempts + " attempts: " + (lastError?.message || "Unknown error"));
+
+  throw new Error("All result sources failed validation. " + (lastError?.message || "No usable source found."));
 }
 
 async function updatePublicSnapshot() {
@@ -256,27 +309,20 @@ async function updatePublicSnapshot() {
 async function main() {
   if (!process.env.MONGODB_URI) throw new Error("Add MONGODB_URI as a GitHub Actions repository secret.");
   await publishSyncStatus("running", "सोर्स वेबसाइट से रिजल्ट डेटा लिया जा रहा है।");
-  const html = await fetchSourceHtml();
-  const sourceDate = parseSourceDate(html);
-  const today = getIndiaDateParts();
-  if (sourceDate.year !== today.year || sourceDate.month !== today.month || sourceDate.day !== today.day) {
-    console.log("Source page is not dated today (IST); no results imported. Source date:", sourceDate);
-    await publishSyncStatus("skipped", "सोर्स पेज पर आज की तारीख का रिजल्ट नहीं मिला; कोई डेटा नहीं बदला गया।");
-    return;
-  }
+  const { marketResults, sourceDate } = await fetchSourceHtml();
 
   await mongoose.connect(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 15000 });
   const date = new Date(Date.UTC(sourceDate.year, sourceDate.month - 1, sourceDate.day, 12));
   let insertedOrUpdated = 0;
   for (const market of SOURCE_MARKETS) {
-    const resultText = parseMarketValues(html, market.source);
+    const resultText = marketResults[market.title];
     if (!resultText) {
       console.log("No published result for", market.title, "- skipped.");
       continue;
     }
     await Result.updateOne(
       { title: market.title, resultDate: { $gte: new Date(Date.UTC(sourceDate.year, sourceDate.month - 1, sourceDate.day)), $lt: new Date(Date.UTC(sourceDate.year, sourceDate.month - 1, sourceDate.day + 1)) } },
-      { $set: { title: market.title, resultText, resultDate: date, published: true, deleted: false, sourceUrl: SOURCE_URL, ownerUserId: null, cityId: null }, $setOnInsert: { createdAt: new Date() } },
+      { $set: { title: market.title, resultText, resultDate: date, published: true, deleted: false, sourceUrl: activeSourceUrl, ownerUserId: null, cityId: null }, $setOnInsert: { createdAt: new Date() } },
       { upsert: true }
     );
     insertedOrUpdated++;
@@ -284,7 +330,7 @@ async function main() {
   }
   if (insertedOrUpdated) await updatePublicSnapshot();
   else console.log("No new source values found; database and snapshot left unchanged.");
-  await publishSyncStatus("success", insertedOrUpdated ? insertedOrUpdated + " मार्केट रिकॉर्ड sync हुए।" : "कोई नया प्रकाशित रिजल्ट नहीं मिला; पुराना डेटा सुरक्षित रखा गया।");
+  await publishSyncStatus("success", insertedOrUpdated ? insertedOrUpdated + " मार्केट रिकॉर्ड sync हुए। Source: " + activeSourceUrl : "कोई नया प्रकाशित रिजल्ट नहीं मिला; पुराना डेटा सुरक्षित रखा गया।");
 }
 
 main()
