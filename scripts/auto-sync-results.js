@@ -89,6 +89,7 @@ function parseSourceDate(html) {
     /(?:^|\s)(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})(?:\s|$)/,
     /(?:^|\s)(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})(?:\s|$)/
   ];
+  let staleDate = null;
   for (let i = 0; i < candidates.length; i++) {
     const match = plain.match(candidates[i]);
     if (!match) continue;
@@ -96,7 +97,8 @@ function parseSourceDate(html) {
     if (i <= 1) found = { year: Number(match[3]), month: monthNumber(match[1]), day: Number(match[2]) };
     else if (i === 2) found = { year: Number(match[3]), month: Number(match[2]), day: Number(match[1]) };
     else found = { year: Number(match[3]), month: monthNumber(match[2]), day: Number(match[1]) };
-    if (found.month) return found;
+    if (found.month && found.year === today.year && found.month === today.month && found.day === today.day) return found;
+    if (found.month && !staleDate) staleDate = found;
   }
 
   // Chart-only sites often omit a full date but show the current month and
@@ -121,11 +123,14 @@ function parseMarketValues(html, marketNames) {
   const aliasSet = aliases.map(normalize);
   const marketCodes = {
     "DISAWAR": ["DSWR", "DISAWER", "DESAWAR", "DESAWER"],
+    "DISAWER": ["DSWR", "DISAWER", "DESAWAR", "DESAWER"],
+    "DESAWAR": ["DSWR", "DISAWER", "DESAWAR", "DESAWER"],
     "FARIDABAD": ["FRBD"],
     "GHAZIABAD": ["GABD"],
     "GALI": ["GALI"],
     "DELHI BAZAR": ["DLBZ", "DELHI BAZAAR"],
-    "SHREE GANESH": ["SRGN", "SHRI GANESH"]
+    "SHREE GANESH": ["SRGN", "SHRI GANESH"],
+    "SHRI GANESH": ["SRGN", "SHRI GANESH"]
   };
   const codes = (marketCodes[aliasSet[0]] || []).map(normalize);
   const today = getIndiaDateParts();
