@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-23T17:48:54.618Z",
+  "updatedAt": "2026-11-23T17:54:03.524Z",
   "results": [
     {
       "_id": "6b040b6e88a8362f0b1817bc",
@@ -60,7 +60,7 @@
           "sattaking.live",
           "galidisawer.com"
         ],
-        "checkedAt": "2026-11-23T17:48:43.868Z",
+        "checkedAt": "2026-11-23T17:53:53.603Z",
         "firstPassDomains": [
           "satta-king-fast.com",
           "sattafree.com",
@@ -70,8 +70,7 @@
         "recheckDomains": [
           "satta-king-fast.com",
           "sattafree.com",
-          "sattaking.live",
-          "galidisawer.com"
+          "sattaking.live"
         ],
         "rule": "same_value_on_two_distinct_domains_in_two_checks"
       },
@@ -95,7 +94,7 @@
           "sattaking.live",
           "galidisawer.com"
         ],
-        "checkedAt": "2026-11-23T17:48:43.868Z",
+        "checkedAt": "2026-11-23T17:53:53.603Z",
         "firstPassDomains": [
           "sattafree.com",
           "sattaking.live",
@@ -103,8 +102,7 @@
         ],
         "recheckDomains": [
           "sattafree.com",
-          "sattaking.live",
-          "galidisawer.com"
+          "sattaking.live"
         ],
         "rule": "same_value_on_two_distinct_domains_in_two_checks"
       },
