@@ -75,6 +75,64 @@ async function loadAutoSyncStatus(){
  }
 }
 $("#refreshAutoSyncStatus")?.addEventListener("click",loadAutoSyncStatus);
+async function loadResultConflictPopup(){
+ const modal=$("#resultConflictModal"),items=$("#resultConflictItems"),message=$("#resultConflictMessage");
+ if(!modal||!items)return;
+ try{
+  const url="https://raw.githubusercontent.com/jasmelsolanki2017-svg/rk-bhai-results-portal-/public-data/data/auto-sync-status.json?ts="+Date.now();
+  const response=await fetch(url,{cache:"no-store",signal:AbortSignal.timeout(10000)});
+  if(!response.ok)throw new Error("Sync status unavailable");
+  const data=await response.json();
+  const conflicts=(Array.isArray(data.sourceDiagnostics)?data.sourceDiagnostics:[])
+    .filter(x=>x.result==="manual_result_protected"&&x.market&&x.resultDate&&x.incomingValue!==undefined);
+  const pending=conflicts.filter(c=>{
+    const row=allRows.find(r=>String(r.title).trim().toLowerCase()===String(c.market).trim().toLowerCase()&&
+      new Date(r.resultDate).toISOString().slice(0,10)===new Date(c.resultDate).toISOString().slice(0,10));
+    if(!row)return false;
+    const reviewed=row.syncReview;
+    return String(row.resultText).trim()===String(c.existingValue).trim()&&
+      !(reviewed&&reviewed.automaticValue===String(c.incomingValue)&&["manual","automatic"].includes(reviewed.choice));
+  });
+  if(!pending.length){modal.hidden=true;modal.style.display="none";return;}
+  items.innerHTML=pending.map((c,i)=>{
+    const sources=(c.candidateSources||[]).map(x=>String(x).replace(/^https?:\/\//,"").split("/")[0]).join(", ");
+    return '<article class="admin-box" style="margin:12px 0;padding:14px;border:1px solid var(--border,#8b7445)">'+
+      '<h3 style="margin:0 0 8px">'+esc(c.market)+'</h3>'+
+      '<p class="muted" style="margin:4px 0">तारीख: '+esc(new Date(c.resultDate).toLocaleDateString("hi-IN",{timeZone:"Asia/Kolkata"}))+'</p>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0">'+
+      '<div style="padding:12px;border:1px solid #d6ad55;border-radius:10px"><small>मैनुअल रिजल्ट</small><div style="font-size:28px;font-weight:800">'+esc(c.existingValue)+'</div></div>'+
+      '<div style="padding:12px;border:1px solid #35a66b;border-radius:10px"><small>ऑटोमैटिक रिजल्ट</small><div style="font-size:28px;font-weight:800">'+esc(c.incomingValue)+'</div></div></div>'+
+      '<p class="muted" style="font-size:12px">जाँच वाले स्रोत: '+esc(sources||"दोबारा जाँचे गए स्रोत")+'</p>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
+      '<button type="button" data-conflict-index="'+i+'" data-conflict-choice="manual" class="secondary">मैनुअल वाला रखें</button>'+
+      '<button type="button" data-conflict-index="'+i+'" data-conflict-choice="automatic">ऑटोमैटिक वाला रखें</button></div></article>';
+  }).join("");
+  modal.hidden=false;modal.style.display="flex";message.textContent="";
+  modal.dataset.conflicts=JSON.stringify(pending);
+ }catch(error){console.warn("Result conflict popup could not load:",error.message);}
+}
+$("#resultConflictClose")?.addEventListener("click",()=>{const m=$("#resultConflictModal");m.hidden=true;m.style.display="none";});
+$("#resultConflictItems")?.addEventListener("click",async event=>{
+ const button=event.target.closest("[data-conflict-choice]");if(!button)return;
+ const list=JSON.parse($("#resultConflictModal").dataset.conflicts||"[]");
+ const conflict=list[Number(button.dataset.conflictIndex)];if(!conflict)return;
+ const choice=button.dataset.conflictChoice;
+ const buttons=$("#resultConflictItems").querySelectorAll("button");buttons.forEach(b=>b.disabled=true);
+ $("#resultConflictMessage").textContent="आपका फैसला सेव हो रहा है…";
+ try{
+  await api("/api/admin/results/resolve-conflict",{method:"POST",body:JSON.stringify({
+   title:conflict.market,resultDate:conflict.resultDate,manualValue:String(conflict.existingValue),
+   automaticValue:String(conflict.incomingValue),choice,sourceUrls:conflict.candidateSources||[]
+  })});
+  $("#resultConflictMessage").textContent=conflict.market+": "+(choice==="manual"?"मैनुअल रिजल्ट सुरक्षित रखा गया।":"ऑटोमैटिक रिजल्ट चुन लिया गया।");
+  await refresh();
+  setTimeout(()=>loadResultConflictPopup(),250);
+ }catch(error){
+  $("#resultConflictMessage").textContent=error.message;
+  buttons.forEach(b=>b.disabled=false);
+ }
+});
+
 
 async function refresh(){
   // Start the month chart immediately; the larger all-results request must
@@ -103,6 +161,7 @@ async function refresh(){
     });
     renderMonthChart(fallback, selectedMonth);
   }
+  await loadResultConflictPopup();
 }
 
 async function renderAdminTopResults(){
