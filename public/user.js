@@ -20,12 +20,15 @@ async function loadUserTopResults(){
   box.innerHTML=visible.map(city=>{
    const result=byCity.get(city)||{},now=result.today,prev=result.yesterday,info=cities.find(c=>c.cityName===city)||{};
    const time=info.expectedTime||info.resultTime||info.time||fixed[city.trim().toLowerCase()]||"";
-   const value=now?String(now.resultText):"WAIT";
-   const date=now?new Date(now.resultDate).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",timeZone:"Asia/Kolkata"}):"";
-   const publishedAt=now?.createdAt||now?.updatedAt||now?.resultDate;
+   const indiaHour=Number(new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Kolkata",hour:"2-digit",hourCycle:"h23"}).format(new Date()));
+   const isGali=city.trim().toLowerCase()==="gali";
+   const displayNow=now||(isGali&&indiaHour<12?prev:null);
+   const value=displayNow?String(displayNow.resultText):"WAIT";
+   const date=displayNow?new Date(displayNow.resultDate).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",timeZone:"Asia/Kolkata"}):"";
+   const publishedAt=displayNow?.createdAt||displayNow?.updatedAt||displayNow?.resultDate;
    const clock=publishedAt?new Date(publishedAt).toLocaleTimeString("en-IN",{hour:"numeric",minute:"2-digit",hour12:true,timeZone:"Asia/Kolkata"}):"";
    const message="❤️ "+city.toUpperCase()+" ❤️\n👇 LIVE RESULT 👇\n\n*✅   (( "+value+" ))   ✅*\n\nDate : "+date+(clock?"\n"+clock:"");
-   return '<article class="top-result-card"><h3>'+userEsc(city)+'</h3><p class="top-result-time">'+(time?'( '+userEsc(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+(prev?userEsc(prev.resultText):"XX")+'</span><span class="top-result-arrow">➡️</span><span class="top-current-wrap">'+(now?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(now?' result-blink':'')+'">'+userEsc(value)+'</span></span></div><a class="dashboard-whatsapp-share" '+(now?'href="https://wa.me/?text='+encodeURIComponent(message)+'" target="_blank" rel="noopener"':'aria-disabled="true"')+'>WhatsApp पर शेयर करें</a></article>';
+   return '<article class="top-result-card"><h3>'+userEsc(city)+'</h3><p class="top-result-time">'+(time?'( '+userEsc(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous">'+(prev?userEsc(prev.resultText):"XX")+'</span><span class="top-result-arrow">➡️</span><span class="top-current-wrap">'+(displayNow?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(displayNow?' result-blink':'')+'">'+userEsc(value)+'</span></span></div><a class="dashboard-whatsapp-share" '+(displayNow?'href="https://wa.me/?text='+encodeURIComponent(message)+'" target="_blank" rel="noopener"':'aria-disabled="true"')+'>WhatsApp पर शेयर करें</a></article>';
   }).join("");
  }catch(error){box.innerHTML='<p class="muted">रिजल्ट लोड नहीं हो पाए: '+userEsc(error.message)+'</p>';}
 }
