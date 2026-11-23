@@ -614,6 +614,7 @@ async function smartMain() {
     for (const item of getSmartSyncWindow()) {
       if (!seenMarkets.has(item.market.title)) {
         seenMarkets.add(item.market.title);
+        checkedMarkets.add(item.market.title);
         remaining.push(item.market);
         console.log("New market window entered; added to live sync:", item.market.title);
       }
