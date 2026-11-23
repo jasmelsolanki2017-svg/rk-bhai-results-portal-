@@ -1164,3 +1164,19 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
 .top-result-card.next-result-card:before{content:"";position:absolute;inset:0 auto 0 0;width:3px;border-radius:12px 0 0 12px;background:linear-gradient(#ffe5a4,#b7832d)}
 .top-result-card.next-result-card .top-result-time{color:#f4d58b;font-weight:850}
 @media(max-width:600px){.result-card-status{font-size:9px;padding:4px 7px}.top-result-card.next-result-card{transform:none}}
+
+
+/* Dedicated upcoming city highlight above the regular result cards */
+#nextResultHighlight{margin:0 0 10px}
+.next-market-card{position:relative;overflow:hidden;padding:13px 15px;border:1px solid #d7ad55;border-radius:12px;background:linear-gradient(115deg,#352711,#17130c 72%);box-shadow:0 5px 18px #0005;color:#fff}
+.next-market-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(#ffe5a4,#b7832d)}
+.next-market-kicker{display:flex;align-items:center;gap:7px;color:#f5d78e;font-size:11px;font-weight:900;letter-spacing:.4px}
+.next-market-pulse{width:8px;height:8px;border-radius:50%;background:#39d98a;box-shadow:0 0 0 4px #39d98a26;animation:nextMarketPulse 1.4s ease-in-out infinite}
+.next-market-main{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:7px}
+.next-market-main h3{margin:0;color:#fff;font-size:clamp(21px,4vw,29px);font-weight:900;line-height:1.15}
+.next-market-main p{margin:4px 0 0;color:#d9c9a6;font-size:12px}
+.next-market-time{flex:none;padding:8px 12px;border:1px solid #d7ad55;border-radius:8px;background:#100d08;color:#ffe3a0;font-size:clamp(17px,3vw,22px);font-weight:900;white-space:nowrap}
+.next-market-foot{margin-top:9px;padding-top:7px;border-top:1px solid #ffffff20;color:#bfb39a;font-size:10px}
+.next-market-empty{padding:10px 12px;border:1px dashed #80632d;border-radius:9px;color:#c8b995;font-size:12px}
+@keyframes nextMarketPulse{50%{opacity:.35;transform:scale(.82)}}
+@media(max-width:420px){.next-market-card{padding:11px 12px}.next-market-main{gap:8px}.next-market-time{padding:7px 9px}}
