@@ -1,78 +1,10 @@
 {
   "app": "rk-bhai-results-portal",
-  "status": "pending",
-  "message": "पहली जाँच में किसी मार्केट के लिए दो अलग डोमेन पर समान रिजल्ट नहीं मिला। पुराना डेटा सुरक्षित है।",
+  "status": "running",
+  "message": "10 स्रोतों की तारीख और रिजल्ट जाँचे जा रहे हैं; पुष्टि से पहले कुछ प्रकाशित नहीं होगा।",
   "sourceUrl": "https://kingsofsatta.com/",
-  "sourceDiagnostics": [
-    {
-      "pass": "first_check",
-      "url": "https://gali-results.com/",
-      "status": 403,
-      "result": "fetch_failed"
-    },
-    {
-      "pass": "first_check",
-      "url": "https://satta-king-fast.com/",
-      "status": 200,
-      "result": "no_values",
-      "marketsFound": []
-    },
-    {
-      "pass": "first_check",
-      "url": "https://sattaking.in/chart/gali",
-      "status": 403,
-      "result": "fetch_failed"
-    },
-    {
-      "pass": "first_check",
-      "url": "https://sattaking.live/",
-      "status": 200,
-      "result": "date_not_recognized"
-    },
-    {
-      "pass": "first_check",
-      "url": "https://www.satta-king-gali.com/",
-      "status": 200,
-      "result": "date_not_recognized"
-    },
-    {
-      "pass": "first_check",
-      "url": "https://kingsofsatta.com/",
-      "status": 200,
-      "result": "dated_values_found",
-      "marketsFound": [
-        "Disawar",
-        "Faridabad",
-        "Delhi Bazar",
-        "Shree Ganesh"
-      ]
-    },
-    {
-      "pass": "first_check",
-      "url": "https://satta-superfast.com/",
-      "status": 200,
-      "result": "date_not_recognized"
-    },
-    {
-      "pass": "first_check",
-      "url": "https://sattafree.com/",
-      "status": 200,
-      "result": "date_not_recognized"
-    },
-    {
-      "pass": "first_check",
-      "url": "https://1xsatta.today/",
-      "status": 200,
-      "result": "date_not_recognized"
-    },
-    {
-      "pass": "first_check",
-      "url": "https://galidisawer.com/",
-      "status": 200,
-      "result": "date_not_recognized"
-    }
-  ],
-  "attempts": 10,
-  "httpStatus": 200,
-  "checkedAt": "2026-11-23T16:13:54.558Z"
+  "sourceDiagnostics": [],
+  "attempts": 0,
+  "httpStatus": null,
+  "checkedAt": "2026-11-23T16:41:55.768Z"
 }
