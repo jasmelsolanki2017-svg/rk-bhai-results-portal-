@@ -1149,3 +1149,7 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
 #adManagementView .form-actions button{padding:8px 11px!important}
 #adManagerBack{margin:7px 0!important}
 @media(max-width:520px){#adManagerHome.admin-box{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important;padding:8px!important}#adManagerHome>a{padding:9px!important}#adManagementView>section.admin-box{padding:10px!important}}
+
+/* Blink message link: make the full message clickable without displaying its URL. */
+.public-blink-message-link{display:block;color:inherit;text-decoration:none;cursor:pointer;padding-right:2px}
+.public-blink-message-link:focus-visible{outline:2px solid currentColor;outline-offset:3px;border-radius:5px}
