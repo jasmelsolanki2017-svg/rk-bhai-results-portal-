@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-23T17:40:42.705Z",
+  "updatedAt": "2026-11-23T17:44:21.550Z",
   "results": [
     {
       "_id": "6b040b6e88a8362f0b1817bc",
@@ -18,7 +18,7 @@
           "sattafree.com",
           "galidisawer.com"
         ],
-        "checkedAt": "2026-11-23T17:37:04.796Z",
+        "checkedAt": "2026-11-23T17:44:10.428Z",
         "firstPassDomains": [
           "sattafree.com",
           "galidisawer.com"
@@ -45,32 +45,29 @@
       "title": "Faridabad",
       "resultText": "81",
       "resultDate": "2026-11-23T12:00:00.000Z",
-      "sourceUrl": "https://satta-king-fast.com/, https://sattafree.com/, https://sattaking.live/, https://galidisawer.com/",
+      "sourceUrl": "https://sattafree.com/, https://sattaking.live/, https://galidisawer.com/",
       "verificationMeta": {
         "value": "81",
         "sources": [
-          "https://satta-king-fast.com/",
           "https://sattafree.com/",
           "https://sattaking.live/",
           "https://galidisawer.com/"
         ],
         "domains": [
-          "satta-king-fast.com",
           "sattafree.com",
           "sattaking.live",
           "galidisawer.com"
         ],
-        "checkedAt": "2026-11-23T17:40:31.570Z",
+        "checkedAt": "2026-11-23T17:44:10.428Z",
         "firstPassDomains": [
-          "satta-king-fast.com",
           "sattafree.com",
           "sattaking.live",
           "galidisawer.com"
         ],
         "recheckDomains": [
-          "satta-king-fast.com",
           "sattafree.com",
-          "sattaking.live"
+          "sattaking.live",
+          "galidisawer.com"
         ],
         "rule": "same_value_on_two_distinct_domains_in_two_checks"
       },
@@ -94,7 +91,7 @@
           "sattaking.live",
           "galidisawer.com"
         ],
-        "checkedAt": "2026-11-23T17:40:31.570Z",
+        "checkedAt": "2026-11-23T17:44:10.428Z",
         "firstPassDomains": [
           "sattafree.com",
           "sattaking.live",
@@ -102,7 +99,8 @@
         ],
         "recheckDomains": [
           "sattafree.com",
-          "sattaking.live"
+          "sattaking.live",
+          "galidisawer.com"
         ],
         "rule": "same_value_on_two_distinct_domains_in_two_checks"
       },
