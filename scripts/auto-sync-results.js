@@ -117,6 +117,14 @@ function parseMarketValues(html, marketNames) {
     .map(line => line.replace(/\s+/g, " ").trim().toUpperCase())
     .filter(Boolean);
 
+  // Ignore the separate "Live" block above the dated two-column table.
+  // If the dated Timewise table is absent, fail closed instead of guessing.
+  const timewiseStart = text.findIndex(line =>
+    line.includes("TIMEWISE") && line.includes("SATTA") && line.includes("RESULTS OF")
+  );
+  if (timewiseStart < 0) return null;
+  text.splice(0, timewiseStart);
+
   const aliases = Array.isArray(marketNames) ? marketNames : [marketNames];
   const normalizedAliases = aliases.map(name => String(name).toUpperCase().replace(/[^A-Z0-9 ]/g, "").trim());
   const start = text.findIndex(line => normalizedAliases.includes(line.replace(/[^A-Z0-9 ]/g, "").trim()));
@@ -125,14 +133,17 @@ function parseMarketValues(html, marketNames) {
   const values = [];
   for (let i = start + 1; i < Math.min(text.length, start + 18); i++) {
     const line = text[i];
+    // Stop at the next market row; never borrow values from a later market.
+    if (/^[A-Z][A-Z ]{2,30}$/.test(line) && line !== "RECORD CHART") break;
     if (/^\d{1,2}:\d{2}\s*(AM|PM)?$/.test(line)) continue;
     if (/^(?:\d{2}|XX|--|WAIT|-)$/.test(line)) values.push(line);
     if (values.length >= 2) break;
   }
-  if (!values.length) return null;
+  // Two cells are required. A single value may be yesterday's value when today's cell is blank.
+  if (values.length < 2) return null;
 
-  // Result tables list the current date column first and the previous date second.
-  // Never fall back to yesterday's value when today's cell is --, XX, WAIT, or blank.
+  // The first cell is today's date column; the second is yesterday's.
+  // Never fall back to yesterday when today's cell is --, XX, WAIT, or blank.
   const current = values[0];
   return /^\d{2}$/.test(current) ? current : null;
 }
