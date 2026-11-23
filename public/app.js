@@ -205,7 +205,7 @@ function renderRecent(){
     upcomingEntries.push(["Chandigarh",{today:null,yesterday:null}]);
   }
   const upcomingCandidates=upcomingEntries
-    .filter(([city,result])=>!result.today&&parseCityMinutes(getCityTime(city))!==null)
+    .filter(([city,result])=>{const isGali=normalizeMarketName(city)==="gali";const galiArrived=isGali&&nowParts[0]<12&&!!result.yesterday;return !result.today&&!galiArrived&&parseCityMinutes(getCityTime(city))!==null;})
     .map(([city,result])=>{
       const minutes=parseCityMinutes(getCityTime(city));
       let delta=minutes-nowMinutes;
@@ -243,8 +243,9 @@ function renderRecent(){
       const blinkRight=!isGali&&shouldBlink;
       const upcoming=!result.today&&!!time;
       const nextCard=false;
-      const statusText=result.today?"आज का रिजल्ट आ गया":(nextCard?"अगला रिजल्ट":"रिजल्ट का इंतज़ार है");
-      return '<article class="top-result-card'+(nextCard?' next-result-card':'')+'"><div class="result-card-topline"><span class="result-card-status'+(result.today?' is-published':'')+'">'+(nextCard?'⌛ अगला रिजल्ट':statusText)+'</span>'+(nextCard?'<span class="next-result-tag">NEXT</span>':'')+'</div><h3>'+escapeHtml(city)+'</h3><p class="top-result-time">'+(time?'( '+escapeHtml(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous-wrap">'+(blinkLeft?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-previous'+(blinkLeft?' result-blink':'')+'">'+previous+'</span></span><span class="top-result-arrow" aria-hidden="true">➡️</span><span class="top-current-wrap">'+(blinkRight?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(blinkRight?' result-blink':'')+'">'+current+'</span></span></div><div class="top-result-actions"><a class="top-chart-link" href="#archive" data-chart-city="'+escapeHtml(city)+'">चार्ट देखें</a><button type="button" class="top-share-card" data-share-city="'+escapeHtml(city)+'" data-share-value="'+escapeHtml(currentRow?currentRow.resultText:"") +'" data-share-date="'+escapeHtml(currentRow?currentRow.resultDate:"") +'" '+(currentRow?'':'disabled')+'>शेयर कार्ड</button></div></article>';
+      const galiResultArrived=isGali&&galiBlinkWindow&&!!result.yesterday;
+      const statusText=(result.today||galiResultArrived)?"आज का रिजल्ट आ गया":(nextCard?"अगला रिजल्ट":"रिजल्ट का इंतज़ार है");
+      return '<article class="top-result-card'+(nextCard?' next-result-card':'')+'"><div class="result-card-topline"><span class="result-card-status'+((result.today||galiResultArrived)?' is-published':'')+'">'+(nextCard?'⌛ अगला रिजल्ट':statusText)+'</span>'+(nextCard?'<span class="next-result-tag">NEXT</span>':'')+'</div><h3>'+escapeHtml(city)+'</h3><p class="top-result-time">'+(time?'( '+escapeHtml(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous-wrap">'+(blinkLeft?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-previous'+(blinkLeft?' result-blink':'')+'">'+previous+'</span></span><span class="top-result-arrow" aria-hidden="true">➡️</span><span class="top-current-wrap">'+(blinkRight?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(blinkRight?' result-blink':'')+'">'+current+'</span></span></div><div class="top-result-actions"><a class="top-chart-link" href="#archive" data-chart-city="'+escapeHtml(city)+'">चार्ट देखें</a><button type="button" class="top-share-card" data-share-city="'+escapeHtml(city)+'" data-share-value="'+escapeHtml(currentRow?currentRow.resultText:"") +'" data-share-date="'+escapeHtml(currentRow?currentRow.resultDate:"") +'" '+(currentRow?'':'disabled')+'>शेयर कार्ड</button></div></article>';
     }).join("");
   }
 
