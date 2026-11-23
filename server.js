@@ -121,6 +121,7 @@ const ResultSchema = new mongoose.Schema({
   deleted: { type: Boolean, default: false },
   sourceUrl: { type: String, default: "" },
   resultSource: { type: String, enum: ["manual", "automatic"], default: "manual", index: true },
+  syncReview: { type: mongoose.Schema.Types.Mixed, default: null },
   ownerUserId: { type: mongoose.Schema.Types.ObjectId, ref: "PortalUser", default: null, index: true },
   cityId: { type: mongoose.Schema.Types.ObjectId, ref: "PortalCity", default: null, index: true },
   createdAt: { type: Date, default: Date.now }
@@ -958,6 +959,41 @@ app.patch("/api/admin/results/:id", adminOnly, async (req, res) => {
   const row = await Result.findByIdAndUpdate(req.params.id, allowed, { new: true, runValidators: true });
   if (!row) return res.status(404).json({ error: "Record not found" });
   res.json(row);
+});
+app.post("/api/admin/results/resolve-conflict", adminOnly, async (req, res) => {
+  try {
+    const { title, resultDate, manualValue, automaticValue, choice, sourceUrls } = req.body || {};
+    if (!title || !resultDate || !manualValue || !automaticValue || !["manual", "automatic"].includes(choice))
+      return res.status(400).json({ error: "Conflict चुनने के लिए सभी जानकारी जरूरी है।" });
+    const submittedDate = new Date(resultDate);
+    if (Number.isNaN(submittedDate.getTime())) return res.status(400).json({ error: "तारीख सही नहीं है।" });
+    const dayStart = new Date(Date.UTC(submittedDate.getUTCFullYear(), submittedDate.getUTCMonth(), submittedDate.getUTCDate()));
+    const dayEnd = new Date(dayStart.getTime() + 86400000);
+    const row = await Result.findOne({
+      title: String(title).trim(), deleted: { $ne: true },
+      resultDate: { $gte: dayStart, $lt: dayEnd }
+    }).sort({ createdAt: -1 });
+    if (!row) return res.status(404).json({ error: "इस तारीख का रिकॉर्ड नहीं मिला। Refresh करके दोबारा देखें।" });
+    if (String(row.resultText || "").trim() !== String(manualValue).trim() || row.resultSource === "automatic")
+      return res.status(409).json({ error: "रिकॉर्ड बदल चुका है। पहले Sync स्थिति Refresh करें।" });
+    const urls = Array.isArray(sourceUrls) ? sourceUrls.filter(x => typeof x === "string" && /^https?:\/\//i.test(x)).slice(0, 10) : [];
+    row.syncReview = { manualValue: String(manualValue).trim(), automaticValue: String(automaticValue).trim(), choice, reviewedAt: new Date() };
+    if (choice === "automatic") {
+      row.resultText = String(automaticValue).trim();
+      row.resultSource = "automatic";
+      row.sourceUrl = urls.join(", ");
+      row.ownerUserId = null;
+      row.cityId = null;
+    } else {
+      row.resultSource = "manual";
+    }
+    await row.save();
+    const snapshotUpdated = await syncPublicSnapshot();
+    res.json({ ok: true, choice, resultText: row.resultText, snapshotUpdated });
+  } catch (err) {
+    console.error("Result conflict review failed:", err.message);
+    res.status(500).json({ error: "फैसला सेव नहीं हो पाया। दोबारा कोशिश करें।" });
+  }
 });
 app.delete("/api/admin/results/:id", adminOnly, async (req, res) => {
   const row = await Result.findByIdAndUpdate(req.params.id, { deleted: true }, { new: true });
