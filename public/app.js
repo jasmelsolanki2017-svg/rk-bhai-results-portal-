@@ -450,7 +450,7 @@ if ("IntersectionObserver" in window && mobileNavItems.length) {
   });
 }
 
-(async()=>{const box=document.getElementById("publicPoster");if(!box)return;try{const r=await fetch("/api/public/poster",{cache:"no-store"});if(!r.ok)return;const p=await r.json();if(!p.enabled||!p.description)return;box.innerHTML='<article class="public-text-ad-card">'+(p.heading?'<h2>'+escapeHtml(p.heading)+'</h2>':'')+'<p>'+escapeHtml(p.description).replace(/\n/g,"<br>")+'</p>'+(p.buttonUrl?'<a class="public-text-ad-button" href="'+escapeHtml(p.buttonUrl)+'" target="_blank" rel="noopener">'+escapeHtml(p.buttonText||"Open Link")+'</a>':'')+'</article>';box.hidden=false;}catch(e){console.info("Public text ad not available",e);}})();
+(async()=>{const box=document.getElementById("publicPoster");if(!box)return;try{const r=await fetch("https://rk-bhai-results-portal.onrender.com/api/public/poster",{cache:"no-store",mode:"cors",credentials:"omit"});if(!r.ok)return;const p=await r.json();if(!p.enabled||!p.description)return;box.innerHTML='<article class="public-text-ad-card">'+(p.heading?'<h2>'+escapeHtml(p.heading)+'</h2>':'')+'<p>'+escapeHtml(p.description).replace(/\n/g,"<br>")+'</p>'+(p.buttonUrl?'<a class="public-text-ad-button" href="'+escapeHtml(p.buttonUrl)+'" target="_blank" rel="noopener">'+escapeHtml(p.buttonText||"Open Link")+'</a>':'')+'</article>';box.hidden=false;}catch(e){console.info("Public text ad not available",e);}})();
 
 
 function formatPopupAdDescription(value){
