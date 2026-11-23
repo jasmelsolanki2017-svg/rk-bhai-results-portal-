@@ -601,13 +601,25 @@ async function smartMain() {
   }
 
   let remaining = due.map(item => item.market);
+  const seenMarkets = new Set(remaining.map(market => market.title));
+  const checkedMarkets = new Set(seenMarkets);
   const startedAt = Date.now();
   const maxRuntimeMs = 185 * 60 * 1000;
   await publishSyncStatus("running",
     "Smart Auto Sync चालू: " + remaining.map(m => m.title).join(", ") +
     " — तय समय से 5 मिनट पहले शुरू, पुष्टि होने तक लगभग हर मिनट जाँच। Chandigarh City मैनुअल है।");
 
-  while (remaining.length && Date.now() - startedAt < maxRuntimeMs) {
+  while (Date.now() - startedAt < maxRuntimeMs) {
+    // Add markets whose result windows begin while this worker is already running.
+    for (const item of getSmartSyncWindow()) {
+      if (!seenMarkets.has(item.market.title)) {
+        seenMarkets.add(item.market.title);
+        remaining.push(item.market);
+        console.log("New market window entered; added to live sync:", item.market.title);
+      }
+    }
+    if (!remaining.length) break;
+
     RUN_MARKETS = remaining;
     await main();
     remaining = remaining.filter(market => !cycleResolvedMarkets.has(market.title));
@@ -621,11 +633,11 @@ async function smartMain() {
   if (remaining.length) {
     await publishSyncStatus("pending",
       "इस बार तय जाँच अवधि में पुष्टि नहीं मिली: " + remaining.map(m => m.title).join(", ") +
-      "। अगली निर्धारित जाँच में फिर प्रयास होगा; पुराना डेटा सुरक्षित है।");
+      "। अगली cron-job.org जाँच में फिर प्रयास होगा; पुराना डेटा सुरक्षित है।");
   } else {
     await publishSyncStatus("success",
       "Smart Auto Sync ने पुष्टि के बाद रिजल्ट जाँच पूरी कर दी। जाँचे गए मार्केट: " +
-      due.map(item => item.market.title).join(", ") + "।");
+      [...checkedMarkets].join(", ") + "।");
   }
 }
 
