@@ -287,9 +287,17 @@ catch{showPanel(false);}})();
 
 const adDesignPresets={gold:{bg:"#20170d",text:"#f4ead5",border:"#d6ad55",button:"#18c76b",buttonText:"#07150d"},red:{bg:"#2b1010",text:"#fff0f0",border:"#e34b4b",button:"#e34b4b",buttonText:"#ffffff"},blue:{bg:"#101d35",text:"#edf5ff",border:"#4b91e8",button:"#2878d0",buttonText:"#ffffff"},green:{bg:"#10271b",text:"#edfff2",border:"#46a66b",button:"#249653",buttonText:"#ffffff"},simple:{bg:"#ffffff",text:"#222222",border:"#dddddd",button:"#222222",buttonText:"#ffffff"}};
 function readAdDesign(p){return {backgroundColor:$("#"+p+"Bg").value,textColor:$("#"+p+"Text").value,borderColor:$("#"+p+"Border").value,buttonColor:$("#"+p+"Button").value,buttonTextColor:$("#"+p+"ButtonText").value,radius:Number($("#"+p+"Radius").value),fontSize:Number($("#"+p+"Size").value),alignment:$("#"+p+"Align").value};}
-function previewAdDesign(p){const d=readAdDesign(p),b=$("#"+p+"Preview");b.style.cssText="background:"+d.backgroundColor+";color:"+d.textColor+";border:2px solid "+d.borderColor+";border-radius:"+d.radius+"px;text-align:"+d.alignment+";font-size:"+d.fontSize+"px";b.innerHTML='<strong>आपका विज्ञापन</strong><p>यहाँ विज्ञापन का नमूना दिखेगा</p><span style="display:inline-block;background:'+d.buttonColor+';color:'+d.buttonTextColor+';padding:8px 16px;border-radius:20px">अभी देखें</span>';}
+function previewAdDesign(p){
+ const d=readAdDesign(p),b=$("#"+p+"Preview");
+ const popup=p==="popupDesign";
+ const title=$("#"+(popup?"popupAdTitle":"posterHeading")).value.trim();
+ const message=$("#"+(popup?"popupAdDescription":"posterDescription")).value.trim();
+ const button=$("#"+(popup?"popupAdButton":"posterButtonText")).value.trim();
+ b.style.cssText="background:"+d.backgroundColor+";color:"+d.textColor+";border:2px solid "+d.borderColor+";border-radius:"+d.radius+"px;text-align:"+d.alignment+";font-size:"+d.fontSize+"px";
+ b.innerHTML='<strong>'+esc(title||"आपका विज्ञापन")+'</strong><p style="white-space:pre-line">'+esc(message||"आपका लिखा हुआ विज्ञापन संदेश यहाँ दिखाई देगा।")+'</p>'+(button?'<span style="display:inline-block;background:'+d.buttonColor+';color:'+d.buttonTextColor+';padding:7px 13px;border-radius:'+d.radius+'px">'+esc(button)+'</span>':'');
+}
 function setAdDesign(p,d={}){const q=adDesignPresets.gold;$("#"+p+"Bg").value=d.backgroundColor||q.bg;$("#"+p+"Text").value=d.textColor||q.text;$("#"+p+"Border").value=d.borderColor||q.border;$("#"+p+"Button").value=d.buttonColor||q.button;$("#"+p+"ButtonText").value=d.buttonTextColor||q.buttonText;$("#"+p+"Radius").value=String(d.radius||14);$("#"+p+"Size").value=String(d.fontSize||16);$("#"+p+"Align").value=d.alignment||"center";previewAdDesign(p);}
-["popupDesign","textDesign"].forEach(p=>{["Bg","Text","Border","Button","ButtonText","Radius","Size","Align"].forEach(s=>$("#"+p+s).addEventListener("input",()=>previewAdDesign(p)));setAdDesign(p);});
+["popupDesign","textDesign"].forEach(p=>{["Bg","Text","Border","Button","ButtonText","Radius","Size","Align"].forEach(s=>$("#"+p+s).addEventListener("input",()=>previewAdDesign(p)));setAdDesign(p);});[["popupDesign",["popupAdTitle","popupAdDescription","popupAdButton"]],["textDesign",["posterHeading","posterDescription","posterButtonText"]]].forEach(([p,ids])=>ids.forEach(id=>$("#"+id).addEventListener("input",()=>previewAdDesign(p))));
 document.querySelectorAll("[data-ad-preset]").forEach(b=>b.addEventListener("click",()=>{const q=adDesignPresets[b.dataset.preset]||adDesignPresets.gold;setAdDesign(b.dataset.adPreset,{backgroundColor:q.bg,textColor:q.text,borderColor:q.border,buttonColor:q.button,buttonTextColor:q.buttonText});}));
 
 let popupAdsCache=[];
