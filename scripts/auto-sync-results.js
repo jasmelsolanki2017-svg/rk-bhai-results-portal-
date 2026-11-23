@@ -31,6 +31,16 @@ const SOURCE_MARKETS = [
   { source: ["DELHI BAZAR", "DELHI BAZAR"], title: "Delhi Bazar" },
   { source: ["SHRI GANESH", "SHREE GANESH"], title: "Shree Ganesh" }
 ];
+let RUN_MARKETS = SOURCE_MARKETS;
+let cycleResolvedMarkets = new Set();
+const MARKET_SCHEDULES = {
+  "Disawar": "05:00",
+  "Faridabad": "18:20",
+  "Ghaziabad": "22:05",
+  "Gali": "00:05",
+  "Delhi Bazar": "15:15",
+  "Shree Ganesh": "16:45"
+};
 
 const Result = mongoose.model("Result", new mongoose.Schema({
   title: String,
@@ -286,7 +296,7 @@ async function fetchSourceHtml(passLabel) {
         return null;
       }
       const marketResults = {};
-      for (const market of SOURCE_MARKETS) {
+      for (const market of RUN_MARKETS) {
         const value = parseMarketValues(html, market.source, market.title === "Gali" ? galiDate : today);
         if (value) marketResults[market.title] = value;
       }
@@ -309,7 +319,7 @@ async function fetchSourceHtml(passLabel) {
 function buildConsensus(observations) {
   const consensus = {};
   const pending = {};
-  for (const market of SOURCE_MARKETS) {
+  for (const market of RUN_MARKETS) {
     const votes = new Map();
     for (const source of observations) {
       const value = source.marketResults[market.title];
@@ -407,22 +417,23 @@ async function updatePublicSnapshot() {
 }
 
 async function main() {
+  cycleResolvedMarkets = new Set();
   if (!process.env.MONGODB_URI) throw new Error("Add MONGODB_URI as a GitHub Actions repository secret.");
-  await publishSyncStatus("running", "10 स्रोतों की तारीख और रिजल्ट जाँचे जा रहे हैं; पुष्टि से पहले कुछ प्रकाशित नहीं होगा।");
+  console.log("Smart Auto Sync cycle:", RUN_MARKETS.map(m => m.title).join(", "));
   const firstPass = await fetchSourceHtml("first_check");
   const first = buildConsensus(firstPass);
   if (!Object.keys(first.consensus).length) {
-    await publishSyncStatus("pending", "पहली जाँच में किसी मार्केट के लिए दो अलग डोमेन पर समान रिजल्ट नहीं मिला। पुराना डेटा सुरक्षित है।");
+    console.log("No two-domain consensus in first pass; market will be checked again.");
     return;
   }
 
   console.log("Waiting 150 seconds before independent recheck.");
-  await new Promise(resolve => setTimeout(resolve, 150000));
+  await new Promise(resolve => setTimeout(resolve, 30000));
   const secondPass = await fetchSourceHtml("recheck");
   const second = buildConsensus(secondPass);
   const verified = {};
   const pendingMarkets = [];
-  for (const market of SOURCE_MARKETS) {
+  for (const market of RUN_MARKETS) {
     const a = first.consensus[market.title];
     const b = second.consensus[market.title];
     if (a && b && a.value === b.value) {
@@ -442,7 +453,7 @@ async function main() {
   }
 
   if (!Object.keys(verified).length) {
-    await publishSyncStatus("pending", "दोबारा जाँच में कोई रिजल्ट समान नहीं रहा। कोई डेटा प्रकाशित नहीं किया गया।");
+    console.log("No matching independent recheck; market will be checked again.");
     return;
   }
 
@@ -453,7 +464,7 @@ async function main() {
   let insertedOrUpdated = 0;
   const conflicts = [];
   const repeatNumberPending = [];
-  for (const market of SOURCE_MARKETS) {
+  for (const market of RUN_MARKETS) {
     const evidence = verified[market.title];
     const marketDate = market.title === "Gali" ? new Date(Date.UTC(galiResultDay.year, galiResultDay.month - 1, galiResultDay.day, 12)) : date;
     if (!evidence) {
@@ -504,6 +515,7 @@ async function main() {
           candidateSources: evidence.sources
         });
         insertedOrUpdated++;
+        cycleResolvedMarkets.add(market.title);
         console.log(isManual ? "Manual result already matches verified source; preserved:" : "Already matches verified source:", market.title, evidence.value);
         continue;
       }
@@ -516,6 +528,7 @@ async function main() {
             existingValue, incomingValue: evidence.value,
             decision: priorReview.choice, candidateSources: evidence.sources
           });
+          cycleResolvedMarkets.add(market.title);
           console.log("Previously reviewed manual/automatic difference; keeping admin decision:", market.title, priorReview.choice);
           continue;
         }
@@ -525,10 +538,12 @@ async function main() {
           resultDate: marketDate.toISOString(), existingValue, incomingValue: evidence.value,
           candidateSources: evidence.sources
         });
+        cycleResolvedMarkets.add(market.title);
         console.log("Manual result differs from verified sources; preserved for admin review:", market.title, existingValue, evidence.value);
         continue;
       }
       conflicts.push(market.title);
+      cycleResolvedMarkets.add(market.title);
       sourceDiagnostics.push({
         result: "same_day_conflict", market: market.title,
         existingValue, incomingValue: evidence.value,
@@ -547,16 +562,68 @@ async function main() {
       { upsert: true }
     );
     insertedOrUpdated++;
+    cycleResolvedMarkets.add(market.title);
     console.log("Verified and synced", market.title, evidence.value, "from", evidence.domains.join(", "));
   }
   if (insertedOrUpdated) await updatePublicSnapshot();
   const summary = insertedOrUpdated + " मार्केट रिकॉर्ड दो जाँच और दो अलग डोमेन के मिलान के बाद sync हुए।";
-  await publishSyncStatus(conflicts.length || pendingMarkets.length ? "partial" : "success",
-    summary + (pendingMarkets.length ? " पुष्टि बाकी: " + pendingMarkets.join(", ") + "." : "") +
+  console.log(summary + (pendingMarkets.length ? " पुष्टि बाकी: " + pendingMarkets.join(", ") + "." : "") +
     (conflicts.length ? " पुराने रिकॉर्ड से टकराव: " + conflicts.join(", ") + "; पुराने रिकॉर्ड सुरक्षित रखे।" : "") +
     (repeatNumberPending.length ? " लगातार समान नंबर पर तीसरे स्रोत की पुष्टि बाकी: " + repeatNumberPending.join(", ") + "." : ""));
 }
-main()
+function getSmartSyncWindow(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hourCycle: "h23"
+  }).format(date).split(":").map(Number);
+  const nowMinutes = parts[0] * 60 + parts[1];
+  const due = [];
+  for (const market of SOURCE_MARKETS) {
+    const [hour, minute] = MARKET_SCHEDULES[market.title].split(":").map(Number);
+    const scheduled = hour * 60 + minute;
+    const elapsed = (nowMinutes - scheduled + 1440) % 1440;
+    // Start five minutes before the published time; keep checking for up to 60 minutes after it.
+    if (elapsed <= 60 || elapsed >= 1435) due.push({ market, elapsed });
+  }
+  return due;
+}
+
+async function smartMain() {
+  if (!process.env.MONGODB_URI) throw new Error("Add MONGODB_URI as a GitHub Actions repository secret.");
+  const due = getSmartSyncWindow();
+  if (!due.length) {
+    console.log("Smart Auto Sync: no market is inside its result window; skipping source requests.");
+    return;
+  }
+
+  let remaining = due.map(item => item.market);
+  const startedAt = Date.now();
+  const maxRuntimeMs = 65 * 60 * 1000;
+  await publishSyncStatus("running",
+    "Smart Auto Sync चालू: " + remaining.map(m => m.title).join(", ") +
+    " — तय समय से 5 मिनट पहले शुरू, पुष्टि होने तक लगभग हर मिनट जाँच। Chandigarh City मैनुअल है।");
+
+  while (remaining.length && Date.now() - startedAt < maxRuntimeMs) {
+    RUN_MARKETS = remaining;
+    await main();
+    remaining = remaining.filter(market => !cycleResolvedMarkets.has(market.title));
+    if (remaining.length) {
+      console.log("Still waiting for:", remaining.map(m => m.title).join(", "));
+    }
+  }
+
+  RUN_MARKETS = SOURCE_MARKETS;
+  if (remaining.length) {
+    await publishSyncStatus("pending",
+      "इस बार तय जाँच अवधि में पुष्टि नहीं मिली: " + remaining.map(m => m.title).join(", ") +
+      "। अगली निर्धारित जाँच में फिर प्रयास होगा; पुराना डेटा सुरक्षित है।");
+  } else {
+    await publishSyncStatus("success",
+      "Smart Auto Sync ने पुष्टि के बाद रिजल्ट जाँच पूरी कर दी। जाँचे गए मार्केट: " +
+      due.map(item => item.market.title).join(", ") + "।");
+  }
+}
+
+smartMain()
   .catch(async error => {
     console.error("Automatic result sync failed:", error);
     try { await publishSyncStatus("failed", error.message || "Automatic result sync failed."); }
