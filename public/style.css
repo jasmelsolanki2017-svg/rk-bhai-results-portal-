@@ -1049,3 +1049,11 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
 .public-summary .online-members-dot{width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:#76c66a;box-shadow:0 0 8px #76c66a}
 .public-summary .online-members-pill strong{color:#b6dfa7;font-size:inherit;font-weight:600;font-variant-numeric:tabular-nums}
 @media(max-width:600px){.public-summary .online-members-pill{padding:4px 8px;font-size:9px;gap:5px}.public-summary .online-members-dot{width:6px;height:6px;flex-basis:6px}.public-summary .online-members-pill strong{font-size:inherit}}
+
+/* Gali's newly announced result in the admin live board: red and blinking in both themes. */
+.dashboard-latest-results .top-previous.result-blink{
+  color:#ff3030!important;
+  font-weight:950!important;
+  text-shadow:0 0 10px rgba(255,48,48,.6)!important;
+  animation:topResultBlink .9s steps(2,start) infinite!important;
+}
