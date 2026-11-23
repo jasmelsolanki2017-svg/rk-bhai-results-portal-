@@ -1060,3 +1060,14 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
   animation:galiAdminRedPulse .9s ease-in-out infinite!important;
 }
 @keyframes galiAdminRedPulse{0%,100%{opacity:1;text-shadow:0 0 10px rgba(255,48,48,.7)}50%{opacity:.28;text-shadow:none}}
+
+
+/* Public Gali result: blink the previous-result value at the same 0.9s pace. */
+.top-result-section .top-result-card .top-previous.result-blink{
+  display:inline-block!important;
+  color:#ff3030!important;
+  -webkit-text-fill-color:#ff3030!important;
+  font-weight:950!important;
+  text-shadow:0 0 10px rgba(255,48,48,.7)!important;
+  animation:newResultRedBlink .9s ease-in-out infinite!important;
+}
