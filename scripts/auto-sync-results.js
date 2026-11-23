@@ -261,7 +261,10 @@ async function fetchSourceHtml(passLabel) {
       const lastModified = response.headers.get("last-modified");
       if (lastModified) {
         const modifiedDate = getIndiaDateParts(new Date(lastModified));
-        if (modifiedDate.year !== today.year || modifiedDate.month !== today.month || modifiedDate.day !== today.day) {
+        const previousModifiedDay = new Date(Date.UTC(today.year, today.month - 1, today.day) - 86400000);
+        const modifiedToday = modifiedDate.year === today.year && modifiedDate.month === today.month && modifiedDate.day === today.day;
+        const modifiedYesterday = modifiedDate.year === previousModifiedDay.getUTCFullYear() && modifiedDate.month === previousModifiedDay.getUTCMonth() + 1 && modifiedDate.day === previousModifiedDay.getUTCDate();
+        if (!modifiedToday && !modifiedYesterday) {
           sourceDiagnostics.push({ pass: passLabel, url: sourceUrl, status: response.status, result: "stale_last_modified", lastModified });
           return null;
         }
