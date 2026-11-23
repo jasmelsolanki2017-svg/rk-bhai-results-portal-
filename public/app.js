@@ -199,11 +199,16 @@ function renderRecent(){
   }
   const upcomingCandidates=upcomingEntries
     .filter(([city,result])=>!result.today&&parseCityMinutes(getCityTime(city))!==null)
-    .map(([city,result])=>({city,result,time:getCityTime(city),minutes:parseCityMinutes(getCityTime(city)),due:parseCityMinutes(getCityTime(city))<=nowMinutes}))
+    .map(([city,result])=>{
+      const minutes=parseCityMinutes(getCityTime(city));
+      let delta=minutes-nowMinutes;
+      if(delta < -720)delta+=1440;
+      return {city,result,time:getCityTime(city),minutes,delta,due:delta<=0};
+    })
     .sort((a,b)=>{
       if(a.due!==b.due)return a.due?-1:1;
-      if(a.due&&b.due)return b.minutes-a.minutes;
-      return a.minutes-b.minutes;
+      if(a.due&&b.due)return b.delta-a.delta;
+      return a.delta-b.delta;
     });
   const nextMarket=upcomingCandidates[0]||null;
   if(nextResultHighlight){
