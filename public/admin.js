@@ -14,20 +14,25 @@ async function api(url,opts={}){
 }
 function showPanel(on){$("#loginBox").hidden=on;$("#panel").hidden=!on;}
 function showAdminView(view){
- const ads=view==="ads";
+ const ads=view==="ads",sync=view==="sync";
  const dashboard=$("#adminMainView");
  const adWorkspace=$("#adManagementView");
+ const syncWorkspace=$("#autoSyncManagementView");
  const shortcuts=document.querySelector(".pro-shortcuts");
- dashboard.hidden=ads;
+ dashboard.hidden=ads||sync;
  adWorkspace.hidden=!ads;
- dashboard.style.display=ads?"none":"block";
+ syncWorkspace.hidden=!sync;
+ dashboard.style.display=(ads||sync)?"none":"block";
  adWorkspace.style.display=ads?"block":"none";
- if(shortcuts)shortcuts.hidden=ads;
- if(ads) window.scrollTo({top:0,behavior:"smooth"});
+ syncWorkspace.style.display=sync?"block":"none";
+ if(shortcuts)shortcuts.hidden=ads||sync;
+ if(ads||sync) window.scrollTo({top:0,behavior:"smooth"});
 }
 function applyAdminRoute(){
  const isAds=location.pathname==="/admin/advertisements"||location.pathname==="/admin/advertisements/";
- showAdminView(isAds?"ads":"main");
+ const isSync=new URLSearchParams(location.search).get("section")==="automatic-sync";
+ showAdminView(isAds?"ads":isSync?"sync":"main");
+ if(isSync){loadAutoSyncStatus();return;}
  if(!isAds)return;
  const section=new URLSearchParams(location.search).get("section")||"home";
  const map={popup:"popupAdManager",blink:"blinkMessageManager",text:"posterManager",notice:"announcementManager"};
