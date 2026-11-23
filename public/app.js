@@ -189,7 +189,7 @@ function renderRecent(){
       const time=getCityTime(city);
       const isGali=String(city).trim().toLocaleLowerCase("en")==="gali";
       const indiaHour=Number(new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Kolkata",hour:"2-digit",hourCycle:"h23"}).format(new Date()));
-      const galiBlinkWindow=isGali&&indiaHour<14;
+      const galiBlinkWindow=isGali&&indiaHour<12;
       const galiCarry=galiBlinkWindow&&!result.today&&!!result.yesterday;
       const currentRow=isGali
         ?(galiBlinkWindow?(result.today||(galiCarry?result.yesterday:null)):(result.today||result.yesterday))
