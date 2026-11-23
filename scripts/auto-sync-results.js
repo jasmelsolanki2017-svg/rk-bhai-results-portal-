@@ -217,6 +217,14 @@ async function fetchSourceHtml(passLabel) {
         sourceDiagnostics.push({ pass: passLabel, url: sourceUrl, status: response.status, result: "fetch_failed" });
         continue;
       }
+      const lastModified = response.headers.get("last-modified");
+      if (lastModified) {
+        const modifiedDate = getIndiaDateParts(new Date(lastModified));
+        if (modifiedDate.year !== today.year || modifiedDate.month !== today.month || modifiedDate.day !== today.day) {
+          sourceDiagnostics.push({ pass: passLabel, url: sourceUrl, status: response.status, result: "stale_last_modified", lastModified });
+          continue;
+        }
+      }
       const html = await response.text();
       let sourceDate;
       try { sourceDate = parseSourceDate(html); }
@@ -239,7 +247,7 @@ async function fetchSourceHtml(passLabel) {
         marketsFound: Object.keys(marketResults)
       });
       if (Object.keys(marketResults).length) {
-        observations.push({ url: sourceUrl, host: new URL(sourceUrl).hostname.toLowerCase(), sourceDate, marketResults });
+        observations.push({ url: sourceUrl, host: new URL(sourceUrl).hostname.toLowerCase(), sourceDate, lastModified: lastModified || null, marketResults });
       }
     } catch (error) {
       sourceHttpStatus = null;
