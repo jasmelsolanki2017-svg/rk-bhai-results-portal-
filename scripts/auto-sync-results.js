@@ -460,7 +460,9 @@ async function main() {
     return;
   }
 
-  await mongoose.connect(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 15000 });
+  if (mongoose.connection.readyState !== 1) {
+    await mongoose.connect(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 15000 });
+  }
   const indiaToday = getIndiaDateParts();
   const galiResultDay = getGaliResultDateParts();
   const date = new Date(Date.UTC(indiaToday.year, indiaToday.month - 1, indiaToday.day, 12));
