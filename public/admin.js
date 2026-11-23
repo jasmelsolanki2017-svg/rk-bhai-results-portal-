@@ -55,7 +55,16 @@ async function loadAutoSyncStatus(){
   const labels={success:"सफल",failed:"फेल",running:"चल रहा है",skipped:"आज का रिजल्ट नहीं मिला"};
   const color=data.status==="success"?"#35c979":data.status==="failed"?"#ff6b6b":data.status==="running"?"#e7b84c":"#9ca3af";
   const when=data.checkedAt?new Date(data.checkedAt).toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short",timeZone:"Asia/Kolkata"}):"समय उपलब्ध नहीं";
-  box.innerHTML='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0"><strong style="color:'+color+'">'+esc(labels[data.status]||data.status||"Unknown")+'</strong><span class="muted">Last check: '+esc(when)+'</span></div><p style="margin:6px 0;white-space:pre-wrap">'+esc(data.message||"कोई विवरण नहीं")+'</p><p class="muted" style="margin:4px 0">Source: '+esc(data.sourceUrl||"—")+' · Attempts: '+esc(data.attempts??"—")+(data.httpStatus?" · HTTP "+esc(data.httpStatus):"")+'</p>';
+  const diagnostics=Array.isArray(data.sourceDiagnostics)?data.sourceDiagnostics:[];
+  const passNames={first_check:"पहली जाँच",recheck:"दोबारा जाँच"};
+  const resultNames={dated_values_found:"आज के रिजल्ट मिले",no_values:"रिजल्ट नहीं मिले",date_not_recognized:"तारीख नहीं पहचानी",stale_date:"पुरानी तारीख",stale_last_modified:"पुराना अपडेट",fetch_failed:"HTTP त्रुटि",request_error:"Request फेल",same_day_conflict:"आज के रिकॉर्ड से अंतर"};
+  const sourceRows=diagnostics.map(item=>{
+   const host=String(item.url||"").replace(/^https?:\\/\\//,"").replace(/\\/$/,"");
+   const found=Array.isArray(item.marketsFound)&&item.marketsFound.length?" · "+item.marketsFound.join(", "):"";
+   const status=item.status?"HTTP "+item.status:"HTTP —";
+   return '<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--border,#333);font-size:13px"><div style="min-width:0;overflow-wrap:anywhere"><strong>'+esc(host||item.market||"Source")+'</strong><div class="muted">'+esc(passNames[item.pass]||item.pass||"")+' · '+esc(resultNames[item.result]||item.result||"स्थिति उपलब्ध नहीं")+esc(found)+'</div></div><span class="muted" style="white-space:nowrap">'+esc(status)+'</span></div>';
+  }).join("");
+  box.innerHTML='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0"><strong style="color:'+color+'">'+esc(labels[data.status]||data.status||"Unknown")+'</strong><span class="muted">Last check: '+esc(when)+'</span></div><p style="margin:6px 0;white-space:pre-wrap">'+esc(data.message||"कोई विवरण नहीं")+'</p><p class="muted" style="margin:4px 0">कुल Source Requests: '+esc(data.attempts??diagnostics.length)+' · हर वेबसाइट की स्थिति नीचे</p><div style="margin-top:8px">'+(sourceRows||'<p class="muted">अभी Source-wise विवरण उपलब्ध नहीं है। अगली Sync के बाद दिखेगा।</p>')+'</div>';
  }catch(error){
   box.innerHTML='<span class="muted">अभी sync status उपलब्ध नहीं है। अगली automatic run के बाद यहाँ दिखाई देगा। ('+esc(error.message)+')</span>';
  }
