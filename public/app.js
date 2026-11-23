@@ -147,7 +147,7 @@ function renderRecent(){
   const query=(citySearch?.value||"").trim().toLocaleLowerCase("hi");
   const fixedTimes={"disawar":"05:00 AM","desawar":"05:00 AM","faridabad":"06:20 PM","ghaziabad":"10:05 PM","gali":"12:05 AM","delhi bazar":"03:15 PM","shri ganesh":"04:45 PM","shree ganesh":"04:45 PM","chandigarh":"08:30 PM"};
   const getCityTime=city=>{
-    const cityKey=String(city).trim().toLocaleLowerCase("en");
+    const cityKey=String(city).trim().toLocaleLowerCase("en").replace(/\\s+city$/,"");
     if(cityKey==="chandigarh")return "08:30 PM";
     const info=recentCities.find(item=>item.cityName===city)||{};
     return info.expectedTime||info.resultTime||info.time||fixedTimes[cityKey]||"";
@@ -193,7 +193,11 @@ function renderRecent(){
     if(match[3].toUpperCase()==="PM")hour+=12;
     return hour*60+Number(match[2]);
   };
-  const upcomingCandidates=entries
+  const upcomingEntries=[...entries];
+  if(!upcomingEntries.some(([city])=>String(city).trim().toLocaleLowerCase("en").replace(/\\s+city$/,"")==="chandigarh")){
+    upcomingEntries.push(["Chandigarh",{today:null,yesterday:null}]);
+  }
+  const upcomingCandidates=upcomingEntries
     .filter(([city,result])=>!result.today&&parseCityMinutes(getCityTime(city))!==null)
     .map(([city,result])=>({city,result,time:getCityTime(city),minutes:parseCityMinutes(getCityTime(city))}))
     .sort((a,b)=>((a.minutes-nowMinutes+1440)%1440)-((b.minutes-nowMinutes+1440)%1440));
