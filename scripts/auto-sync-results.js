@@ -9,7 +9,12 @@ const SOURCE_URLS = [
   // Backup sources
   "https://satta-king-fast.com/",
   "https://www.satta-king-gali.com/",
-  "https://satta-superfast.com/"
+  "https://satta-superfast.com/",
+  // Additional backup sources (checked only if earlier sources fail validation)
+  "https://sattaking.in/chart/gali",
+  "https://sattafree.com/",
+  "https://sattaking.live/",
+  "https://galidisawer.com/"
 ];
 let activeSourceUrl = SOURCE_URLS[0];
 const sourceDiagnostics = [];
