@@ -281,7 +281,7 @@ $("#logout").addEventListener("click",async()=>{
   try{await api("/api/admin/logout",{method:"POST"});showPanel(false);$("#loginForm").reset();msg.textContent="Logout हो गया";}
   catch(err){msg.textContent=err.message;showPanel(false);}
 });
-(async()=>{try{await api("/api/admin/session");showPanel(true);applyAdminRoute();await loadPosterManager();await loadPopupAdManager();await loadAnnouncementManager();await refresh();msg.textContent="Admin session चालू है";}
+(async()=>{try{await api("/api/admin/session");showPanel(true);applyAdminRoute();await loadPosterManager();await loadPopupAdManager();await loadBlinkMessages();await loadAnnouncementManager();await refresh();msg.textContent="Admin session चालू है";}
 catch{showPanel(false);}})();
 
 
