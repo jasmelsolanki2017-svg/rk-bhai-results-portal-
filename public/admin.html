@@ -10,6 +10,7 @@
 <section id="panel" hidden class="pro-dashboard">
   <nav class="pro-shortcuts"><a href="#chartSection"><span>▦</span> Monthly Records</a><a href="#recordSection"><span>＋</span> Add Record</a><a href="/admin/users"><span>♙</span> User Management</a></nav>
   <div id="adminMainView">
+  <section class="admin-box pro-card" id="autoSyncStatusCard" style="margin-bottom:14px"><div class="section-kicker">AUTOMATIC RESULT SYNC</div><h2>Automatic Result Sync Status</h2><div id="autoSyncStatus" class="muted" aria-live="polite">Sync status लोड हो रहा है…</div><button type="button" id="refreshAutoSyncStatus" class="secondary" style="margin-top:10px">Status Refresh करें</button></section>
   <section class="admin-box pro-card dashboard-latest-results" id="adminLatestResults"><div class="section-kicker">LIVE MARKET BOARD</div><h2>Latest Published Results</h2><div class="top-result-grid" id="adminTopResultCards"><p class="muted">रिजल्ट लोड हो रहे हैं…</p></div></section>
   <div class="pro-content-grid">
   <section class="admin-box pro-card pro-form" id="recordSection">
@@ -52,6 +53,6 @@
 </section>
 <p id="msg" class="muted" role="status"></p>
 </main>
-<script src="/admin-pwa.js?v=20261122-admin-app-v1"></script><script src="/admin.js?v=20261123-blink-link-v1"></script><script src="/dashboard-menu.js?v=20261117menu1"></script>
+<script src="/admin-pwa.js?v=20261122-admin-app-v1"></script><script src="/admin.js?v=20261123-auto-sync-status-v1"></script><script src="/dashboard-menu.js?v=20261117menu1"></script>
 <script src="/refresh-button.js?v=20261117refresh1"></script>
 </body></html>
