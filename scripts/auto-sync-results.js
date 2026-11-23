@@ -71,6 +71,13 @@ function getIndiaDateParts(date = new Date()) {
   return { year: Number(get("year")), month: Number(get("month")), day: Number(get("day")) };
 }
 
+function getGaliResultDateParts(date = new Date()) {
+  const parts = getIndiaDateParts(date);
+  const hour = Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", hour: "2-digit", hourCycle: "h23" }).format(date));
+  if (hour >= 12) return parts;
+  const previous = new Date(Date.UTC(parts.year, parts.month - 1, parts.day) - 86400000);
+  return { year: previous.getUTCFullYear(), month: previous.getUTCMonth() + 1, day: previous.getUTCDate() };
+}
 function parseSourceDate(html) {
   const plain = decodeHtml(html
     .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
@@ -114,7 +121,7 @@ function parseSourceDate(html) {
   }
   throw new Error("Source date not recognized: no current dated heading or current-month chart row.");
 }
-function parseMarketValues(html, marketNames) {
+function parseMarketValues(html, marketNames, targetDay = null) {
   const aliases = Array.isArray(marketNames) ? marketNames : [marketNames];
   const normalize = value => decodeHtml(String(value || ""))
     .replace(/<[^>]+>/g, " ").replace(/&nbsp;/gi, " ")
@@ -133,7 +140,7 @@ function parseMarketValues(html, marketNames) {
     "SHRI GANESH": ["SRGN", "SHRI GANESH"]
   };
   const codes = (marketCodes[aliasSet[0]] || []).map(normalize);
-  const today = getIndiaDateParts();
+  const today = targetDay || getIndiaDateParts();
 
   // Preferred: read the exact day row from monthly chart tables.
   const tables = [...String(html || "").matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)];
@@ -226,6 +233,7 @@ async function publishSyncStatus(status, message) {
 
 async function fetchSourceHtml(passLabel) {
   const today = getIndiaDateParts();
+  const galiDate = getGaliResultDateParts();
 
   // Check all source domains concurrently so a slow/blocked domain cannot
   // consume the whole five-minute schedule window. Each source still fails
@@ -262,13 +270,16 @@ async function fetchSourceHtml(passLabel) {
         sourceDiagnostics.push({ pass: passLabel, url: sourceUrl, status: response.status, result: "date_not_recognized" });
         return null;
       }
-      if (sourceDate.year !== today.year || sourceDate.month !== today.month || sourceDate.day !== today.day) {
+      const previous = new Date(Date.UTC(today.year, today.month - 1, today.day) - 86400000);
+      const isCurrentDate = sourceDate.year === today.year && sourceDate.month === today.month && sourceDate.day === today.day;
+      const isPreviousDate = sourceDate.year === previous.getUTCFullYear() && sourceDate.month === previous.getUTCMonth() + 1 && sourceDate.day === previous.getUTCDate();
+      if (!isCurrentDate && !isPreviousDate) {
         sourceDiagnostics.push({ pass: passLabel, url: sourceUrl, status: response.status, result: "stale_date", sourceDate });
         return null;
       }
       const marketResults = {};
       for (const market of SOURCE_MARKETS) {
-        const value = parseMarketValues(html, market.source);
+        const value = parseMarketValues(html, market.source, market.title === "Gali" ? galiDate : today);
         if (value) marketResults[market.title] = value;
       }
       sourceDiagnostics.push({
@@ -428,12 +439,15 @@ async function main() {
   }
 
   await mongoose.connect(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 15000 });
-  const date = new Date(Date.UTC(getIndiaDateParts().year, getIndiaDateParts().month - 1, getIndiaDateParts().day, 12));
+  const indiaToday = getIndiaDateParts();
+  const galiResultDay = getGaliResultDateParts();
+  const date = new Date(Date.UTC(indiaToday.year, indiaToday.month - 1, indiaToday.day, 12));
   let insertedOrUpdated = 0;
   const conflicts = [];
   const repeatNumberPending = [];
   for (const market of SOURCE_MARKETS) {
     const evidence = verified[market.title];
+    const marketDate = market.title === "Gali" ? new Date(Date.UTC(galiResultDay.year, galiResultDay.month - 1, galiResultDay.day, 12)) : date;
     if (!evidence) {
       console.log("Unconfirmed or missing result; left unchanged:", market.title);
       continue;
@@ -441,7 +455,7 @@ async function main() {
 
     // If the same market had the same number yesterday, require three
     // distinct source domains in BOTH checks before accepting today's repeat.
-    const previousDate = new Date(date.getTime() - 86400000);
+    const previousDate = new Date(marketDate.getTime() - 86400000);
     const previousDayFilter = {
       title: market.title,
       resultDate: {
@@ -462,8 +476,8 @@ async function main() {
     const dayFilter = {
       title: market.title,
       resultDate: {
-        $gte: new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())),
-        $lt: new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + 1))
+        $gte: new Date(Date.UTC(marketDate.getUTCFullYear(), marketDate.getUTCMonth(), marketDate.getUTCDate())),
+        $lt: new Date(Date.UTC(marketDate.getUTCFullYear(), marketDate.getUTCMonth(), marketDate.getUTCDate() + 1))
       }
     };
     const existing = await Result.findOne(dayFilter)
@@ -500,7 +514,7 @@ async function main() {
         conflicts.push(market.title);
         sourceDiagnostics.push({
           result: "manual_result_protected", market: market.title,
-          resultDate: date.toISOString(), existingValue, incomingValue: evidence.value,
+          resultDate: marketDate.toISOString(), existingValue, incomingValue: evidence.value,
           candidateSources: evidence.sources
         });
         console.log("Manual result differs from verified sources; preserved for admin review:", market.title, existingValue, evidence.value);
@@ -517,7 +531,7 @@ async function main() {
     await Result.updateOne(
       dayFilter,
       { $set: {
-        title: market.title, resultText: evidence.value, resultDate: date,
+        title: market.title, resultText: evidence.value, resultDate: marketDate,
         published: true, deleted: false, sourceUrl: evidence.sources.join(", "),
         resultSource: "automatic", verificationMeta: evidence,
         ownerUserId: null, cityId: null
