@@ -33,6 +33,7 @@ const SOURCE_MARKETS = [
 ];
 let RUN_MARKETS = SOURCE_MARKETS;
 let cycleResolvedMarkets = new Set();
+let cycleHadFirstConsensus = false;
 const MARKET_SCHEDULES = {
   "Disawar": "05:00",
   "Faridabad": "18:20",
@@ -418,6 +419,7 @@ async function updatePublicSnapshot() {
 
 async function main() {
   cycleResolvedMarkets = new Set();
+  cycleHadFirstConsensus = false;
   if (!process.env.MONGODB_URI) throw new Error("Add MONGODB_URI as a GitHub Actions repository secret.");
   console.log("Smart Auto Sync cycle:", RUN_MARKETS.map(m => m.title).join(", "));
   const firstPass = await fetchSourceHtml("first_check");
@@ -427,7 +429,8 @@ async function main() {
     return;
   }
 
-  console.log("Waiting 150 seconds before independent recheck.");
+  cycleHadFirstConsensus = true;
+  console.log("Waiting 30 seconds before independent recheck.");
   await new Promise(resolve => setTimeout(resolve, 30000));
   const secondPass = await fetchSourceHtml("recheck");
   const second = buildConsensus(secondPass);
@@ -608,6 +611,7 @@ async function smartMain() {
     remaining = remaining.filter(market => !cycleResolvedMarkets.has(market.title));
     if (remaining.length) {
       console.log("Still waiting for:", remaining.map(m => m.title).join(", "));
+      await new Promise(resolve => setTimeout(resolve, cycleHadFirstConsensus ? 15000 : 45000));
     }
   }
 
