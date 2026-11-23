@@ -1081,3 +1081,18 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
 .popup-ad-designed h2,.popup-ad-designed p,.popup-ad-designed .popup-ad-description{color:var(--ad-text,inherit)}
 .popup-ad-designed .popup-ad-button{background:var(--ad-button,#18c76b);color:var(--ad-button-text,#07150d);border-color:var(--ad-border,#d6ad55);border-radius:var(--ad-radius,20px)}
 @media(max-width:520px){.ad-design-grid{grid-template-columns:1fr}}
+
+
+/* Compact admin ad designer controls with live content preview */
+.ad-designer-controls{margin:10px 0;padding:10px;border-radius:10px}
+.ad-designer-controls h4{font-size:14px;margin-bottom:9px}
+.ad-design-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 9px}
+.ad-design-grid label{display:grid;grid-template-columns:minmax(0,1fr) 52px;align-items:center;gap:6px;font-size:11px;min-width:0}
+.ad-design-grid input[type=color]{width:52px;height:30px;min-height:30px;padding:2px}
+.ad-design-grid select{grid-column:1/-1;padding:7px 9px;min-height:34px;font-size:12px}
+.ad-design-presets{gap:5px;margin:8px 0}
+.ad-design-presets button{padding:5px 9px;font-size:11px}
+.ad-design-preview{margin-top:8px;padding:10px;min-height:54px;border-radius:10px;font-size:13px;overflow-wrap:anywhere}
+.ad-design-preview strong{display:block;font-size:1.05em}
+.ad-design-preview p{margin:5px 0 8px;line-height:1.4;white-space:pre-line}
+@media(max-width:520px){.ad-design-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ad-design-grid label{grid-template-columns:minmax(0,1fr) 46px}.ad-design-grid input[type=color]{width:46px;height:28px}}
