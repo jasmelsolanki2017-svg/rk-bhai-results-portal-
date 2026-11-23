@@ -195,7 +195,7 @@ function renderRecent(){
         ?(galiBlinkWindow?(result.today||(galiCarry?result.yesterday:null)):(result.today||result.yesterday))
         :result.today;
       const previousRow=isGali&&!galiBlinkWindow&&!result.today?null:result.yesterday;
-      const shouldBlink=isGali?!!currentRow&&(galiBlinkWindow||!result.today):!!result.today;
+      const shouldBlink=isGali?!!currentRow&&(galiBlinkWindow||!!result.today):!!result.today;
       const previousDisplayRow=isGali?(currentRow||previousRow):previousRow;
       const previous=previousDisplayRow?escapeHtml(previousDisplayRow.resultText):"XX";
       const current=isGali?"-":(currentRow?escapeHtml(currentRow.resultText):"—");
