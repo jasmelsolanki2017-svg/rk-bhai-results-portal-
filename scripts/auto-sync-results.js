@@ -401,12 +401,34 @@ async function main() {
   const date = new Date(Date.UTC(getIndiaDateParts().year, getIndiaDateParts().month - 1, getIndiaDateParts().day, 12));
   let insertedOrUpdated = 0;
   const conflicts = [];
+  const repeatNumberPending = [];
   for (const market of SOURCE_MARKETS) {
     const evidence = verified[market.title];
     if (!evidence) {
       console.log("Unconfirmed or missing result; left unchanged:", market.title);
       continue;
     }
+
+    // If the same market had the same number yesterday, require three
+    // distinct source domains in BOTH checks before accepting today's repeat.
+    const previousDate = new Date(date.getTime() - 86400000);
+    const previousDayFilter = {
+      title: market.title,
+      resultDate: {
+        $gte: new Date(Date.UTC(previousDate.getUTCFullYear(), previousDate.getUTCMonth(), previousDate.getUTCDate())),
+        $lt: new Date(Date.UTC(previousDate.getUTCFullYear(), previousDate.getUTCMonth(), previousDate.getUTCDate() + 1))
+      }
+    };
+    const previousRecord = await Result.findOne(previousDayFilter).select("resultText").lean();
+    const firstEvidence = first.consensus[market.title];
+    const secondEvidence = second.consensus[market.title];
+    if (previousRecord && String(previousRecord.resultText || "").trim() === evidence.value &&
+        (!firstEvidence || firstEvidence.domains.length < 3 || !secondEvidence || secondEvidence.domains.length < 3)) {
+      repeatNumberPending.push(market.title);
+      console.log("Repeated number needs a third independent source in both checks; left unchanged:", market.title, evidence.value);
+      continue;
+    }
+
     const dayFilter = {
       title: market.title,
       resultDate: {
@@ -440,7 +462,8 @@ async function main() {
   const summary = insertedOrUpdated + " मार्केट रिकॉर्ड दो जाँच और दो अलग डोमेन के मिलान के बाद sync हुए।";
   await publishSyncStatus(conflicts.length || pendingMarkets.length ? "partial" : "success",
     summary + (pendingMarkets.length ? " पुष्टि बाकी: " + pendingMarkets.join(", ") + "." : "") +
-    (conflicts.length ? " पुराने रिकॉर्ड से टकराव: " + conflicts.join(", ") + "; पुराने रिकॉर्ड सुरक्षित रखे।" : ""));
+    (conflicts.length ? " पुराने रिकॉर्ड से टकराव: " + conflicts.join(", ") + "; पुराने रिकॉर्ड सुरक्षित रखे।" : "") +
+    (repeatNumberPending.length ? " लगातार समान नंबर पर तीसरे स्रोत की पुष्टि बाकी: " + repeatNumberPending.join(", ") + "." : ""));
 }
 main()
   .catch(async error => {
