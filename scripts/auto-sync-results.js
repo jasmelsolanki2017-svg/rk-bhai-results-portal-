@@ -137,7 +137,7 @@ function parseSourceDate(html) {
   // the page explicitly names the current month/year AND an HTML table has a
   // DATE/DAY header with an exact row for today's day.
   const monthly = plain.match(/(?:monthly chart|complete month chart|daily results by game|record chart|सभी गेम का रिकॉर्ड चार्ट)[^\n]{0,100}?([A-Za-z]+)\s+(\d{4})/i)
-    || plain.match(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})\b/i);
+    || plain.match(/\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{4})\b/i);
   if (monthly) {
     const month = monthNumber(monthly[1]);
     const year = Number(monthly[2]);
@@ -147,7 +147,10 @@ function parseSourceDate(html) {
           decodeHtml(cell[1].replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim().toUpperCase()
         )
       );
-      const hasDateHeader = rows.some(row => /^(DATE|DAY|तारीख)$/.test(row[0] || ""));
+      const hasDateHeader = rows.some(row =>
+        /^(DATE|DAY|तारीख)$/.test(row[0] || "") ||
+        /^(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s*0?\d{1,2}$/.test(row[0] || "")
+      );
       const hasTodayRow = rows.some(row => {
         const first = String(row[0] || "").replace(/[^A-Z0-9 ]/g, " ").trim();
         const match = first.match(/^(?:(?:[A-Z]{3})\s*)?0?(\d{1,2})(?:\s+(?:[A-Z]{3}))?$/);
