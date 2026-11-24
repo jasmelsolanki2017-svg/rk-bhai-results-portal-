@@ -274,7 +274,7 @@ function parseMarketValues(html, marketNames, targetDay = null) {
       const rowDate = rowCells[dateCol].replace(/[^A-Z0-9/-]/g, "");
       if (!dayTokens.has(rowDate)) continue;
       const value = rowCells[marketCol];
-      if (/^\\d{2}$/.test(value)) return value;
+      if (/^\d{2}$/.test(value)) return value;
       return null;
     }
   }
