@@ -2,15 +2,16 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 
 const SOURCE_URLS = [
-  // Existing sources
+  // Priority sources: checked first; they still need independent-site consensus.
   "https://kingsofsatta.com/",
+  "https://satta-king-gali.com/",
+  "https://sattafree.com/",
+  "https://galidisawer.com/",
+  // Other sources
   "https://1xsatta.today/",
   "https://satta-king-fast.com/",
-  "https://www.satta-king-gali.com/",
   "https://satta-superfast.com/",
-  "https://sattafree.com/",
   "https://sattaking.live/",
-  "https://galidisawer.com/",
   // Verified direct monthly chart pages / result pages
   "https://satta.live/record_chart/disawar_record_chart.php",
   "https://www.realsattaking.com/",
@@ -622,7 +623,7 @@ async function fetchSourceHtml(passLabel) {
   // Check all source domains concurrently so a slow/blocked domain cannot
   // consume the whole five-minute schedule window. Each source still fails
   // independently; HTTP 403/timeouts do not stop the remaining sources.
-  const observations = await Promise.all(SOURCE_URLS.map(async sourceUrl => {
+  const fetchOneSource = async sourceUrl => {
     sourceFetchAttempts++;
     try {
       console.log("Checking", passLabel, "source:", sourceUrl);
@@ -781,9 +782,22 @@ async function fetchSourceHtml(passLabel) {
       sourceDiagnostics.push({ pass: passLabel, url: sourceUrl, status: null, result: "request_error", message: error.message });
       return null;
     }
-  }));
+  };
 
-  return observations.filter(Boolean);
+  // Fetch the four user-prioritized domains first. All other sources are
+  // still checked in the same cycle; priority never overrides the
+  // three-independent-domain consensus or gives a source extra votes.
+  const priorityHosts = new Set([
+    "kingsofsatta.com",
+    "satta-king-gali.com",
+    "sattafree.com",
+    "galidisawer.com"
+  ]);
+  const priorityUrls = SOURCE_URLS.filter(url => priorityHosts.has(new URL(url).hostname.toLowerCase()));
+  const otherUrls = SOURCE_URLS.filter(url => !priorityHosts.has(new URL(url).hostname.toLowerCase()));
+  const priorityObservations = await Promise.all(priorityUrls.map(fetchOneSource));
+  const otherObservations = await Promise.all(otherUrls.map(fetchOneSource));
+  return [...priorityObservations, ...otherObservations].filter(Boolean);
 }
 
 function buildConsensus(observations) {
