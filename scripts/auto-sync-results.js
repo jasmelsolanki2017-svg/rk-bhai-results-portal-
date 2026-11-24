@@ -576,77 +576,23 @@ async function main() {
     (conflicts.length ? " पुराने रिकॉर्ड से टकराव: " + conflicts.join(", ") + "; पुराने रिकॉर्ड सुरक्षित रखे।" : "") +
     (repeatNumberPending.length ? " लगातार समान नंबर पर तीसरे स्रोत की पुष्टि बाकी: " + repeatNumberPending.join(", ") + "." : ""));
 }
-function getSmartSyncWindow(date = new Date()) {
-  const parts = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hourCycle: "h23"
-  }).format(date).split(":").map(Number);
-  const nowMinutes = parts[0] * 60 + parts[1];
-  const due = [];
-  for (const market of SOURCE_MARKETS) {
-    const [hour, minute] = MARKET_SCHEDULES[market.title].split(":").map(Number);
-    const scheduled = hour * 60 + minute;
-    const elapsed = (nowMinutes - scheduled + 1440) % 1440;
-    // Start five minutes before the published time; keep checking for up to 180 minutes after it.
-    if (elapsed <= 180 || elapsed >= 1435) due.push({ market, elapsed });
-  }
-  return due;
-}
-
-async function smartMain() {
-  if (!process.env.MONGODB_URI) throw new Error("Add MONGODB_URI as a GitHub Actions repository secret.");
-  const due = getSmartSyncWindow();
-  if (!due.length) {
-    console.log("Smart Auto Sync: no market is inside its result window; skipping source requests.");
-    return;
-  }
-
-  let remaining = due.map(item => item.market);
-  const seenMarkets = new Set(remaining.map(market => market.title));
-  const checkedMarkets = new Set(seenMarkets);
-  const startedAt = Date.now();
-  const maxRuntimeMs = 185 * 60 * 1000;
-  await publishSyncStatus("running",
-    "Smart Auto Sync चालू: " + remaining.map(m => m.title).join(", ") +
-    " — तय समय से 5 मिनट पहले शुरू, पुष्टि होने तक लगभग हर मिनट जाँच। Chandigarh City मैनुअल है।");
-
-  while (Date.now() - startedAt < maxRuntimeMs) {
-    // Add markets whose result windows begin while this worker is already running.
-    for (const item of getSmartSyncWindow()) {
-      if (!seenMarkets.has(item.market.title)) {
-        seenMarkets.add(item.market.title);
-        checkedMarkets.add(item.market.title);
-        remaining.push(item.market);
-        console.log("New market window entered; added to live sync:", item.market.title);
-      }
-    }
-    if (!remaining.length) break;
-
-    RUN_MARKETS = remaining;
-    await main();
-    remaining = remaining.filter(market => !cycleResolvedMarkets.has(market.title));
-    if (remaining.length) {
-      console.log("Still waiting for:", remaining.map(m => m.title).join(", "));
-      await new Promise(resolve => setTimeout(resolve, cycleHadFirstConsensus ? 15000 : 45000));
-    }
-  }
-
+async function runOnce() {
   RUN_MARKETS = SOURCE_MARKETS;
-  if (remaining.length) {
-    await publishSyncStatus("pending",
-      "इस बार तय जाँच अवधि में पुष्टि नहीं मिली: " + remaining.map(m => m.title).join(", ") +
-      "। अगली cron-job.org जाँच में फिर प्रयास होगा; पुराना डेटा सुरक्षित है।");
-  } else {
-    await publishSyncStatus("success",
-      "Smart Auto Sync ने पुष्टि के बाद रिजल्ट जाँच पूरी कर दी। जाँचे गए मार्केट: " +
-      [...checkedMarkets].join(", ") + "।");
+  cycleResolvedMarkets = new Set();
+  cycleHadFirstConsensus = false;
+  await publishSyncStatus("running", "सामान्य Automatic Result Sync जाँच चालू है। सभी स्वचालित मार्केट जाँचे जा रहे हैं; अगली जाँच cron-job.org से हर 5 मिनट में होगी। Chandigarh City मैनुअल है।");
+  try {
+    await main();
+    await publishSyncStatus("success", "इस चक्र की सामान्य Automatic Result Sync जाँच पूरी हुई। जिन मार्केट का दो स्वतंत्र जाँचों में मिलान नहीं हुआ, उनका पुराना रिकॉर्ड सुरक्षित है।");
+  } catch (error) {
+    await publishSyncStatus("failed", error.message || "Automatic result sync failed.");
+    throw error;
   }
 }
 
-smartMain()
-  .catch(async error => {
+runOnce()
+  .catch(error => {
     console.error("Automatic result sync failed:", error);
-    try { await publishSyncStatus("failed", error.message || "Automatic result sync failed."); }
-    catch (statusError) { console.error("Could not publish sync failure status:", statusError.message); }
     process.exitCode = 1;
   })
   .finally(async () => { if (mongoose.connection.readyState) await mongoose.disconnect(); });
