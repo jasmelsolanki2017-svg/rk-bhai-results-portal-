@@ -634,7 +634,8 @@ async function fetchSourceHtml(passLabel) {
         // Faridabad value that the user confirmed is not today's result.
         // Keep them available for other markets, but never count them for Faridabad.
         if (market.title === "Faridabad" &&
-            /(?:faridabadlucky\\.com|delhilucky\\.com)\\/chart\\/new-disawar/i.test(sourceUrl)) {
+            (sourceUrl.includes("faridabadlucky.com/chart/new-disawar") ||
+             sourceUrl.includes("delhilucky.com/chart/new-disawar"))) {
           continue;
         }
         const targetDay = market.title === "Gali" ? galiDate : today;
