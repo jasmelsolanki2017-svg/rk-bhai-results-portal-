@@ -373,7 +373,7 @@ function parseMarketValues(html, marketNames, targetDay = null) {
     const headerMonth = /^(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\b/.exec(header[0])?.[1] || null;
     if (headerMonth && headerMonth !== currentMonth) continue;
     const column = header.findIndex((cell, index) => index > 0 &&
-      (aliasSet.some(alias => cell === alias) || codes.some(code => cell === code));
+      (aliasSet.some(alias => cell === alias) || codes.some(code => cell === code)));
     if (column < 0) continue;
     const dayRow = rows.find(row => {
       const firstCell = row[0].replace(/[^A-Z0-9 ]/g, " ").trim();
