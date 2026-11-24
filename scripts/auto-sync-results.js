@@ -770,23 +770,29 @@ async function fetchSourceHtml(passLabel) {
         !marketResults[market.title] && isGroqMarketWindowOpen(market.title)
       );
       const groqEnabledForSource = GROQ_ALLOWED_HOSTS.has(new URL(sourceUrl).hostname.toLowerCase());
-      if (unresolvedMarkets.length && groqEnabledForSource && process.env.GROQ_API_KEY &&
-          aiFallbackCallsThisPass < AI_FALLBACK_MAX_PER_PASS) {
-        const targetDays = Object.fromEntries(unresolvedMarkets.map(market => [
-          market.title, market.title === "Gali" ? galiDate : today
-        ]));
-        const aiResult = await parseUnresolvedMarketsWithGemini(html, sourceUrl, unresolvedMarkets, targetDays);
-        for (const [marketTitle, value] of Object.entries(aiResult.values || {})) {
-          if (!marketResults[marketTitle]) {
-            marketResults[marketTitle] = value;
-            marketParsers[marketTitle] = "groq_exact_source_evidence";
+      if (unresolvedMarkets.length && groqEnabledForSource && process.env.GROQ_API_KEY) {
+        // Ask Groq about one unresolved market per request. This keeps each
+        // prompt focused and prevents unrelated market charts from consuming tokens.
+        for (const market of unresolvedMarkets) {
+          if (aiFallbackCallsThisPass >= AI_FALLBACK_MAX_PER_PASS) break;
+          const targetDays = {
+            [market.title]: market.title === "Gali" ? galiDate : today
+          };
+          const aiResult = await parseUnresolvedMarketsWithGemini(html, sourceUrl, [market], targetDays);
+          for (const [marketTitle, value] of Object.entries(aiResult.values || {})) {
+            if (!marketResults[marketTitle]) {
+              marketResults[marketTitle] = value;
+              marketParsers[marketTitle] = "groq_exact_source_evidence";
+            }
           }
+          sourceDiagnostics.push({
+            pass: passLabel, url: sourceUrl, result: "groq_fallback",
+            aiProvider: "groq", aiRequestedMarket: market.title,
+            aiReason: aiResult.reason, aiMarketsFound: Object.keys(aiResult.values || {}),
+            chartChars: aiResult.chartChars, chartWasTruncated: aiResult.chartWasTruncated,
+            detail: aiResult.detail || undefined
+          });
         }
-        sourceDiagnostics.push({
-          pass: passLabel, url: sourceUrl, result: "groq_fallback",
-          aiProvider: "groq", aiReason: aiResult.reason, aiMarketsFound: Object.keys(aiResult.values || {}), chartChars: aiResult.chartChars, chartWasTruncated: aiResult.chartWasTruncated,
-          detail: aiResult.detail || undefined
-        });
       }
 
       // Equal two-digit values may legitimately occur in different markets.
