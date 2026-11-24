@@ -483,7 +483,7 @@ async function parseUnresolvedMarketsWithGemini(html, sourceUrl, markets, target
       "Strict chart transcription only. Read the supplied source text; do not guess, infer, calculate, or use nearby dates.",
       "For each requested market, return a value only if its visible market label, exact requested date context, and two-digit result are shown in the same chart/table context.",
       "Include evidence as an exact contiguous quotation copied from the source text, showing market, date context, and result. Omit uncertain or absent results.",
-      "Return JSON only: {\\"results\\":[{\\"market\\":\\"Disawar\\",\\"value\\":\\"12\\",\\"evidence\\":\\"exact copied quote\\"}]}",
+      'Return JSON only: {"results":[{"market":"Disawar","value":"12","evidence":"exact copied quote"}]}',
       "Requested markets:\\n"+requested,"Source URL: "+sourceUrl,"Source text:\\n"+chart
     ].join("\n\n");
     const res=await fetch("https://api.groq.com/openai/v1/chat/completions",{
