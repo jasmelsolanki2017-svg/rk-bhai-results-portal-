@@ -890,8 +890,7 @@ async function main() {
   const galiResultDay = getGaliResultDateParts();
   const todayDate = new Date(Date.UTC(indiaToday.year, indiaToday.month - 1, indiaToday.day, 12));
 
-  // Do not accept results before the market's scheduled release time plus
-  // a 10-minute publication buffer (all schedule times are India local).
+  // Do not accept results before the market's scheduled release time (India local).
   const indiaClock = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hourCycle: "h23"
   }).format(new Date());
@@ -901,12 +900,12 @@ async function main() {
     const scheduled = MARKET_SCHEDULES[market.title];
     if (!scheduled) return false;
     const [scheduledHour, scheduledMinute] = scheduled.split(":").map(Number);
-    return nowMinutes < scheduledHour * 60 + scheduledMinute + 10;
+    return nowMinutes < scheduledHour * 60 + scheduledMinute;
   });
   for (const market of notYetReleased) {
     delete verified[market.title];
     if (!pendingMarkets.includes(market.title)) pendingMarkets.push(market.title);
-    console.log("Market release time plus 10-minute buffer not reached; withholding:", market.title);
+    console.log("Market scheduled release time not reached; withholding:", market.title);
   }
 
   // Roll back the premature auto-published Faridabad 45 seen in the latest
