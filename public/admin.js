@@ -66,7 +66,7 @@ async function loadAutoSyncStatus(){
   const sourceRows=diagnostics.map(item=>{
    const host=String(item.url||"").replace("https://","").replace("http://","").split("/")[0];
    const found=Array.isArray(item.marketsFound)&&item.marketsFound.length?" · "+item.marketsFound.join(", "):"";
-   const values=item.marketResults&&typeof item.marketResults==="object"?Object.entries(item.marketResults).map(([market,value])=>esc(market)+": <strong>"+esc(String(value))+"</strong>").join(" · "):"";
+   const sourceValues=item.marketValues||item.marketResults;\n   const values=sourceValues&&typeof sourceValues==="object"?Object.entries(sourceValues).map(([market,value])=>esc(market)+": <strong>"+esc(String(value))+"</strong>").join(" · "):"";
    const status=item.status?"HTTP "+item.status:"HTTP —";
    return '<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--border,#333);font-size:13px"><div style="min-width:0;overflow-wrap:anywhere"><strong>'+esc(host||item.market||"Source")+'</strong><div class="muted">'+esc(passNames[item.pass]||item.pass||"")+' · '+esc(resultNames[item.result]||item.result||"स्थिति उपलब्ध नहीं")+esc(found)+'</div>'+(values?'<div style="margin-top:3px;color:var(--text,#fff)">मिले नंबर: '+values+'</div>':"")+'</div><span class="muted" style="white-space:nowrap">'+esc(status)+'</span></div>';
   }).join("");
