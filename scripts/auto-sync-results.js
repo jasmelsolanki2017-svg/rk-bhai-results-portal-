@@ -10,11 +10,17 @@ const SOURCE_URLS = [
   "https://satta-king-fast.com/",
   "https://www.satta-king-gali.com/",
   "https://satta-superfast.com/",
-  // Additional backup sources (checked only if earlier sources fail validation)
+  // Additional independent chart sources. Each source is parsed only
+  // from an exact current-date row / explicit Today column; blanks stay blank.
   "https://sattaking.in/chart/gali",
   "https://sattafree.com/",
   "https://sattaking.live/",
-  "https://galidisawer.com/"
+  "https://galidisawer.com/",
+  // Newly added independent sources with date-wise charts
+  "https://satta.live/record_chart/disawar_record_chart.php",
+  "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
+  "https://www.ghaziabadday.com/",
+  "https://www.sattakingchartresult.com/"
 ];
 let activeSourceUrl = SOURCE_URLS[0];
 const sourceDiagnostics = [];
