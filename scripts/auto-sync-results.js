@@ -28,7 +28,7 @@ const STATUS_FILE = "data/auto-sync-status.json";
 let sourceFetchAttempts = 0;
 let sourceHttpStatus = null;
 const SOURCE_MARKETS = [
-  { source: ["DESAWER", "DESAWAR", "DISAWAR"], title: "Disawar" },
+  { source: ["DESAWER", "DESAWAR", "DISAWAR", "DISAWER"], title: "Disawar" },
   { source: ["FARIDABAD"], title: "Faridabad" },
   { source: ["GHAZIABAD"], title: "Ghaziabad" },
   { source: ["GALI"], title: "Gali" },
@@ -208,6 +208,7 @@ function parseMarketValues(html, marketNames, targetDay = null) {
     "DISAWAR": ["DSWR", "DISAWER", "DESAWAR", "DESAWER"],
     "DISAWER": ["DSWR", "DISAWER", "DESAWAR", "DESAWER"],
     "DESAWAR": ["DSWR", "DISAWER", "DESAWAR", "DESAWER"],
+    "DESAWER": ["DSWR", "DISAWER", "DESAWAR", "DESAWER"],
     "FARIDABAD": ["FRBD"],
     "GHAZIABAD": ["GABD"],
     "GALI": ["GALI"],
@@ -237,7 +238,7 @@ function parseMarketValues(html, marketNames, targetDay = null) {
     if (column < 0) continue;
     const dayRow = rows.find(row => {
       const firstCell = row[0].replace(/[^A-Z0-9 ]/g, " ").trim();
-      const match = firstCell.match(/^(?:[A-Z]{3}\s*)?0?(\d{1,2})$/);
+      const match = firstCell.match(/^(?:(?:[A-Z]{3})\s*)?0?(\d{1,2})(?:\s+(?:[A-Z]{3}))?$/);
       return match && Number(match[1]) === today.day;
     });
     // Only accept a two-digit result from the exact current-day row.
