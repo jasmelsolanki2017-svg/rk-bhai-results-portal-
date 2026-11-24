@@ -182,36 +182,8 @@ function parseMarketValues(html, marketNames, targetDay = null) {
     if (dayRow && dayRow[column] && /^\d{2}$/.test(dayRow[column])) return dayRow[column];
   }
 
-  // Fallback: live "Yesterday / Today" or "कल / आज" result blocks.
-  const withoutNoise = String(html || "")
-    .replace(/<script\b[\s\S]*?<\/script>/gi, "\n")
-    .replace(/<style\b[\s\S]*?<\/style>/gi, "\n");
-  const lines = decodeHtml(withoutNoise
-    .replace(/<\/(h[1-6]|p|div|tr|td|th|li|br|section|article)>/gi, "\n")
-    .replace(/<br\s*\/?\s*>/gi, "\n")
-    .replace(/<[^>]+>/g, " "))
-    .replace(/\r/g, "\n").split("\n")
-    .map(line => line.replace(/\s+/g, " ").trim().toUpperCase()).filter(Boolean);
-  const matchesMarket = line => {
-    const value = normalize(line);
-    return aliasSet.some(alias => value === alias || value.endsWith(alias) || value.startsWith(alias + " "));
-  };
-  const start = lines.findIndex(matchesMarket);
-  if (start < 0) return null;
-  let sawToday = false;
-  for (let i = start + 1; i < Math.min(lines.length, start + 20); i++) {
-    const line = lines[i];
-    if (/^(?:TODAY|आज)$/.test(line)) {
-      sawToday = true;
-      continue;
-    }
-    if (sawToday) {
-      const value = line.match(/(?:^|\s)(\d{2})(?:\s|$)/);
-      if (value) return value[1];
-      if (/^(?:--|XX|WAIT|PENDING|अभी नहीं)$/.test(line)) return null;
-    }
-    if (matchesMarket(line)) break;
-  }
+  // Safety: do not scrape loosely-associated live text blocks. Only a value
+  // from the exact current-date row and the exact market column is acceptable.
   return null;
 }
 
