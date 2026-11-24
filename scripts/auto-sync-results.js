@@ -220,6 +220,27 @@ function parseSourceSpecificMarketValue(html, sourceUrl, market, targetDay) {
   return null;
 }
 
+function hasYearlyMonthGrid(html, targetDay) {
+  const norm=value=>decodeHtml(String(value||"")).replace(/<[^>]+>/g," ")
+    .replace(/[^A-Z0-9\u0900-\u097F ]/gi," ").replace(/\s+/g," ").trim().toUpperCase();
+  const plain=norm(String(html||"").replace(/<script\b[\s\S]*?<\/script>/gi," "));
+  if(!plain.includes(String(targetDay.year)))return false;
+  const months={1:["JAN","JANUARY","जन","जनवरी"],2:["FEB","FEBRUARY","फर","फरवरी"],3:["MAR","MARCH","मार्च"],
+    4:["APR","APRIL","अप्रै","अप्रैल"],5:["MAY","मई"],6:["JUN","JUNE","जून"],7:["JUL","JULY","जुला","जुलाई"],
+    8:["AUG","AUGUST","अग","अगस्त"],9:["SEP","SEPTEMBER","सित","सितंबर"],10:["OCT","OCTOBER","अक्टू","अक्टूबर"],
+    11:["NOV","NOVEMBER","नव","नवंबर"],12:["DEC","DECEMBER","दिस","दिसंबर"]};
+  const tables=[...String(html||"").matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)];
+  return tables.some(table=>{
+    const rows=[...table[1].matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)].map(row=>
+      [...row[1].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(cell=>norm(cell[1])));
+    const hi=rows.findIndex(row=>row.length>=10&&/^(DAY|DATE|दिन|तारीख)$/.test(row[0]||""));
+    if(hi<0)return false;
+    const col=rows[hi].findIndex((cell,i)=>i>0&&months[targetDay.month].some(m=>cell===m||cell.startsWith(m)));
+    if(col<0)return false;
+    return rows.slice(hi+1).some(row=>row[0]&&Number(row[0].replace(/\D/g,""))===targetDay.day);
+  });
+}
+
 function parseYearlyMonthGrid(html, market, targetDay) {
   const norm = value => decodeHtml(String(value || "")).replace(/<[^>]+>/g, " ")
     .replace(/[^A-Z0-9\u0900-\u097F ]/gi, " ").replace(/\s+/g, " ").trim().toUpperCase();
@@ -250,34 +271,42 @@ function parseYearlyMonthGrid(html, market, targetDay) {
 }
 
 function parseMarketCardValue(html, market, targetDay) {
-  const norm = value => decodeHtml(String(value || "")).replace(/<[^>]+>/g," ")
-    .replace(/[^A-Z0-9\u0900-\u097F ]/gi," ").replace(/\s+/g," ").trim().toUpperCase();
+  const norm = value => decodeHtml(String(value || ""))
+    .replace(/<[^>]+>/g, " ")
+    .replace(/[^A-Z0-9\u0900-\u097F ]/gi, " ")
+    .replace(/\s+/g, " ").trim().toUpperCase();
   const aliases = (market.source || []).map(norm);
-  const tokens = String(html || "").match(/<\/?[a-z][^>]*>|[^<]+/gi) || [];
-  const root = {tag:"root",text:"",children:[]}, stack=[root];
-  for (const token of tokens) {
-    const close=token.match(/^<\/\s*([a-z0-9]+)/i);
-    if (close) { for(let i=stack.length-1;i>0;i--){if(stack[i].tag===close[1].toLowerCase()){stack.length=i;break;}} continue; }
-    const open=token.match(/^<\s*([a-z0-9]+)(?:\s[^>]*)?>$/i);
-    if(open){const tag=open[1].toLowerCase();if(tag==="script"||tag==="style")continue;
-      const node={tag,text:"",children:[]};stack[stack.length-1].children.push(node);
-      if(!/^(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/.test(tag)&&! /\/>$/.test(token))stack.push(node);
-    } else stack[stack.length-1].text+=" "+token;
-  }
-  const collect=n=>norm(n.text+" "+n.children.map(collect).join(" "));
+  const lines = decodeHtml(String(html || "")
+    .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style\b[\s\S]*?<\/style>/gi, " ")
+    .replace(/<\/(?:td|th|tr|div|article|section|li|p|h[1-6])\s*>/gi, "\n")
+    .replace(/<br\s*\/?\s*>/gi, "\n")
+    .replace(/<[^>]+>/g, " "))
+    .split(/[\r\n]+/).map(norm).filter(Boolean);
   const now = getIndiaDateParts();
   const useToday = targetDay.year === now.year && targetDay.month === now.month && targetDay.day === now.day;
-  const label = useToday ? "(?:TODAY|AAJ|आज)" : "(?:YESTERDAY|KAL|कल)";
-  const candidates=[];
-  const walk=n=>{const t=collect(n);const named=aliases.some(a=>a.length<=2?t.split(" ").includes(a):t.includes(a));
-    if(named&&new RegExp(label,"i").test(t))candidates.push(t);
-    n.children.forEach(walk);};
-  walk(root);candidates.sort((a,b)=>a.length-b.length);
-  const valuePattern = new RegExp(label + "\\s*(?:RESULT)?\\s*(?:\\(\\s*\\d{1,2}[^)]*\\))?\\s*[:：|–—-]?\\s*(\\d{2})(?!\\d)", "i");
-  for(const t of candidates){const m=t.match(valuePattern);if(m)return m[1];}
-  return null;
+  const label = useToday ? /^(?:TODAY|AAJ|आज)(?:\b|$)/i : /^(?:YESTERDAY|KAL|कल)(?:\b|$)/i;
+  const allAliases = SOURCE_MARKETS.map(item => ({title:item.title, aliases:(item.source||[]).map(norm)}));
+  const hasAlias = (line, list) => list.some(alias =>
+    alias.length <= 2 ? line.split(" ").includes(alias) : line.includes(alias));
+  const found = new Set();
+  for (let i=0;i<lines.length;i++) {
+    if (lines[i].length > 90 || !hasAlias(lines[i], aliases)) continue;
+    for (let j=i+1;j<Math.min(lines.length,i+10);j++) {
+      const line=lines[j];
+      if (allAliases.some(item=>item.title!==market.title && hasAlias(line,item.aliases))) break;
+      let match=line.match(/(?:TODAY|AAJ|आज|YESTERDAY|KAL|कल)\s*(?:RESULT)?\s*(?:\(\s*\d{1,2}[^)]*\))?\s*[:：|–—-]?\s*(\d{2})(?!\d)/i);
+      if (label.test(line) && !match) {
+        for(let k=j+1;k<Math.min(lines.length,j+3);k++) {
+          if(/^\d{2}$/.test(lines[k])) {match=[lines[k],lines[k]];break;}
+          if(/^(?:WAIT|PENDING|--|XX|अभी बाकी|रिजल्ट अभी नहीं आया)$/i.test(lines[k])) break;
+        }
+      }
+      if(match && label.test(line)) found.add(match[1]);
+    }
+  }
+  return found.size===1 ? [...found][0] : null;
 }
-
 function parseDateResultHistory(html, targetDay) {
   const norm=value=>decodeHtml(String(value||"")).replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim();
   const tables=[...String(html||"").matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)];
@@ -459,7 +488,7 @@ async function fetchSourceHtml(passLabel) {
       let sourceDate;
       try { sourceDate = parseSourceDate(html); }
       catch (error) {
-        const isCurrentYearGrid = RUN_MARKETS.some(market => parseYearlyMonthGrid(html, market, today));
+        const isCurrentYearGrid = hasYearlyMonthGrid(html, today);
         const isCurrentHistory = sourceUrl.includes("game-history.php") && Boolean(parseDateResultHistory(html, today));
         if (isCurrentYearGrid || isCurrentHistory) sourceDate = today;
         else {
