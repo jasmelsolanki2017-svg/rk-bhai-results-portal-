@@ -1066,13 +1066,25 @@ async function main() {
         console.log("Manual result differs from verified sources; preserved for admin review:", market.title, existingValue, evidence.value);
         continue;
       }
-      conflicts.push(market.title);
+      // Replace stale automatic rows when a fresh three-domain consensus exists.
+      // Manual rows remain protected by the branch above.
+      await Result.updateOne(
+        { _id: existing._id },
+        { $set: {
+          title: market.title, resultText: evidence.value, resultDate: marketDate,
+          published: true, deleted: false, sourceUrl: evidence.sources.join(", "),
+          resultSource: "automatic", verificationMeta: evidence,
+          ownerUserId: null, cityId: null
+        } }
+      );
+      insertedOrUpdated++;
       cycleResolvedMarkets.add(market.title);
       sourceDiagnostics.push({
-        result: "same_day_conflict", market: market.title,
-        existingValue, incomingValue: evidence.value,
-        candidateSources: evidence.sources
+        result: "automatic_record_replaced_by_verified_consensus",
+        market: market.title, existingValue, incomingValue: evidence.value,
+        publicStatus: "published", candidateSources: evidence.sources
       });
+      console.log("Replaced outdated automatic record with verified consensus:", market.title, existingValue, "->", evidence.value);
       continue;
     }
     await Result.updateOne(
