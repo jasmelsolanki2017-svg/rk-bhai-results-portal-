@@ -932,9 +932,7 @@ async function main() {
     return;
   }
 
-  const indiaToday = getIndiaDateParts();
-  const galiResultDay = getGaliResultDateParts();
-  const date = new Date(Date.UTC(indiaToday.year, indiaToday.month - 1, indiaToday.day, 12));
+  const date = todayDate;
   let insertedOrUpdated = 0;
   const conflicts = [];
   const repeatNumberPending = [];
@@ -961,7 +959,7 @@ async function main() {
     if (previousRecord && String(previousRecord.resultText || "").trim() === evidence.value &&
         (!firstEvidence || firstEvidence.domains.length < 2 || !secondEvidence || secondEvidence.domains.length < 2)) {
       repeatNumberPending.push(market.title);
-      console.log("Repeated number needs two independent sources in both checks; left unchanged:", market.title, evidence.value);
+      console.log("Repeated number failed the extra two-domain recheck; left unchanged:", market.title, evidence.value);
       continue;
     }
 
@@ -1064,7 +1062,7 @@ async function runOnce() {
   await publishSyncStatus("running", "सामान्य Automatic Result Sync जाँच चालू है। सभी स्वचालित मार्केट जाँचे जा रहे हैं; अगली जाँच cron-job.org से हर 5 मिनट में होगी। Chandigarh City मैनुअल है।");
   try {
     await main();
-    await publishSyncStatus("success", "इस चक्र की सामान्य Automatic Result Sync जाँच पूरी हुई। जिन मार्केट का दो स्वतंत्र जाँचों में मिलान नहीं हुआ, उनका पुराना रिकॉर्ड सुरक्षित है।");
+    await publishSyncStatus("success", "इस चक्र की सामान्य Automatic Result Sync जाँच पूरी हुई। दो स्वतंत्र वेबसाइटों पर समान Parser रिजल्ट मिलने पर तुरंत publish किया गया; लगातार समान नंबर पर अतिरिक्त recheck लागू है।");
   } catch (error) {
     await publishSyncStatus("failed", error.message || "Automatic result sync failed.");
     throw error;
