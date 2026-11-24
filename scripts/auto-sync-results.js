@@ -478,7 +478,7 @@ function parseMarketValues(html, marketNames, targetDay = null) {
 
 
 let aiFallbackCallsThisPass = 0;
-const AI_FALLBACK_MAX_PER_PASS = 2;
+const AI_FALLBACK_MAX_PER_PASS = 4;
 
 function aiChartText(html) {
   return decodeHtml(String(html || "")
