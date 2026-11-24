@@ -17,7 +17,7 @@ const SOURCE_URLS = [
   "https://satta.live/record_chart/disawar_record_chart.php",
   "https://www.faridabadlucky.com/chart/new-disawar/" + new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit" }).format(new Date()),
   "https://www.delhilucky.com/chart/new-disawar/" + new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit" }).format(new Date()) + "?lang=hi",
-  "https://satta-fast.com/satta-king-chart-november-2026",
+  "https://satta-fast.com/satta-king-chart-" + new Intl.DateTimeFormat("en", { timeZone: "Asia/Kolkata", month: "long" }).format(new Date()).toLowerCase() + "-" + getIndiaDateParts().year,
   "https://sattakingchartresult.com/"
 ];
 let activeSourceUrl = SOURCE_URLS[0];
