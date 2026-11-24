@@ -55,6 +55,23 @@ const MARKET_SCHEDULES = {
   "Shree Ganesh": "16:45"
 };
 
+// Groq AI is allowed only during the first 30 minutes after each market's
+// scheduled release time (India time). The normal parser continues all day.
+const GROQ_RELEASE_WINDOW_MINUTES = 30;
+function isGroqMarketWindowOpen(marketTitle, now = new Date()) {
+  const scheduled = MARKET_SCHEDULES[marketTitle];
+  if (!scheduled) return false;
+  const clock = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hourCycle: "h23"
+  }).format(now);
+  const [hour, minute] = clock.split(":").map(Number);
+  const [scheduledHour, scheduledMinute] = scheduled.split(":").map(Number);
+  const currentMinutes = hour * 60 + minute;
+  const releaseMinutes = scheduledHour * 60 + scheduledMinute;
+  const elapsed = (currentMinutes - releaseMinutes + 1440) % 1440;
+  return elapsed >= 0 && elapsed < GROQ_RELEASE_WINDOW_MINUTES;
+}
+
 const Result = mongoose.model("Result", new mongoose.Schema({
   title: String,
   resultText: String,
@@ -743,7 +760,9 @@ async function fetchSourceHtml(passLabel) {
         }
       }
 
-      const unresolvedMarkets = RUN_MARKETS.filter(market => !marketResults[market.title]);
+      const unresolvedMarkets = RUN_MARKETS.filter(market =>
+        !marketResults[market.title] && isGroqMarketWindowOpen(market.title)
+      );
       const groqEnabledForSource = GROQ_ALLOWED_HOSTS.has(new URL(sourceUrl).hostname.toLowerCase());
       if (unresolvedMarkets.length && groqEnabledForSource && process.env.GROQ_API_KEY &&
           aiFallbackCallsThisPass < AI_FALLBACK_MAX_PER_PASS) {
