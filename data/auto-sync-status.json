@@ -1,10 +1,111 @@
 {
   "app": "rk-bhai-results-portal",
-  "status": "running",
-  "message": "सामान्य Automatic Result Sync जाँच चालू है। सभी स्वचालित मार्केट जाँचे जा रहे हैं; अगली जाँच cron-job.org से हर 5 मिनट में होगी। Chandigarh City मैनुअल है।",
+  "status": "success",
+  "message": "इस चक्र की सामान्य Automatic Result Sync जाँच पूरी हुई। जिन मार्केट का दो स्वतंत्र जाँचों में मिलान नहीं हुआ, उनका पुराना रिकॉर्ड सुरक्षित है।",
   "sourceUrl": "https://kingsofsatta.com/",
-  "sourceDiagnostics": [],
-  "attempts": 0,
-  "httpStatus": null,
-  "checkedAt": "2026-11-24T02:38:07.961Z"
+  "sourceDiagnostics": [
+    {
+      "pass": "first_check",
+      "url": "https://satta-king-fast.com/",
+      "status": 200,
+      "result": "no_values",
+      "marketsFound": [],
+      "marketValues": {}
+    },
+    {
+      "pass": "first_check",
+      "url": "https://gali-results.com/",
+      "status": 403,
+      "result": "fetch_failed"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://sattaking.in/chart/gali",
+      "status": 403,
+      "result": "fetch_failed"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://satta-superfast.com/",
+      "status": 200,
+      "result": "no_values",
+      "marketsFound": [],
+      "marketValues": {}
+    },
+    {
+      "pass": "first_check",
+      "url": "https://kingsofsatta.com/",
+      "status": 200,
+      "result": "no_values",
+      "marketsFound": [],
+      "marketValues": {}
+    },
+    {
+      "pass": "first_check",
+      "url": "https://www.satta-king-gali.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Disawar",
+        "Ghaziabad",
+        "Gali"
+      ],
+      "marketValues": {
+        "Disawar": "84",
+        "Ghaziabad": "84",
+        "Gali": "84"
+      }
+    },
+    {
+      "pass": "first_check",
+      "url": "https://sattafree.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Faridabad",
+        "Delhi Bazar",
+        "Shree Ganesh"
+      ],
+      "marketValues": {
+        "Faridabad": "44",
+        "Delhi Bazar": "44",
+        "Shree Ganesh": "44"
+      }
+    },
+    {
+      "pass": "first_check",
+      "url": "https://sattaking.live/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Ghaziabad",
+        "Gali"
+      ],
+      "marketValues": {
+        "Ghaziabad": "98",
+        "Gali": "98"
+      }
+    },
+    {
+      "pass": "first_check",
+      "url": "https://1xsatta.today/",
+      "status": 200,
+      "result": "date_not_recognized"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://galidisawer.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Ghaziabad"
+      ],
+      "marketValues": {
+        "Ghaziabad": "44"
+      }
+    }
+  ],
+  "attempts": 10,
+  "httpStatus": 200,
+  "checkedAt": "2026-11-24T02:38:11.022Z"
 }
