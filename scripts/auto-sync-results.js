@@ -307,7 +307,10 @@ function parseMarketCardValue(html, market, targetDay) {
   const found = new Set();
   for (let i=0;i<lines.length;i++) {
     if (lines[i].length > 90 || !hasAlias(lines[i], aliases)) continue;
-    for (let j=i+1;j<Math.min(lines.length,i+10);j++) {
+    const nearbyTime = [lines[i-1] || "", lines[i], lines[i+1] || ""].some(line =>
+      /\b\d{1,2}:\d{2}\s*(?:AM|PM)\b/i.test(line));
+    if (!nearbyTime) continue;
+    for (let j=i+1;j<Math.min(lines.length,i+7);j++) {
       const line=lines[j];
       if (allAliases.some(item=>item.title!==market.title && hasAlias(line,item.aliases))) break;
       let match=line.match(/(?:TODAY|AAJ|आज|YESTERDAY|KAL|कल)\s*(?:RESULT)?\s*(?:\(\s*\d{1,2}[^)]*\))?\s*[:：|–—-]?\s*(\d{2})(?!\d)/i);
@@ -370,7 +373,7 @@ function parseMarketValues(html, marketNames, targetDay = null) {
     const headerMonth = /^(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\b/.exec(header[0])?.[1] || null;
     if (headerMonth && headerMonth !== currentMonth) continue;
     const column = header.findIndex((cell, index) => index > 0 &&
-      (aliasSet.some(alias => cell === alias || cell.includes(alias)) || codes.some(code => cell === code || cell.includes(code))));
+      (aliasSet.some(alias => cell === alias) || codes.some(code => cell === code));
     if (column < 0) continue;
     const dayRow = rows.find(row => {
       const firstCell = row[0].replace(/[^A-Z0-9 ]/g, " ").trim();
