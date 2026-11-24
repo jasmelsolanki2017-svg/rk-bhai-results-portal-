@@ -672,12 +672,14 @@ async function fetchSourceHtml(passLabel) {
       const marketResults = {};
       const marketParsers = {};
       for (const market of RUN_MARKETS) {
-        // These two "new-disawar" chart endpoints have produced a premature
-        // Faridabad value that the user confirmed is not today's result.
-        // Keep them available for other markets, but never count them for Faridabad.
-        if (market.title === "Faridabad" &&
-            (sourceUrl.includes("faridabadlucky.com/chart/new-disawar") ||
-             sourceUrl.includes("delhilucky.com/chart/new-disawar"))) {
+        // These two "new-disawar" chart endpoints have produced premature
+        // Faridabad and Ghaziabad values that are not today's results.
+        // Keep them available for other markets, but never count them for these markets.
+        const isNewDisawarChart =
+          sourceUrl.includes("faridabadlucky.com/chart/new-disawar") ||
+          sourceUrl.includes("delhilucky.com/chart/new-disawar");
+        if (isNewDisawarChart &&
+            (market.title === "Faridabad" || market.title === "Ghaziabad")) {
           continue;
         }
         const targetDay = market.title === "Gali" ? galiDate : today;
