@@ -431,7 +431,7 @@ function parseMarketValues(html, marketNames, targetDay = null) {
 
 
 let aiFallbackCallsThisPass = 0;
-const AI_FALLBACK_MAX_PER_PASS = 3;
+const AI_FALLBACK_MAX_PER_PASS = 6;
 
 function aiChartText(html) {
   return decodeHtml(String(html || "")
@@ -488,7 +488,7 @@ async function parseUnresolvedMarketsWithGemini(html, sourceUrl, markets, target
         "Return JSON only: {\"results\":[{\"market\":\"Disawar\",\"value\":\"12\",\"evidence\":\"exact copied quote\"}]}",
         "Requested markets:\n"+requested,"Source URL: "+sourceUrl,"Source text:\n"+chart
       ].join("\n\n") }]}],generationConfig:{temperature:0,responseMimeType:"application/json"}}),
-      signal:AbortSignal.timeout(12000)
+      signal:AbortSignal.timeout(25000)
     });
     if(!res.ok)return {values:{},reason:"gemini_http_"+res.status,detail:(await res.text()).slice(0,200)};
     const payload=await res.json();
@@ -506,9 +506,11 @@ async function parseUnresolvedMarketsWithGemini(html, sourceUrl, markets, target
       if(!aliases.some(a=>quote.includes(a))||!quote.includes(value))continue;
       const d=targetDays[market.title], months=["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
       const day=String(d.day), month=months[d.month-1], short=month.slice(0,3);
+      const dd=String(d.day).padStart(2,"0"), mm=String(d.month).padStart(2,"0"), yyyy=String(d.year);
       const dated=[day+" "+month,month+" "+day,day+" "+short,short+" "+day,
-        String(d.year)+"-"+String(d.month).padStart(2,"0")+"-"+String(d.day).padStart(2,"0"),
-        String(d.day).padStart(2,"0")+"/"+String(d.month).padStart(2,"0")+"/"+d.year].some(x=>quote.includes(aiCompact(x)));
+        month+" "+day+", "+yyyy,day+" "+month+" "+yyyy,
+        yyyy+"-"+mm+"-"+dd,dd+"/"+mm+"/"+yyyy,day+"/"+mm+"/"+yyyy,
+        dd+"-"+mm+"-"+yyyy,day+"-"+mm+"-"+yyyy].some(x=>quote.includes(aiCompact(x)));
       if(dated)values[market.title]=value;
     }
     return {values,reason:Object.keys(values).length?"gemini_exact_evidence":"gemini_no_verified_evidence"};
