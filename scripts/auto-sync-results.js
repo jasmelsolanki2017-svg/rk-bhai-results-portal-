@@ -133,16 +133,29 @@ function parseSourceDate(html) {
     if (found.month && !staleDate) staleDate = found;
   }
 
-  // Chart-only sites often omit a full date but show the current month and
-  // a row for today's day. Require BOTH signals and an explicit live/today section.
+  // Chart-only pages may have no "today/live" label. Accept them only when
+  // the page explicitly names the current month/year AND an HTML table has a
+  // DATE/DAY header with an exact row for today's day.
   const monthly = plain.match(/(?:monthly chart|complete month chart|daily results by game|record chart|सभी गेम का रिकॉर्ड चार्ट)[^\n]{0,100}?([A-Za-z]+)\s+(\d{4})/i)
     || plain.match(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})\b/i);
   if (monthly) {
     const month = monthNumber(monthly[1]);
     const year = Number(monthly[2]);
-    const liveContext = /today|live result|आज के रिजल्ट|आज का रिजल्ट/i.test(plain);
-    const dayRow = new RegExp("(?:^|\\s)0?" + today.day + "(?:\\s|\\|)", "im");
-    if (year === today.year && month === today.month && liveContext && dayRow.test(plain)) return today;
+    const hasExactTodayRow = [...String(html || "").matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)].some(table => {
+      const rows = [...table[1].matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)].map(row =>
+        [...row[1].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(cell =>
+          decodeHtml(cell[1].replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim().toUpperCase()
+        )
+      );
+      const hasDateHeader = rows.some(row => /^(DATE|DAY|तारीख)$/.test(row[0] || ""));
+      const hasTodayRow = rows.some(row => {
+        const first = String(row[0] || "").replace(/[^A-Z0-9 ]/g, " ").trim();
+        const match = first.match(/^(?:(?:[A-Z]{3})\s*)?0?(\d{1,2})(?:\s+(?:[A-Z]{3}))?$/);
+        return match && Number(match[1]) === today.day;
+      });
+      return hasDateHeader && hasTodayRow;
+    });
+    if (year === today.year && month === today.month && hasExactTodayRow) return today;
   }
   throw new Error("Source date not recognized: no current dated heading or current-month chart row.");
 }
