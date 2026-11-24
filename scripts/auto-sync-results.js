@@ -307,11 +307,31 @@ async function fetchSourceHtml(passLabel) {
         const value = parseMarketValues(html, market.source, market.title === "Gali" ? galiDate : today);
         if (value) marketResults[market.title] = value;
       }
+
+      // Safety guard: one source must not accidentally assign the same parsed
+      // cell/value to multiple markets. This previously caused false positives
+      // when a page's chart columns or live-result blocks were misidentified.
+      // Treat every repeated value within one source as ambiguous and do not
+      // let that source vote for any of the affected markets.
+      const valueMarkets = new Map();
+      for (const [marketName, value] of Object.entries(marketResults)) {
+        if (!valueMarkets.has(value)) valueMarkets.set(value, []);
+        valueMarkets.get(value).push(marketName);
+      }
+      const ambiguousValues = [];
+      for (const [value, markets] of valueMarkets.entries()) {
+        if (markets.length > 1) {
+          ambiguousValues.push({ value, markets });
+          for (const marketName of markets) delete marketResults[marketName];
+        }
+      }
       sourceDiagnostics.push({
         pass: passLabel, url: sourceUrl, status: response.status,
-        result: Object.keys(marketResults).length ? "dated_values_found" : "no_values",
+        result: Object.keys(marketResults).length ? "dated_values_found" :
+          (ambiguousValues.length ? "ambiguous_duplicate_values" : "no_values"),
         marketsFound: Object.keys(marketResults),
-        marketValues: marketResults
+        marketValues: marketResults,
+        ambiguousValues
       });
       if (!Object.keys(marketResults).length) return null;
       return { url: sourceUrl, host: new URL(sourceUrl).hostname.toLowerCase(), sourceDate, lastModified: lastModified || null, marketResults };
