@@ -349,13 +349,24 @@ async function fetchSourceHtml(passLabel) {
         return null;
       }
       const marketResults = {};
+      const marketParsers = {};
       for (const market of RUN_MARKETS) {
         const targetDay = market.title === "Gali" ? galiDate : today;
-        // Safety: accept results only from the exact target-date row and exact market column.
-        // Do not use proximity-based live-text fallback: unrelated market cards
-        // (for example Dhanlaxmi) can appear between a market label and its result.
-        const value = parseMarketValues(html, market.source, targetDay);
-        if (value) marketResults[market.title] = value;
+        // First choice: exact date row + exact market column in monthly charts.
+        let value = parseMarketValues(html, market.source, targetDay);
+        if (value) {
+          marketResults[market.title] = value;
+          marketParsers[market.title] = "exact_date_monthly_chart";
+          continue;
+        }
+        // Safe fallback: explicit HTML table with Game/Market + Today/Yesterday
+        // headers. The market name and result must be cells in the SAME row.
+        // No nearby-line/proximity scanning is allowed.
+        value = parseSourceSpecificMarketValue(html, sourceUrl, market, targetDay);
+        if (value) {
+          marketResults[market.title] = value;
+          marketParsers[market.title] = "same_row_explicit_today_yesterday_table";
+        }
       }
 
       // Safety guard: one source must not accidentally assign the same parsed
@@ -381,8 +392,9 @@ async function fetchSourceHtml(passLabel) {
           (ambiguousValues.length ? "ambiguous_duplicate_values" : "no_values"),
         marketsFound: Object.keys(marketResults),
         marketValues: marketResults,
+        marketParsers,
         ambiguousValues,
-        parser: Object.keys(marketResults).length ? "exact_date_monthly_table_or_labeled_live_board" : "no_exact_date_market_cell_or_labeled_board"
+        parser: Object.keys(marketResults).length ? "exact_date_monthly_chart_or_same_row_dated_table" : "no_exact_date_market_cell_or_same_row_dated_table"
       });
       if (!Object.keys(marketResults).length) return null;
       return { url: sourceUrl, host: new URL(sourceUrl).hostname.toLowerCase(), sourceDate, lastModified: lastModified || null, marketResults };
