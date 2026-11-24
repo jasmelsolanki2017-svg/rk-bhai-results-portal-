@@ -756,7 +756,7 @@ function buildConsensus(observations) {
     const ranked = [...votes.entries()].sort((a, b) => b[1].size - a[1].size);
     const winner = ranked[0];
     const tiedForFirst = Boolean(winner && ranked[1] && winner[1].size === ranked[1][1].size);
-    if (winner && winner[1].size >= 2 && !tiedForFirst) {
+    if (winner && winner[1].size >= 3 && !tiedForFirst) {
       consensus[market.title] = {
         value: winner[0],
         sources: [...winner[1].values()],
@@ -858,7 +858,7 @@ async function main() {
   const firstPass = await fetchSourceHtml("first_check");
   const first = buildConsensus(firstPass);
   if (!Object.keys(first.consensus).length) {
-    console.log("No two-domain consensus in first pass; market will be checked again.");
+    console.log("No three-domain consensus in first pass; market will be checked again.");
     return;
   }
 
@@ -876,7 +876,7 @@ async function main() {
         value: a.value, sources: a.sources, domains: a.domains,
         checkedAt: new Date().toISOString(),
         firstPassDomains: a.domains, recheckDomains: [],
-        rule: "same_value_on_two_independent_domains_single_check"
+        rule: "same_value_on_three_independent_domains_single_check"
       };
     } else if (first.pending[market.title]) {
       pendingMarkets.push(market.title);
@@ -949,7 +949,7 @@ async function main() {
     for (const marketTitle of repeatCandidates) {
       const a = first.consensus[marketTitle];
       const b = secondPassConsensus.consensus[marketTitle];
-      if (a && b && a.value === b.value && b.domains.length >= 2) {
+      if (a && b && a.value === b.value && b.domains.length >= 3) {
         const combined = [...new Set([...a.sources, ...b.sources])];
         const domains = [...new Set(combined.map(url => new URL(url).hostname.toLowerCase()))];
         verified[marketTitle] = {
@@ -968,7 +968,7 @@ async function main() {
   }
 
   if (!Object.keys(verified).length) {
-    console.log("No publishable two-domain consensus in this cycle.");
+    console.log("No publishable three-domain consensus in this cycle.");
     return;
   }
 
@@ -997,9 +997,9 @@ async function main() {
     const firstEvidence = first.consensus[market.title];
     const secondEvidence = second.consensus[market.title];
     if (previousRecord && String(previousRecord.resultText || "").trim() === evidence.value &&
-        (!firstEvidence || firstEvidence.domains.length < 2 || !secondEvidence || secondEvidence.domains.length < 2)) {
+        (!firstEvidence || firstEvidence.domains.length < 3 || !secondEvidence || secondEvidence.domains.length < 3)) {
       repeatNumberPending.push(market.title);
-      console.log("Repeated number failed the extra two-domain recheck; left unchanged:", market.title, evidence.value);
+      console.log("Repeated number failed the extra three-domain recheck; left unchanged:", market.title, evidence.value);
       continue;
     }
 
@@ -1102,7 +1102,7 @@ async function runOnce() {
   await publishSyncStatus("running", "सामान्य Automatic Result Sync जाँच चालू है। सभी स्वचालित मार्केट जाँचे जा रहे हैं; अगली जाँच cron-job.org से हर 5 मिनट में होगी। Chandigarh City मैनुअल है।");
   try {
     await main();
-    await publishSyncStatus("success", "इस चक्र की सामान्य Automatic Result Sync जाँच पूरी हुई। दो स्वतंत्र वेबसाइटों पर समान Parser रिजल्ट मिलने पर तुरंत publish किया गया; लगातार समान नंबर पर अतिरिक्त recheck लागू है।");
+    await publishSyncStatus("success", "इस चक्र की सामान्य Automatic Result Sync जाँच पूरी हुई। तीन स्वतंत्र वेबसाइटों पर समान Parser रिजल्ट मिलने पर तुरंत publish किया गया; लगातार समान नंबर पर अतिरिक्त recheck लागू है।");
   } catch (error) {
     await publishSyncStatus("failed", error.message || "Automatic result sync failed.");
     throw error;
