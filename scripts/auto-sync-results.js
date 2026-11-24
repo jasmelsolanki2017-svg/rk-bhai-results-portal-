@@ -17,8 +17,8 @@ const SOURCE_URLS = [
   "https://sattaking.live/",
   "https://galidisawer.com/",
   // Newly added independent sources with date-wise charts
-  "https://satta.live/record_chart/disawar_record_chart.php",
-  "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
+  "https://satta.live/",
+  "https://www.faridabadlucky.com/chart/new-disawar/" + new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit" }).format(new Date()),
   "https://www.ghaziabadday.com/",
   "https://www.sattakingchartresult.com/"
 ];
