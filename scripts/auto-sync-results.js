@@ -183,7 +183,7 @@ function parseSourceSpecificMarketValue(html, sourceUrl, market, targetDay) {
         const row = rows[r];
         if (row.length <= Math.max(gameCol, resultCol)) continue;
         const game = row[gameCol];
-        if (!aliases.some(alias => game === alias || game.startsWith(alias + " ") || game.includes(" " + alias + " "))) continue;
+        if (!aliases.some(alias => game === alias)) continue;
         const value = row[resultCol];
         if (/^\d{2}$/.test(value)) matches.push(value);
       }
@@ -231,7 +231,7 @@ function parseMarketValues(html, marketNames, targetDay = null) {
     const headerMonth = header[0].match(/^[A-Z]{3}/)?.[0];
     if (headerMonth && headerMonth !== currentMonth) continue;
     const column = header.findIndex((cell, index) => index > 0 &&
-      (aliasSet.some(alias => cell === alias || cell.includes(alias)) || codes.some(code => cell === code)));
+      (aliasSet.some(alias => cell === alias) || codes.some(code => cell === code)));
     if (column < 0) continue;
     const dayRow = rows.find(row => {
       const firstCell = row[0].replace(/[^A-Z0-9 ]/g, " ").trim();
@@ -266,7 +266,7 @@ function parseMarketValues(html, marketNames, targetDay = null) {
     const dateCol = headerCells.findIndex(cell => /^(DATE|DAY|TAREEKH|तारीख)$/.test(cell));
     if (dateCol < 0) continue;
     const marketCol = headerCells.findIndex((cell, index) => index !== dateCol &&
-      aliases.some(alias => cell === alias || cell.startsWith(alias + " ") || cell.includes(" " + alias + " ")));
+      aliases.some(alias => cell === alias));
     if (marketCol < 0) continue;
     for (let r = h + 1; r < Math.min(lines.length, h + 40); r++) {
       const rowCells = lines[r].split("|").map(normalize).filter(Boolean);
