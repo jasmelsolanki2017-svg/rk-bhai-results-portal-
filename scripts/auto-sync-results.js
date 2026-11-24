@@ -247,13 +247,13 @@ function parseMarketValues(html, marketNames, targetDay = null) {
   // Preserve cell boundaries, then require an exact date header + exact
   // market header + exact target-day row before reading a two-digit value.
   const structured = decodeHtml(String(html || ""))
-    .replace(/<\\/(?:td|th)\\s*>/gi, " | ")
-    .replace(/<\\/(?:tr|li|article|section)\\s*>/gi, "\\n")
-    .replace(/<br\\s*\\/?\\s*>/gi, "\\n")
+    .replace(/<\/(?:td|th)\s*>/gi, " | ")
+    .replace(/<\/(?:tr|li|article|section)\s*>/gi, "\n")
+    .replace(/<br\s*\/?\s*>/gi, "\n")
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;/gi, " ");
-  const lines = structured.split(/[\\r\\n]+/)
-    .map(line => line.replace(/\\s+/g, " ").trim())
+  const lines = structured.split(/[\r\n]+/)
+    .map(line => line.replace(/\s+/g, " ").trim())
     .filter(Boolean);
   const dayTokens = new Set([
     String(targetDay.day),
