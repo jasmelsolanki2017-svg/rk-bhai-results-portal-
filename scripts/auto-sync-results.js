@@ -455,7 +455,9 @@ async function fetchSourceHtml(passLabel) {
       let sourceDate;
       try { sourceDate = parseSourceDate(html); }
       catch (error) {
-        if (RUN_MARKETS.some(market => parseYearlyMonthGrid(html, market, today))) sourceDate = today;
+        const isCurrentYearGrid = RUN_MARKETS.some(market => parseYearlyMonthGrid(html, market, today));
+        const isCurrentHistory = sourceUrl.includes("game-history.php") && Boolean(parseDateResultHistory(html, today));
+        if (isCurrentYearGrid || isCurrentHistory) sourceDate = today;
         else {
           sourceDiagnostics.push({ pass: passLabel, url: sourceUrl, status: response.status, result: "date_not_recognized" });
           return null;
@@ -500,10 +502,12 @@ async function fetchSourceHtml(passLabel) {
           marketParsers[market.title] = "dedicated_yearly_month_grid";
           continue;
         }
-        value = parseDateResultHistory(html, targetDay);
-        if (value) {
-          marketResults[market.title] = value;
-          marketParsers[market.title] = "date_result_history_table";
+        if (market.title === "Shree Ganesh" && sourceUrl.includes("game-history.php")) {
+          value = parseDateResultHistory(html, targetDay);
+          if (value) {
+            marketResults[market.title] = value;
+            marketParsers[market.title] = "date_result_history_table";
+          }
         }
       }
 
