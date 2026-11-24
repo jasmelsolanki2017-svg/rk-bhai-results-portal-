@@ -249,7 +249,7 @@ function parseYearlyMonthGrid(html, market, targetDay) {
   return null;
 }
 
-function parseMarketCardValue(html, market) {
+function parseMarketCardValue(html, market, targetDay) {
   const norm = value => decodeHtml(String(value || "")).replace(/<[^>]+>/g," ")
     .replace(/[^A-Z0-9\u0900-\u097F ]/gi," ").replace(/\s+/g," ").trim().toUpperCase();
   const aliases = (market.source || []).map(norm);
@@ -265,12 +265,16 @@ function parseMarketCardValue(html, market) {
     } else stack[stack.length-1].text+=" "+token;
   }
   const collect=n=>norm(n.text+" "+n.children.map(collect).join(" "));
+  const now = getIndiaDateParts();
+  const useToday = targetDay.year === now.year && targetDay.month === now.month && targetDay.day === now.day;
+  const label = useToday ? "(?:TODAY|AAJ|आज)" : "(?:YESTERDAY|KAL|कल)";
   const candidates=[];
   const walk=n=>{const t=collect(n);const named=aliases.some(a=>a.length<=2?t.split(" ").includes(a):t.includes(a));
-    if(named&&/(TODAY|AAJ|आज)/i.test(t))candidates.push(t);
+    if(named&&new RegExp(label,"i").test(t))candidates.push(t);
     n.children.forEach(walk);};
   walk(root);candidates.sort((a,b)=>a.length-b.length);
-  for(const t of candidates){const m=t.match(/(?:TODAY|AAJ|आज)\s*(?:RESULT)?\s*(?:\(\s*\d{1,2}[^)]*\))?\s*[:：|–—-]?\s*(\d{2})(?!\d)/i);if(m)return m[1];}
+  const valuePattern = new RegExp(label + "\\s*(?:RESULT)?\\s*(?:\\(\\s*\\d{1,2}[^)]*\\))?\\s*[:：|–—-]?\\s*(\\d{2})(?!\\d)", "i");
+  for(const t of candidates){const m=t.match(valuePattern);if(m)return m[1];}
   return null;
 }
 
@@ -490,7 +494,7 @@ async function fetchSourceHtml(passLabel) {
           marketParsers[market.title] = "same_row_explicit_today_yesterday_table";
           continue;
         }
-        value = parseMarketCardValue(html, market);
+        value = parseMarketCardValue(html, market, targetDay);
         if (value) {
           marketResults[market.title] = value;
           marketParsers[market.title] = "market_card_today_label";
