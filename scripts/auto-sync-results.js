@@ -456,23 +456,48 @@ function buildConsensus(observations) {
   const consensus = {};
   const pending = {};
   for (const market of RUN_MARKETS) {
-    const votes = new Map();
+    // One independent domain gets exactly one vote per market. If two pages
+    // on the same domain disagree, that domain is excluded for this market.
+    const domainVotes = new Map();
     for (const source of observations) {
-      const value = source.marketResults[market.title];
-      if (!value) continue;
-      if (!votes.has(value)) votes.set(value, new Map());
-      votes.get(value).set(source.host, source.url);
+      const value = String(source.marketResults[market.title] || "").trim();
+      const host = String(source.host || "").toLowerCase();
+      if (!/^\\d{2}$/.test(value) || !host) continue;
+      if (!domainVotes.has(host)) domainVotes.set(host, new Map());
+      const values = domainVotes.get(host);
+      if (!values.has(value)) values.set(value, source.url);
     }
+
+    const votes = new Map();
+    const disputedDomains = [];
+    for (const [host, values] of domainVotes.entries()) {
+      if (values.size !== 1) {
+        disputedDomains.push(host);
+        continue;
+      }
+      const [value, url] = [...values.entries()][0];
+      if (!votes.has(value)) votes.set(value, new Map());
+      votes.get(value).set(host, url);
+    }
+
     const ranked = [...votes.entries()].sort((a, b) => b[1].size - a[1].size);
     const winner = ranked[0];
-    if (winner && winner[1].size >= 2 && (!ranked[1] || ranked[1][1].size < 2)) {
+    const tiedForFirst = Boolean(winner && ranked[1] && winner[1].size === ranked[1][1].size);
+    if (winner && winner[1].size >= 2 && !tiedForFirst) {
       consensus[market.title] = {
         value: winner[0],
         sources: [...winner[1].values()],
-        domains: [...winner[1].keys()]
+        domains: [...winner[1].keys()],
+        voteCounts: ranked.map(([value, hosts]) => ({ value, count: hosts.size })),
+        disputedDomains
       };
     } else {
-      pending[market.title] = ranked.map(([value, hosts]) => ({ value, sources: [...hosts.values()] }));
+      pending[market.title] = {
+        votes: ranked.map(([value, hosts]) => ({ value, count: hosts.size, sources: [...hosts.values()] })),
+        disputedDomains,
+        reason: !winner || winner[1].size < 2 ? "fewer_than_two_independent_domains" :
+          (tiedForFirst ? "tie_for_highest_votes" : "no_clear_majority")
+      };
     }
   }
   return { consensus, pending };
