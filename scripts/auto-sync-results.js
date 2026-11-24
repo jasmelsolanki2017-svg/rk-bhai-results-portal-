@@ -27,7 +27,8 @@ const SOURCE_URLS = [
 ];
 let activeSourceUrl = SOURCE_URLS[0];
 // Groq AI is intentionally restricted to these two pilot source domains.
-const GROQ_ALLOWED_HOSTS = new Set(["satta.live", "www.realsattaking.com", "realsattaking.com"]);
+// Groq AI fallback is now restricted to the four user-prioritized source domains.
+const GROQ_ALLOWED_HOSTS = new Set(["kingsofsatta.com", "satta-king-gali.com", "sattafree.com", "galidisawer.com"]);
 const sourceDiagnostics = [];
 const REPO = process.env.GITHUB_REPOSITORY || "jasmelsolanki2017-svg/rk-bhai-results-portal-";
 const SNAPSHOT_BRANCH = "public-data";
