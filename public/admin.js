@@ -52,7 +52,7 @@ function monthKey(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(
 
 function buildSourceCityChart(diagnostics){
  const markets=["Disawar","Faridabad","Ghaziabad","Gali","Delhi Bazar","Shree Ganesh"];
- const hostOf=value=>{try{return new URL(value).hostname.replace(/^www\\./i,"");}catch{return String(value||"").replace(/^https?:\\/\\//i,"").split("/")[0];}};
+ const hostOf=value=>{try{const host=new URL(value).hostname;return host.toLowerCase().startsWith("www.")?host.slice(4):host;}catch{const host=String(value||"").split("://").pop().split("/")[0];return host.toLowerCase().startsWith("www.")?host.slice(4):host;}};
  const sources=[...new Set(diagnostics.map(item=>hostOf(item.url)).filter(Boolean))];
  if(!sources.length)return '<p class="muted">अभी किसी वेबसाइट की जाँच उपलब्ध नहीं है।</p>';
  const headers=sources.map(host=>'<th style="min-width:110px;padding:8px;border:1px solid var(--border,#444);overflow-wrap:anywhere">'+esc(host)+'</th>').join("");
