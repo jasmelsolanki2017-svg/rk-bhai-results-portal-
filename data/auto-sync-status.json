@@ -1,10 +1,10 @@
 {
   "app": "rk-bhai-results-portal",
   "status": "running",
-  "message": "Smart Auto Sync चालू: Disawar — तय समय से 5 मिनट पहले शुरू, पुष्टि होने तक लगभग हर मिनट जाँच। Chandigarh City मैनुअल है।",
+  "message": "सामान्य Automatic Result Sync जाँच चालू है। सभी स्वचालित मार्केट जाँचे जा रहे हैं; अगली जाँच cron-job.org से हर 5 मिनट में होगी। Chandigarh City मैनुअल है।",
   "sourceUrl": "https://kingsofsatta.com/",
   "sourceDiagnostics": [],
   "attempts": 0,
   "httpStatus": null,
-  "checkedAt": "2026-11-23T23:25:56.708Z"
+  "checkedAt": "2026-11-24T02:07:50.703Z"
 }
