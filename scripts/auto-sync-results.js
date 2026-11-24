@@ -174,8 +174,8 @@ function parseSattaSuperfastTodayTable(html, market, targetDay) {
   // never let a previous-day number (e.g. Faridabad 81) leak into another market.
   const normalize = value => decodeHtml(String(value || ""))
     .replace(/<[^>]+>/g, " ")
-    .replace(/[^A-Z0-9\\u0900-\\u097F ]/gi, " ")
-    .replace(/\\s+/g, " ").trim().toUpperCase();
+    .replace(/[^A-Z0-9\u0900-\u097F ]/gi, " ")
+    .replace(/\s+/g, " ").trim().toUpperCase();
   const aliases = (market.source || []).map(normalize).filter(Boolean);
   const today = getIndiaDateParts();
   const previous = new Date(Date.UTC(today.year, today.month - 1, today.day) - 86400000);
@@ -184,11 +184,11 @@ function parseSattaSuperfastTodayTable(html, market, targetDay) {
     targetDay.month === previous.getUTCMonth() + 1 && targetDay.day === previous.getUTCDate();
   if (!isTargetToday && !isTargetYesterday) return null;
 
-  const tables = [...String(html || "").matchAll(/<table\\b[^>]*>([\\s\\S]*?)<\\/table>/gi)];
+  const tables = [...String(html || "").matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)];
   const matches = [];
   for (const table of tables) {
-    const rows = [...table[1].matchAll(/<tr\\b[^>]*>([\\s\\S]*?)<\\/tr>/gi)].map(row =>
-      [...row[1].matchAll(/<t[dh]\\b[^>]*>([\\s\\S]*?)<\\/t[dh]>/gi)].map(cell => normalize(cell[1])));
+    const rows = [...table[1].matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)].map(row =>
+      [...row[1].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(cell => normalize(cell[1])));
     const headerIndex = rows.findIndex(row =>
       row.length >= 5 &&
       row.some(cell => cell === "MARKET") &&
@@ -206,7 +206,7 @@ function parseSattaSuperfastTodayTable(html, market, targetDay) {
       const rowMarket = row[marketCol];
       if (!aliases.some(alias => rowMarket === alias)) continue;
       const value = row[resultCol];
-      if (/^\\d{2}$/.test(value)) matches.push(value);
+      if (/^\d{2}$/.test(value)) matches.push(value);
     }
   }
   const unique = [...new Set(matches)];
