@@ -526,7 +526,11 @@ async function fetchSourceHtml(passLabel) {
       for (const market of RUN_MARKETS) {
         const targetDay = market.title === "Gali" ? galiDate : today;
         // First choice: exact date row + exact market column in monthly charts.
-        let value = parseMarketValues(html, market.source, targetDay);
+        // 1XSatta uses a separate year-grid page per market; its home page
+        // contains multiple compact cards and embedded tables, so never treat
+        // a generic table there as a cross-market monthly chart.
+        const is1xSatta = sourceUrl.includes("1xsatta.today/");
+        let value = is1xSatta ? null : parseMarketValues(html, market.source, targetDay);
         if (value) {
           marketResults[market.title] = value;
           marketParsers[market.title] = "exact_date_monthly_chart";
