@@ -49,6 +49,34 @@ function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&l
 function dateValue(v){return new Date(v).toISOString().slice(0,10);}
 function monthKey(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");}
 
+
+function buildSourceCityChart(diagnostics){
+ const markets=["Disawar","Faridabad","Ghaziabad","Gali","Delhi Bazar","Shree Ganesh"];
+ const hostOf=value=>{try{return new URL(value).hostname.replace(/^www\\./i,"");}catch{return String(value||"").replace(/^https?:\\/\\//i,"").split("/")[0];}};
+ const sources=[...new Set(diagnostics.map(item=>hostOf(item.url)).filter(Boolean))];
+ if(!sources.length)return '<p class="muted">अभी किसी वेबसाइट की जाँच उपलब्ध नहीं है।</p>';
+ const headers=sources.map(host=>'<th style="min-width:110px;padding:8px;border:1px solid var(--border,#444);overflow-wrap:anywhere">'+esc(host)+'</th>').join("");
+ const rows=markets.map(market=>{
+  const cells=sources.map(host=>{
+   const matches=diagnostics.filter(item=>hostOf(item.url)===host);
+   const values=[];
+   matches.forEach(item=>{
+    const sourceValues=item.marketValues||item.marketResults||{};
+    const key=Object.keys(sourceValues).find(k=>String(k).trim().toLowerCase()===market.toLowerCase());
+    if(key!==undefined){
+     const value=String(sourceValues[key]).trim();
+     if(value&&!values.includes(value))values.push(value);
+    }
+   });
+   const detail=matches.map(item=>(item.pass||"जाँच")+": "+(item.result||"स्थिति उपलब्ध नहीं")+(item.status?" (HTTP "+item.status+")":"")).join("\n");
+   const value=values.length?values.join(" / "):"—";
+   return '<td title="'+esc(detail)+'" style="min-width:90px;text-align:center;padding:8px;border:1px solid var(--border,#444);font-weight:700;'+(values.length?'color:#35c979;':'color:var(--muted,#999);')+'">'+esc(value)+'</td>';
+  }).join("");
+  return '<tr><th scope="row" style="position:sticky;left:0;background:var(--card,#171717);text-align:left;padding:8px;border:1px solid var(--border,#444);white-space:nowrap">'+esc(market)+'</th>'+cells+'</tr>';
+ }).join("");
+ return '<div style="margin:12px 0 16px"><h3 style="margin:0 0 6px;font-size:15px">Source-wise City Result Chart</h3><p class="muted" style="font-size:12px;margin:0 0 8px">हर वेबसाइट से आज किस मार्केट का नंबर मिला। — का मतलब उस जाँच में नंबर नहीं मिला।</p><div style="overflow-x:auto"><table style="border-collapse:collapse;width:max-content;min-width:100%;font-size:12px"><thead><tr><th style="position:sticky;left:0;background:var(--card,#171717);padding:8px;border:1px solid var(--border,#444);text-align:left">मार्केट</th>'+headers+'</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+
 async function loadAutoSyncStatus(){
  const box=$("#autoSyncStatus");if(!box)return;
  box.textContent="Sync status लोड हो रहा है…";
@@ -77,7 +105,7 @@ async function loadAutoSyncStatus(){
     ?'<div style="margin-top:5px;color:#e7b84c;font-size:12px">संदिग्ध मिलान रोका: '+item.ambiguousValues.map(x=>esc(x.value)+" ("+(x.markets||[]).map(esc).join(", ")+")").join(" · ")+'</div>':"";
    return '<div style="padding:9px 0;border-top:1px solid var(--border,#333);font-size:13px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div style="min-width:0;overflow-wrap:anywhere"><strong>'+esc(host||item.market||"Source")+'</strong><div class="muted">'+esc(passNames[item.pass]||item.pass||"")+' · '+esc(resultNames[item.result]||item.result||"स्थिति उपलब्ध नहीं")+'</div></div><span class="muted" style="white-space:nowrap">'+esc(status)+'</span></div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px">'+cells+'</div>'+ambiguous+'</div>';
   }).join("");
-  box.innerHTML='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0"><strong style="color:'+color+'">'+esc(labels[data.status]||data.status||"Unknown")+'</strong><span class="muted">Last check: '+esc(when)+'</span></div><p style="margin:6px 0;white-space:pre-wrap">'+esc(data.message||"कोई विवरण नहीं")+'</p><p class="muted" style="margin:4px 0">कुल Source Requests: '+esc(data.attempts??diagnostics.length)+' · हर वेबसाइट की स्थिति नीचे</p><div style="margin-top:8px">'+(sourceRows||'<p class="muted">अभी Source-wise विवरण उपलब्ध नहीं है। अगली Sync के बाद दिखेगा।</p>')+'</div>';
+  box.innerHTML='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0"><strong style="color:'+color+'">'+esc(labels[data.status]||data.status||"Unknown")+'</strong><span class="muted">Last check: '+esc(when)+'</span></div><p style="margin:6px 0;white-space:pre-wrap">'+esc(data.message||"कोई विवरण नहीं")+'</p><p class="muted" style="margin:4px 0">कुल Source Requests: '+esc(data.attempts??diagnostics.length)+' · हर वेबसाइट की स्थिति नीचे</p>'+buildSourceCityChart(diagnostics)+'<div style="margin-top:8px"><h3 style="font-size:15px;margin:0 0 6px">वेबसाइट की जाँच का विवरण</h3>'+(sourceRows||'<p class="muted">अभी Source-wise विवरण उपलब्ध नहीं है। अगली Sync के बाद दिखेगा।</p>')+'</div>';
  }catch(error){
   box.innerHTML='<span class="muted">अभी sync status उपलब्ध नहीं है। अगली automatic run के बाद यहाँ दिखाई देगा। ('+esc(error.message)+')</span>';
  }
