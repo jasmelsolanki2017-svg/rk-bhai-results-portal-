@@ -855,39 +855,83 @@ async function main() {
   }
 
   cycleHadFirstConsensus = true;
-  console.log("Waiting 8 seconds before independent recheck.");
-  await new Promise(resolve => setTimeout(resolve, 8000));
-  const secondPass = await fetchSourceHtml("recheck");
-  const second = buildConsensus(secondPass);
+  // Publish as soon as the normal parser finds the same two-digit value on
+  // two independent domains. A second fetch is reserved only for a repeat
+  // of yesterday's number, where the stricter anti-repeat safeguard remains.
+  const second = { consensus: {} };
   const verified = {};
   const pendingMarkets = [];
   for (const market of RUN_MARKETS) {
     const a = first.consensus[market.title];
-    const b = second.consensus[market.title];
-    if (a && b && a.value === b.value) {
-      const combined = [...new Set([...a.sources, ...b.sources])];
-      const domains = [...new Set(combined.map(url => new URL(url).hostname.toLowerCase()))];
-      if (domains.length >= 2) {
-        verified[market.title] = {
-          value: a.value, sources: combined, domains,
-          checkedAt: new Date().toISOString(),
-          firstPassDomains: a.domains, recheckDomains: b.domains,
-          rule: "same_value_on_two_distinct_domains_in_two_checks"
-        };
-        continue;
-      }
+    if (a) {
+      verified[market.title] = {
+        value: a.value, sources: a.sources, domains: a.domains,
+        checkedAt: new Date().toISOString(),
+        firstPassDomains: a.domains, recheckDomains: [],
+        rule: "same_value_on_two_independent_domains_single_check"
+      };
+    } else if (first.pending[market.title]) {
+      pendingMarkets.push(market.title);
     }
-    if (a || b) pendingMarkets.push(market.title);
-  }
-
-  if (!Object.keys(verified).length) {
-    console.log("No matching independent recheck; market will be checked again.");
-    return;
   }
 
   if (mongoose.connection.readyState !== 1) {
     await mongoose.connect(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 15000 });
   }
+  const indiaToday = getIndiaDateParts();
+  const galiResultDay = getGaliResultDateParts();
+  const todayDate = new Date(Date.UTC(indiaToday.year, indiaToday.month - 1, indiaToday.day, 12));
+  const repeatCandidates = [];
+  for (const market of RUN_MARKETS) {
+    const candidate = verified[market.title];
+    if (!candidate) continue;
+    const marketDate = market.title === "Gali"
+      ? new Date(Date.UTC(galiResultDay.year, galiResultDay.month - 1, galiResultDay.day, 12))
+      : todayDate;
+    const previousDate = new Date(marketDate.getTime() - 86400000);
+    const previousDayFilter = {
+      title: market.title,
+      resultDate: {
+        $gte: new Date(Date.UTC(previousDate.getUTCFullYear(), previousDate.getUTCMonth(), previousDate.getUTCDate())),
+        $lt: new Date(Date.UTC(previousDate.getUTCFullYear(), previousDate.getUTCMonth(), previousDate.getUTCDate() + 1))
+      }
+    };
+    const previousRecord = await Result.findOne(previousDayFilter).select("resultText").lean();
+    if (previousRecord && String(previousRecord.resultText || "").trim() === candidate.value) {
+      repeatCandidates.push(market.title);
+    }
+  }
+
+  if (repeatCandidates.length) {
+    console.log("Same-as-yesterday result detected; running extra recheck only for:", repeatCandidates.join(", "));
+    const secondPass = await fetchSourceHtml("repeat_number_recheck");
+    const secondPassConsensus = buildConsensus(secondPass);
+    for (const marketTitle of repeatCandidates) {
+      const a = first.consensus[marketTitle];
+      const b = secondPassConsensus.consensus[marketTitle];
+      if (a && b && a.value === b.value && b.domains.length >= 2) {
+        const combined = [...new Set([...a.sources, ...b.sources])];
+        const domains = [...new Set(combined.map(url => new URL(url).hostname.toLowerCase()))];
+        verified[marketTitle] = {
+          value: a.value, sources: combined, domains,
+          checkedAt: new Date().toISOString(),
+          firstPassDomains: a.domains, recheckDomains: b.domains,
+          rule: "same_value_on_two_distinct_domains_in_two_checks_for_repeat"
+        };
+        second.consensus[marketTitle] = b;
+      } else {
+        delete verified[marketTitle];
+        pendingMarkets.push(marketTitle);
+        console.log("Repeated number not confirmed in extra recheck; left unchanged:", marketTitle);
+      }
+    }
+  }
+
+  if (!Object.keys(verified).length) {
+    console.log("No publishable two-domain consensus in this cycle.");
+    return;
+  }
+
   const indiaToday = getIndiaDateParts();
   const galiResultDay = getGaliResultDateParts();
   const date = new Date(Date.UTC(indiaToday.year, indiaToday.month - 1, indiaToday.day, 12));
@@ -902,8 +946,7 @@ async function main() {
       continue;
     }
 
-    // If the same market had the same number yesterday, still require
-    // two distinct source domains in BOTH checks before accepting today's repeat.
+    // Repeated numbers are handled by the extra independent recheck above.
     const previousDate = new Date(marketDate.getTime() - 86400000);
     const previousDayFilter = {
       title: market.title,
@@ -1009,7 +1052,7 @@ async function main() {
     console.log("Verified and synced", market.title, evidence.value, "from", evidence.domains.join(", "));
   }
   if (insertedOrUpdated) await updatePublicSnapshot();
-  const summary = insertedOrUpdated + " मार्केट रिकॉर्ड दो जाँच और दो अलग डोमेन के मिलान के बाद sync हुए।";
+  const summary = insertedOrUpdated + " मार्केट रिकॉर्ड दो स्वतंत्र डोमेन के सामान्य Parser मिलान के तुरंत बाद sync हुए।";
   console.log(summary + (pendingMarkets.length ? " पुष्टि बाकी: " + pendingMarkets.join(", ") + "." : "") +
     (conflicts.length ? " पुराने रिकॉर्ड से टकराव: " + conflicts.join(", ") + "; पुराने रिकॉर्ड सुरक्षित रखे।" : "") +
     (repeatNumberPending.length ? " लगातार समान नंबर पर तीसरे स्रोत की पुष्टि बाकी: " + repeatNumberPending.join(", ") + "." : ""));
