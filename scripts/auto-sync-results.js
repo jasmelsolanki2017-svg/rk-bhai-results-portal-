@@ -612,8 +612,8 @@ async function main() {
       continue;
     }
 
-    // If the same market had the same number yesterday, require three
-    // distinct source domains in BOTH checks before accepting today's repeat.
+    // If the same market had the same number yesterday, still require
+    // two distinct source domains in BOTH checks before accepting today's repeat.
     const previousDate = new Date(marketDate.getTime() - 86400000);
     const previousDayFilter = {
       title: market.title,
@@ -626,9 +626,9 @@ async function main() {
     const firstEvidence = first.consensus[market.title];
     const secondEvidence = second.consensus[market.title];
     if (previousRecord && String(previousRecord.resultText || "").trim() === evidence.value &&
-        (!firstEvidence || firstEvidence.domains.length < 3 || !secondEvidence || secondEvidence.domains.length < 3)) {
+        (!firstEvidence || firstEvidence.domains.length < 2 || !secondEvidence || secondEvidence.domains.length < 2)) {
       repeatNumberPending.push(market.title);
-      console.log("Repeated number needs a third independent source in both checks; left unchanged:", market.title, evidence.value);
+      console.log("Repeated number needs two independent sources in both checks; left unchanged:", market.title, evidence.value);
       continue;
     }
 
@@ -649,14 +649,27 @@ async function main() {
       const isManual = existing.resultSource === "manual" ||
         (!existing.resultSource && !String(existing.sourceUrl || "").trim());
       if (existingValue === evidence.value) {
+        // A verified match must be publicly visible even when the matching row
+        // was entered manually earlier. Preserve its value and manual ownership,
+        // but publish it and attach the independent source evidence.
+        await Result.updateOne(
+          { _id: existing._id },
+          { $set: {
+            published: true,
+            deleted: false,
+            sourceUrl: evidence.sources.join(", "),
+            verificationMeta: evidence
+          } }
+        );
         sourceDiagnostics.push({
-          result: isManual ? "manual_match" : "already_matches",
+          result: isManual ? "manual_match_published" : "already_matches",
           market: market.title, existingValue, incomingValue: evidence.value,
+          publicStatus: "published",
           candidateSources: evidence.sources
         });
         insertedOrUpdated++;
         cycleResolvedMarkets.add(market.title);
-        console.log(isManual ? "Manual result already matches verified source; preserved:" : "Already matches verified source:", market.title, evidence.value);
+        console.log(isManual ? "Manual result matched verified sources and is now published:" : "Already matches verified source:", market.title, evidence.value);
         continue;
       }
       if (isManual) {
