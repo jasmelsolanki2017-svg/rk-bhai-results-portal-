@@ -462,25 +462,31 @@ async function parseUnresolvedMarketsWithGemini(html, sourceUrl, markets, target
     const a=aiCompact(alias); return a.length>=3 && fullCompact.includes(a);
   }));
   if(!relevantMarkets.length)return {values:{},reason:"no_requested_market_label_on_page"};
-  // Keep only a small, focused excerpt for each unresolved market.
-  // Sending entire page fragments repeatedly exhausted Groq's free TPM quota.
-  const snippets=[];
-  for(const market of relevantMarkets){
-    let excerptAdded=false;
-    for(const alias of market.source||[]){
-      const rawAlias=String(alias||"").trim();
-      if(rawAlias.length<3)continue;
-      const rawIndex=fullText.toUpperCase().indexOf(rawAlias.toUpperCase());
-      if(rawIndex<0)continue;
-      const excerpt=fullText.slice(Math.max(0,rawIndex-350),Math.min(fullText.length,rawIndex+850));
-      if(excerpt.length>=80)snippets.push("MARKET "+market.title+": "+excerpt);
-      excerptAdded=true;
-      break;
-    }
-    if(!excerptAdded)continue;
-  }
-  const chart=[...new Set(snippets)].join("\n---\n").slice(0,4200);
+  // For the two pilot domains, send complete relevant HTML chart tables
+  // instead of a tiny excerpt around the first market-name occurrence.
+  // Preserve every row and cell so date, market and result columns remain visible.
+  const tableBlocks=[...String(html||"").matchAll(/<table\\b[^>]*>([\\s\\S]*?)<\\/table>/gi)].map((match,index)=>{
+    const rows=[...match[1].matchAll(/<tr\\b[^>]*>([\\s\\S]*?)<\\/tr>/gi)].map(row=>
+      [...row[1].matchAll(/<t[dh]\\b[^>]*>([\\s\\S]*?)<\\/t[dh]>/gi)]
+        .map(cell=>decodeHtml(cell[1].replace(/<[^>]+>/g," ")).replace(/\\s+/g," ").trim())
+        .join(" | ")
+    ).filter(Boolean);
+    return rows.length ? "HTML TABLE "+(index+1)+"\\n"+rows.join("\\n") : "";
+  }).filter(Boolean);
+  const relevantTables=tableBlocks.filter(block=>{
+    const compact=aiCompact(block);
+    return relevantMarkets.some(m=>(m.source||[]).some(alias=>{
+      const a=aiCompact(alias); return a.length>=3 && compact.includes(a);
+    }));
+  });
+  const fullPageText=fullText.slice(0,5000);
+  const chartParts=[
+    ...relevantTables,
+    "FULL PAGE TEXT (beginning):\\n"+fullPageText
+  ];
+  const chart=[...new Set(chartParts)].join("\\n\\n--- COMPLETE CHART SECTION ---\\n\\n").slice(0,24000);
   if(chart.length<80)return {values:{},reason:"chart_context_too_short"};
+  const chartWasTruncated=relevantTables.join("\\n").length>19000 || fullText.length>5000;
   const requested=relevantMarkets.map(m=>{
     const d=targetDays[m.title];
     return m.title+" aliases ["+(m.source||[]).slice(0,8).join(", ")+"] exact date "+
@@ -489,11 +495,11 @@ async function parseUnresolvedMarketsWithGemini(html, sourceUrl, markets, target
   aiFallbackCallsThisPass++;
   try {
     const prompt=[
-      "Strict chart transcription only. Read the supplied source text; do not guess, infer, calculate, or use nearby dates.",
+      "Strict chart transcription only. The supplied text contains complete relevant HTML table rows plus page text from this pilot website. Read all supplied chart rows; do not guess, infer, calculate, or use nearby dates.",
       "For each requested market, return a value only if its visible market label, exact requested date context, and two-digit result are shown in the same chart/table context.",
       "Include evidence as an exact contiguous quotation copied from the source text, showing market, date context, and result. Omit uncertain or absent results.",
       'Return JSON only: {"results":[{"market":"Disawar","value":"12","evidence":"exact copied quote"}]}',
-      "Requested markets:\\n"+requested,"Source URL: "+sourceUrl,"Source text:\\n"+chart
+      "Requested markets:\\n"+requested,"Source URL: "+sourceUrl,"Complete chart/page data (may include multiple full tables):\\n"+chart
     ].join("\n\n");
     const res=await fetch("https://api.groq.com/openai/v1/chat/completions",{
       method:"POST",
@@ -524,7 +530,7 @@ async function parseUnresolvedMarketsWithGemini(html, sourceUrl, markets, target
         dd+"-"+mm+"-"+yyyy,day+"-"+mm+"-"+yyyy].some(x=>quote.includes(aiCompact(x)));
       if(dated)values[market.title]=value;
     }
-    return {values,reason:Object.keys(values).length?"groq_exact_evidence":"groq_no_verified_evidence"};
+    return {values,reason:Object.keys(values).length?"groq_exact_evidence":"groq_no_verified_evidence",chartChars:chart.length,chartWasTruncated};
   }catch(e){return {values:{},reason:"groq_request_error",detail:String(e.message||e).slice(0,180)};}
 }
 
@@ -682,7 +688,7 @@ async function fetchSourceHtml(passLabel) {
         }
         sourceDiagnostics.push({
           pass: passLabel, url: sourceUrl, result: "groq_fallback",
-          aiProvider: "groq", aiReason: aiResult.reason, aiMarketsFound: Object.keys(aiResult.values || {}),
+          aiProvider: "groq", aiReason: aiResult.reason, aiMarketsFound: Object.keys(aiResult.values || {}), chartChars: aiResult.chartChars, chartWasTruncated: aiResult.chartWasTruncated,
           detail: aiResult.detail || undefined
         });
       }
