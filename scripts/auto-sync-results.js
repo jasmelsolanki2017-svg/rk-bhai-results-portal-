@@ -157,30 +157,36 @@ function parseSourceSpecificMarketValue(html, sourceUrl, market, targetDay) {
 
   const cellsFromRow = row => [...row.matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)]
     .map(match => normalize(match[1]));
-  const rows = [...String(html || "").matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)]
-    .map(match => cellsFromRow(match[1])).filter(row => row.length >= 3);
 
-  for (let h = 0; h < rows.length; h++) {
-    const header = rows[h];
-    const yesterdayCol = header.findIndex(cell => /^(YESTERDAY|KAL|KAL KA RESULT|कल)$/.test(cell));
-    const todayCol = header.findIndex(cell => /^(TODAY|AAJ|AAJ KA RESULT|आज)$/.test(cell));
-    const resultCol = isTargetToday ? todayCol : yesterdayCol;
-    if (resultCol < 0) continue;
-    const gameCol = header.findIndex((cell, index) => index !== resultCol &&
-      /^(GAME|MARKET|RESULT|KHEL|गेम)$/.test(cell));
-    if (gameCol < 0) continue;
-    const matches = [];
-    for (let r = h + 1; r < rows.length; r++) {
-      const row = rows[r];
-      if (row.length <= Math.max(gameCol, resultCol)) continue;
-      const game = row[gameCol];
-      if (!aliases.some(alias => game === alias || game.startsWith(alias + " ") || game.includes(" " + alias + " "))) continue;
-      const value = row[resultCol];
-      if (/^\d{2}$/.test(value)) matches.push(value);
+  // Keep header and candidate rows inside the SAME HTML table. Previously
+  // all page rows were flattened together, allowing a later market/chart
+  // table to be interpreted using an earlier Game/Yesterday/Today header.
+  const tables = [...String(html || "").matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)];
+  for (const table of tables) {
+    const rows = [...table[1].matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)]
+      .map(match => cellsFromRow(match[1])).filter(row => row.length >= 3);
+    for (let h = 0; h < rows.length; h++) {
+      const header = rows[h];
+      const yesterdayCol = header.findIndex(cell => /^(YESTERDAY|KAL|KAL KA RESULT|कल)$/.test(cell));
+      const todayCol = header.findIndex(cell => /^(TODAY|AAJ|AAJ KA RESULT|आज)$/.test(cell));
+      const resultCol = isTargetToday ? todayCol : yesterdayCol;
+      if (resultCol < 0) continue;
+      const gameCol = header.findIndex((cell, index) => index !== resultCol &&
+        /^(GAME|MARKET|RESULT|KHEL|गेम)$/.test(cell));
+      if (gameCol < 0) continue;
+      const matches = [];
+      for (let r = h + 1; r < rows.length; r++) {
+        const row = rows[r];
+        if (row.length <= Math.max(gameCol, resultCol)) continue;
+        const game = row[gameCol];
+        if (!aliases.some(alias => game === alias || game.startsWith(alias + " ") || game.includes(" " + alias + " "))) continue;
+        const value = row[resultCol];
+        if (/^\d{2}$/.test(value)) matches.push(value);
+      }
+      const unique = [...new Set(matches)];
+      if (unique.length === 1) return unique[0];
+      if (unique.length > 1) return null;
     }
-    const unique = [...new Set(matches)];
-    if (unique.length === 1) return unique[0];
-    if (unique.length > 1) return null;
   }
 
   const textLines = decodeHtml(String(html || "")
