@@ -49,28 +49,6 @@ function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&l
 function dateValue(v){return new Date(v).toISOString().slice(0,10);}
 function monthKey(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");}
 
-function renderSourceCityChart(diagnostics){
- const chart=$("#sourceCityChart");if(!chart)return;
- const markets=["Disawar","Faridabad","Ghaziabad","Gali","Delhi Bazar","Shree Ganesh"];
- const sources=[...new Set(diagnostics.map(item=>String(item.url||"").replace(/^https?:\\/\\//,"").split("/")[0]).filter(Boolean))];
- if(!sources.length){chart.innerHTML='<p class="muted">अभी किसी वेबसाइट की जाँच उपलब्ध नहीं है।</p>';return;}
- const rows=markets.map(market=>{
-  const cells=sources.map(host=>{
-   const matches=diagnostics.filter(item=>String(item.url||"").replace(/^https?:\\/\\//,"").split("/")[0]===host);
-   const found=[...new Set(matches.map(item=>{
-    const values=item.marketValues||item.marketResults||{};
-    const key=Object.keys(values).find(k=>k.trim().toLowerCase()===market.toLowerCase());
-    return key?String(values[key]).trim():"";
-   }).filter(Boolean))];
-   const value=found.length?found.join(" / "):"—";
-   const details=matches.map(item=>(item.pass||"जाँच")+": "+(item.result||"स्थिति उपलब्ध नहीं")+(item.status?" (HTTP "+item.status+")":"")).join("\n");
-   return '<td title="'+esc(details)+'" style="min-width:86px;text-align:center;padding:9px 7px;border:1px solid var(--border,#444);font-weight:700;'+(found.length?'color:#35c979;':'color:var(--muted,#999);')+'">'+esc(value)+'</td>';
-  }).join("");
-  return '<tr><th scope="row" style="position:sticky;left:0;background:var(--card,#171717);text-align:left;padding:9px;border:1px solid var(--border,#444);white-space:nowrap">'+esc(market)+'</th>'+cells+'</tr>';
- }).join("");
- const headers=sources.map(host=>'<th style="min-width:120px;max-width:180px;padding:9px 7px;border:1px solid var(--border,#444);overflow-wrap:anywhere">'+esc(host)+'</th>').join("");
- chart.innerHTML='<div style="overflow-x:auto"><table style="border-collapse:collapse;width:max-content;min-width:100%;font-size:12px"><thead><tr><th style="position:sticky;left:0;background:var(--card,#171717);padding:9px;border:1px solid var(--border,#444);text-align:left">शहर / मार्केट</th>'+headers+'</tr></thead><tbody>'+rows+'</tbody></table></div><p class="muted" style="font-size:11px;margin-bottom:0">बॉक्स पर टैप/होवर करने पर उस वेबसाइट की जाँच स्थिति दिखेगी। अलग-अलग जाँच में अलग नंबर मिलने पर दोनों दिखेंगे।</p>';
-}
 async function loadAutoSyncStatus(){
  const box=$("#autoSyncStatus");if(!box)return;
  box.textContent="Sync status लोड हो रहा है…";
@@ -84,8 +62,6 @@ async function loadAutoSyncStatus(){
   const when=data.checkedAt?new Date(data.checkedAt).toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short",timeZone:"Asia/Kolkata"}):"समय उपलब्ध नहीं";
   const diagnostics=Array.isArray(data.sourceDiagnostics)?data.sourceDiagnostics:[];
   const passNames={first_check:"पहली जाँच",recheck:"दोबारा जाँच"};
-  renderSourceCityChart(diagnostics);
-
   const resultNames={dated_values_found:"आज के रिजल्ट मिले",no_values:"रिजल्ट नहीं मिले",date_not_recognized:"तारीख नहीं पहचानी",stale_date:"पुरानी तारीख",stale_last_modified:"पुराना अपडेट",fetch_failed:"HTTP त्रुटि",request_error:"Request फेल",same_day_conflict:"आज के रिकॉर्ड से अंतर"};
   const marketColumns=["Disawar","Faridabad","Ghaziabad","Gali","Delhi Bazar","Shree Ganesh"];
   const sourceRows=diagnostics.map(item=>{
