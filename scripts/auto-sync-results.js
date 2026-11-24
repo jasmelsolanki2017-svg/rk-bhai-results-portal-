@@ -630,6 +630,13 @@ async function fetchSourceHtml(passLabel) {
       const marketResults = {};
       const marketParsers = {};
       for (const market of RUN_MARKETS) {
+        // These two "new-disawar" chart endpoints have produced a premature
+        // Faridabad value that the user confirmed is not today's result.
+        // Keep them available for other markets, but never count them for Faridabad.
+        if (market.title === "Faridabad" &&
+            /(?:faridabadlucky\\.com|delhilucky\\.com)\\/chart\\/new-disawar/i.test(sourceUrl)) {
+          continue;
+        }
         const targetDay = market.title === "Gali" ? galiDate : today;
         // First choice: exact date row + exact market column in monthly charts.
         // 1XSatta uses a separate year-grid page per market; its home page
@@ -881,6 +888,39 @@ async function main() {
   const indiaToday = getIndiaDateParts();
   const galiResultDay = getGaliResultDateParts();
   const todayDate = new Date(Date.UTC(indiaToday.year, indiaToday.month - 1, indiaToday.day, 12));
+
+  // Do not accept results before the market's scheduled release time plus
+  // a 10-minute publication buffer (all schedule times are India local).
+  const indiaClock = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hourCycle: "h23"
+  }).format(new Date());
+  const [clockHour, clockMinute] = indiaClock.split(":").map(Number);
+  const nowMinutes = clockHour * 60 + clockMinute;
+  const notYetReleased = RUN_MARKETS.filter(market => {
+    const scheduled = MARKET_SCHEDULES[market.title];
+    if (!scheduled) return false;
+    const [scheduledHour, scheduledMinute] = scheduled.split(":").map(Number);
+    return nowMinutes < scheduledHour * 60 + scheduledMinute + 10;
+  });
+  for (const market of notYetReleased) {
+    delete verified[market.title];
+    if (!pendingMarkets.includes(market.title)) pendingMarkets.push(market.title);
+    console.log("Market release time plus 10-minute buffer not reached; withholding:", market.title);
+  }
+
+  // Roll back the premature auto-published Faridabad 45 seen in the latest
+  // cycle. Manual records are untouched; a later valid consensus may publish.
+  const faridabadStart = new Date(Date.UTC(indiaToday.year, indiaToday.month - 1, indiaToday.day));
+  const faridabadEnd = new Date(Date.UTC(indiaToday.year, indiaToday.month - 1, indiaToday.day + 1));
+  const rollback = await Result.updateMany({
+    title: "Faridabad", resultText: "45", resultSource: "automatic",
+    resultDate: { $gte: faridabadStart, $lt: faridabadEnd }
+  }, { $set: { published: false, deleted: true } });
+  if (rollback.modifiedCount) {
+    console.log("Withdrew premature auto-published Faridabad 45; waiting for valid current-day evidence.");
+    await updatePublicSnapshot();
+  }
+
   const repeatCandidates = [];
   for (const market of RUN_MARKETS) {
     const candidate = verified[market.title];
