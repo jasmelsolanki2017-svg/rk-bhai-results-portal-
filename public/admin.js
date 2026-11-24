@@ -110,7 +110,7 @@ async function loadAutoSyncStatus(){
    const aiEvents=diagnostics.filter(item=>item.aiProvider==="groq"||item.aiReason||item.result==="groq_fallback");
    const reasonNames={groq_exact_evidence:"AI ने exact evidence के साथ नंबर पहचाना",groq_no_verified_evidence:"AI को verify करने योग्य नंबर नहीं मिला",groq_http_429:"Groq rate limit (429)",groq_http_401:"Groq API key स्वीकार नहीं हुई (401)",groq_http_403:"Groq access denied (403)",groq_http_500:"Groq server error (500)",groq_invalid_json:"AI response JSON सही नहीं था",groq_request_error:"AI request में error",chart_context_too_short:"AI को पर्याप्त chart data नहीं मिला"};
    aiBox.innerHTML=aiEvents.length?aiEvents.map(item=>{
-    const host=String(item.url||"").replace(/^https?:\\/\\//,"").split("/")[0]||"AI source";
+    const host=String(item.url||"").replace("https://","").replace("http://","").split("/")[0]||"AI source";
     const found=Array.isArray(item.aiMarketsFound)?item.aiMarketsFound:[];
     const ok=item.aiReason==="groq_exact_evidence"&&found.length>0;
     const status=reasonNames[item.aiReason]||item.aiReason||"AI status उपलब्ध नहीं";
