@@ -168,6 +168,51 @@ function parseSourceDate(html) {
   }
   throw new Error("Source date not recognized: no current dated heading or current-month chart row.");
 }
+function parseSattaSuperfastTodayTable(html, market, targetDay) {
+  // This source uses a fixed MARKET | TIME | RECORD | YESTERDAY | TODAY table.
+  // Read only the correct date column from the exact market row. In particular,
+  // never let a previous-day number (e.g. Faridabad 81) leak into another market.
+  const normalize = value => decodeHtml(String(value || ""))
+    .replace(/<[^>]+>/g, " ")
+    .replace(/[^A-Z0-9\\u0900-\\u097F ]/gi, " ")
+    .replace(/\\s+/g, " ").trim().toUpperCase();
+  const aliases = (market.source || []).map(normalize).filter(Boolean);
+  const today = getIndiaDateParts();
+  const previous = new Date(Date.UTC(today.year, today.month - 1, today.day) - 86400000);
+  const isTargetToday = targetDay.year === today.year && targetDay.month === today.month && targetDay.day === today.day;
+  const isTargetYesterday = targetDay.year === previous.getUTCFullYear() &&
+    targetDay.month === previous.getUTCMonth() + 1 && targetDay.day === previous.getUTCDate();
+  if (!isTargetToday && !isTargetYesterday) return null;
+
+  const tables = [...String(html || "").matchAll(/<table\\b[^>]*>([\\s\\S]*?)<\\/table>/gi)];
+  const matches = [];
+  for (const table of tables) {
+    const rows = [...table[1].matchAll(/<tr\\b[^>]*>([\\s\\S]*?)<\\/tr>/gi)].map(row =>
+      [...row[1].matchAll(/<t[dh]\\b[^>]*>([\\s\\S]*?)<\\/t[dh]>/gi)].map(cell => normalize(cell[1])));
+    const headerIndex = rows.findIndex(row =>
+      row.length >= 5 &&
+      row.some(cell => cell === "MARKET") &&
+      row.some(cell => cell === "TIME") &&
+      row.some(cell => cell === "RECORD") &&
+      row.some(cell => cell === "YESTERDAY") &&
+      row.some(cell => cell === "TODAY"));
+    if (headerIndex < 0) continue;
+    const header = rows[headerIndex];
+    const marketCol = header.indexOf("MARKET");
+    const resultCol = header.indexOf(isTargetToday ? "TODAY" : "YESTERDAY");
+    if (marketCol < 0 || resultCol < 0) continue;
+    for (const row of rows.slice(headerIndex + 1)) {
+      if (row.length <= Math.max(marketCol, resultCol)) continue;
+      const rowMarket = row[marketCol];
+      if (!aliases.some(alias => rowMarket === alias)) continue;
+      const value = row[resultCol];
+      if (/^\\d{2}$/.test(value)) matches.push(value);
+    }
+  }
+  const unique = [...new Set(matches)];
+  return unique.length === 1 ? unique[0] : null;
+}
+
 function parseSourceSpecificMarketValue(html, sourceUrl, market, targetDay) {
   const normalize = value => decodeHtml(String(value || ""))
     .replace(/<[^>]+>/g, " ")
@@ -641,6 +686,17 @@ async function fetchSourceHtml(passLabel) {
         // contains multiple compact cards and embedded tables, so never treat
         // a generic table there as a cross-market monthly chart.
         const is1xSatta = sourceUrl.includes("1xsatta.today/");
+        const isSattaSuperfast = new URL(sourceUrl).hostname.toLowerCase() === "satta-superfast.com";
+        if (isSattaSuperfast) {
+          const value = parseSattaSuperfastTodayTable(html, market, targetDay);
+          if (value) {
+            marketResults[market.title] = value;
+            marketParsers[market.title] = "satta_superfast_exact_market_today_yesterday_table";
+          }
+          // Do not fall through to generic/card/AI parsing for this source:
+          // a missing or '--' cell must remain missing, never guessed.
+          continue;
+        }
         let value = is1xSatta ? null : parseMarketValues(html, market.source, targetDay);
         if (value) {
           marketResults[market.title] = value;
