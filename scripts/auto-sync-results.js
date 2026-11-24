@@ -195,10 +195,25 @@ function parseSourceSpecificMarketValue(html, sourceUrl, market, targetDay) {
       const header = rows[h];
       const yesterdayCol = header.findIndex(cell => /^(YESTERDAY|KAL|KAL KA RESULT|कल)$/.test(cell));
       const todayCol = header.findIndex(cell => /^(TODAY|AAJ|AAJ KA RESULT|आज)$/.test(cell));
-      const resultCol = isTargetToday ? todayCol : yesterdayCol;
+      const monthName = new Intl.DateTimeFormat("en", { timeZone: "Asia/Kolkata", month: "long" })
+        .format(new Date(Date.UTC(targetDay.year, targetDay.month - 1, targetDay.day))).toUpperCase();
+      const monthShort = monthName.slice(0, 3);
+      const day = String(targetDay.day);
+      const dayWithSuffix = day + (targetDay.day % 10 === 1 && targetDay.day !== 11 ? "ST" :
+        targetDay.day % 10 === 2 && targetDay.day !== 12 ? "ND" :
+        targetDay.day % 10 === 3 && targetDay.day !== 13 ? "RD" : "TH");
+      const dateCol = header.findIndex(cell => [
+        monthName + " " + day, monthShort + " " + day,
+        day + " " + monthName, day + " " + monthShort,
+        dayWithSuffix + " " + monthName, dayWithSuffix + " " + monthShort,
+        monthName + " " + dayWithSuffix, monthShort + " " + dayWithSuffix
+      ].includes(cell));
+      const resultCol = isTargetToday ? (todayCol >= 0 ? todayCol : dateCol) :
+        (yesterdayCol >= 0 ? yesterdayCol : dateCol);
       if (resultCol < 0) continue;
-      const gameCol = header.findIndex((cell, index) => index !== resultCol &&
-        /^(GAME|MARKET|RESULT|KHEL|गेम)$/.test(cell));
+      let gameCol = header.findIndex((cell, index) => index !== resultCol &&
+        /^(GAME|GAMES|GAMES LIST|MARKET|RESULT|KHEL|गेम)$/.test(cell));
+      if (gameCol < 0 && resultCol > 0 && !header[0]) gameCol = 0;
       if (gameCol < 0) continue;
       const matches = [];
       for (let r = h + 1; r < rows.length; r++) {
