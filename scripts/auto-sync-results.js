@@ -142,20 +142,19 @@ function parseSourceDate(html) {
   }
   throw new Error("Source date not recognized: no current dated heading or current-month chart row.");
 }
-function parseSourceSpecificMarketValue(html, sourceUrl, market) {
-  if (market.title !== "Disawar") return null;
-  const host = new URL(sourceUrl).hostname.toLowerCase().replace(/^www\./, "");
-  if (!new Set(["kingsofsatta.com", "1xsatta.today", "sattafree.com"]).has(host)) return null;
-  const aliases = ["DESAWER", "DESAWAR", "DISAWAR", "DISAWER", "DSWR"];
-  const raw = String(html || "");
+function parseSourceSpecificMarketValue(html, sourceUrl, market, targetDay) {
+  // Generic live-card fallback for every configured automatic market and source.
+  // It accepts one unambiguous two-digit value after that market's own alias.
+  const raw = String(html || '').replace(/<script\\b[\\s\\S]*?<\\/script>/gi, ' ').replace(/<style\\b[\\s\\S]*?<\\/style>/gi, ' ');
   const candidates = new Set();
-  for (const alias of aliases) {
-    const re = new RegExp("(^|[^A-Z0-9])" + alias + "(?=$|[^A-Z0-9])", "ig");
+  for (const alias of market.source || []) {
+    const escaped = String(alias).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');
+    const re = new RegExp('(^|[^A-Z0-9])' + escaped + '(?=$|[^A-Z0-9])', 'ig');
     let match;
     while ((match = re.exec(raw))) {
-      const after = raw.slice(match.index + match[0].length, match.index + match[0].length + 220);
-      const text = decodeHtml(after.replace(/<script\b[\s\S]*?<\/script>/gi, " ").replace(/<style\b[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " "));
-      const values = [...text.matchAll(/(?:^|\D)(\d{2})(?=\D|$)/g)].map(x => x[1]);
+      const after = raw.slice(match.index + match[0].length, match.index + match[0].length + 140);
+      const text = decodeHtml(after.replace(/<[^>]+>/g, ' ')).replace(/\\s+/g, ' ').trim();
+      const values = [...text.matchAll(/(?:^|\\D)(\\d{2})(?=\\D|$)/g)].map(item => item[1]);
       const unique = [...new Set(values)];
       if (unique.length === 1) candidates.add(unique[0]);
     }
@@ -302,8 +301,9 @@ async function fetchSourceHtml(passLabel) {
       }
       const marketResults = {};
       for (const market of RUN_MARKETS) {
-        const tableValue = parseMarketValues(html, market.source, market.title === "Gali" ? galiDate : today);
-        const liveCardValue = tableValue ? null : parseSourceSpecificMarketValue(html, sourceUrl, market);
+        const targetDay = market.title === "Gali" ? galiDate : today;
+        const tableValue = parseMarketValues(html, market.source, targetDay);
+        const liveCardValue = tableValue ? null : parseSourceSpecificMarketValue(html, sourceUrl, market, targetDay);
         const value = tableValue || liveCardValue;
         if (value) marketResults[market.title] = value;
       }
