@@ -63,13 +63,19 @@ async function loadAutoSyncStatus(){
   const diagnostics=Array.isArray(data.sourceDiagnostics)?data.sourceDiagnostics:[];
   const passNames={first_check:"पहली जाँच",recheck:"दोबारा जाँच"};
   const resultNames={dated_values_found:"आज के रिजल्ट मिले",no_values:"रिजल्ट नहीं मिले",date_not_recognized:"तारीख नहीं पहचानी",stale_date:"पुरानी तारीख",stale_last_modified:"पुराना अपडेट",fetch_failed:"HTTP त्रुटि",request_error:"Request फेल",same_day_conflict:"आज के रिकॉर्ड से अंतर"};
+  const marketColumns=["Disawar","Faridabad","Ghaziabad","Gali","Delhi Bazar","Shree Ganesh"];
   const sourceRows=diagnostics.map(item=>{
    const host=String(item.url||"").replace("https://","").replace("http://","").split("/")[0];
-   const found=Array.isArray(item.marketsFound)&&item.marketsFound.length?" · "+item.marketsFound.join(", "):"";
-   const sourceValues=item.marketValues||item.marketResults;
-   const values=sourceValues&&typeof sourceValues==="object"?Object.entries(sourceValues).map(([market,value])=>esc(market)+": <strong>"+esc(String(value))+"</strong>").join(" · "):"";
+   const sourceValues=item.marketValues||item.marketResults||{};
    const status=item.status?"HTTP "+item.status:"HTTP —";
-   return '<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--border,#333);font-size:13px"><div style="min-width:0;overflow-wrap:anywhere"><strong>'+esc(host||item.market||"Source")+'</strong><div class="muted">'+esc(passNames[item.pass]||item.pass||"")+' · '+esc(resultNames[item.result]||item.result||"स्थिति उपलब्ध नहीं")+esc(found)+'</div>'+(values?'<div style="margin-top:3px;color:var(--text,#fff)">मिले नंबर: '+values+'</div>':"")+'</div><span class="muted" style="white-space:nowrap">'+esc(status)+'</span></div>';
+   const cells=marketColumns.map(market=>{
+    const value=sourceValues&&Object.prototype.hasOwnProperty.call(sourceValues,market)?String(sourceValues[market]):"—";
+    const color=value==="—"?"var(--muted,#999)":"var(--text,#fff)";
+    return '<span style="display:inline-flex;gap:4px;align-items:center;padding:4px 7px;border:1px solid var(--border,#444);border-radius:7px;font-size:12px;color:'+color+'"><span>'+esc(market)+':</span><strong>'+esc(value)+'</strong></span>';
+   }).join("");
+   const ambiguous=Array.isArray(item.ambiguousValues)&&item.ambiguousValues.length
+    ?'<div style="margin-top:5px;color:#e7b84c;font-size:12px">संदिग्ध मिलान रोका: '+item.ambiguousValues.map(x=>esc(x.value)+" ("+(x.markets||[]).map(esc).join(", ")+")").join(" · ")+'</div>':"";
+   return '<div style="padding:9px 0;border-top:1px solid var(--border,#333);font-size:13px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div style="min-width:0;overflow-wrap:anywhere"><strong>'+esc(host||item.market||"Source")+'</strong><div class="muted">'+esc(passNames[item.pass]||item.pass||"")+' · '+esc(resultNames[item.result]||item.result||"स्थिति उपलब्ध नहीं")+'</div></div><span class="muted" style="white-space:nowrap">'+esc(status)+'</span></div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px">'+cells+'</div>'+ambiguous+'</div>';
   }).join("");
   box.innerHTML='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0"><strong style="color:'+color+'">'+esc(labels[data.status]||data.status||"Unknown")+'</strong><span class="muted">Last check: '+esc(when)+'</span></div><p style="margin:6px 0;white-space:pre-wrap">'+esc(data.message||"कोई विवरण नहीं")+'</p><p class="muted" style="margin:4px 0">कुल Source Requests: '+esc(data.attempts??diagnostics.length)+' · हर वेबसाइट की स्थिति नीचे</p><div style="margin-top:8px">'+(sourceRows||'<p class="muted">अभी Source-wise विवरण उपलब्ध नहीं है। अगली Sync के बाद दिखेगा।</p>')+'</div>';
  }catch(error){
