@@ -264,7 +264,7 @@ async function fetchSourceHtml(passLabel) {
           "Accept": "text/html,application/xhtml+xml",
           "Accept-Language": "en-IN,en;q=0.9,hi;q=0.8"
         },
-        signal: AbortSignal.timeout(12000)
+        signal: AbortSignal.timeout(8000)
       });
       sourceHttpStatus = response.status;
       if (!response.ok) {
@@ -430,8 +430,8 @@ async function main() {
   }
 
   cycleHadFirstConsensus = true;
-  console.log("Waiting 30 seconds before independent recheck.");
-  await new Promise(resolve => setTimeout(resolve, 30000));
+  console.log("Waiting 8 seconds before independent recheck.");
+  await new Promise(resolve => setTimeout(resolve, 8000));
   const secondPass = await fetchSourceHtml("recheck");
   const second = buildConsensus(secondPass);
   const verified = {};
