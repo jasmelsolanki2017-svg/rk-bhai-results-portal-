@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-24T12:36:18.245Z",
+  "updatedAt": "2026-11-24T12:38:51.867Z",
   "results": [
     {
       "_id": "6b057c6728a5f35075a12d23",
@@ -18,16 +18,13 @@
           "www.faridabadlucky.com",
           "www.delhilucky.com"
         ],
-        "checkedAt": "2026-11-24T12:36:06.104Z",
+        "checkedAt": "2026-11-24T12:38:38.595Z",
         "firstPassDomains": [
           "www.faridabadlucky.com",
           "www.delhilucky.com"
         ],
-        "recheckDomains": [
-          "www.faridabadlucky.com",
-          "www.delhilucky.com"
-        ],
-        "rule": "same_value_on_two_distinct_domains_in_two_checks"
+        "recheckDomains": [],
+        "rule": "same_value_on_two_independent_domains_single_check"
       },
       "createdAt": "2026-11-24T12:00:39.804Z"
     },
@@ -51,20 +48,15 @@
           "sattafree.com",
           "galidisawer.com"
         ],
-        "checkedAt": "2026-11-24T12:36:06.104Z",
+        "checkedAt": "2026-11-24T12:38:38.595Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "www.satta-king-gali.com",
           "sattafree.com",
           "galidisawer.com"
         ],
-        "recheckDomains": [
-          "kingsofsatta.com",
-          "www.satta-king-gali.com",
-          "sattafree.com",
-          "galidisawer.com"
-        ],
-        "rule": "same_value_on_two_distinct_domains_in_two_checks"
+        "recheckDomains": [],
+        "rule": "same_value_on_two_independent_domains_single_check"
       },
       "createdAt": "2026-11-24T09:43:31.182Z"
     },
@@ -102,7 +94,7 @@
           "www.delhilucky.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-24T12:36:06.104Z",
+        "checkedAt": "2026-11-24T12:38:38.595Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-fast.com",
@@ -116,20 +108,8 @@
           "www.delhilucky.com",
           "1xsatta.today"
         ],
-        "recheckDomains": [
-          "kingsofsatta.com",
-          "satta-king-fast.com",
-          "www.satta-king-gali.com",
-          "sattafree.com",
-          "sattaking.live",
-          "galidisawer.com",
-          "satta.live",
-          "www.realsattaking.com",
-          "www.faridabadlucky.com",
-          "www.delhilucky.com",
-          "1xsatta.today"
-        ],
-        "rule": "same_value_on_two_distinct_domains_in_two_checks"
+        "recheckDomains": [],
+        "rule": "same_value_on_two_independent_domains_single_check"
       },
       "createdAt": "2026-11-24T02:24:11.272Z"
     },
@@ -163,7 +143,7 @@
           "www.delhilucky.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-24T12:36:06.104Z",
+        "checkedAt": "2026-11-24T12:38:38.595Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "www.satta-king-gali.com",
@@ -175,18 +155,8 @@
           "www.delhilucky.com",
           "1xsatta.today"
         ],
-        "recheckDomains": [
-          "kingsofsatta.com",
-          "www.satta-king-gali.com",
-          "sattafree.com",
-          "sattaking.live",
-          "galidisawer.com",
-          "satta.live",
-          "www.faridabadlucky.com",
-          "www.delhilucky.com",
-          "1xsatta.today"
-        ],
-        "rule": "same_value_on_two_distinct_domains_in_two_checks"
+        "recheckDomains": [],
+        "rule": "same_value_on_two_independent_domains_single_check"
       },
       "createdAt": "2026-11-24T11:28:40.570Z"
     },
@@ -339,7 +309,7 @@
           "www.delhilucky.com",
           "satta-fast.com"
         ],
-        "checkedAt": "2026-11-24T12:36:06.104Z",
+        "checkedAt": "2026-11-24T12:38:38.595Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "1xsatta.today",
@@ -354,21 +324,8 @@
           "www.delhilucky.com",
           "satta-fast.com"
         ],
-        "recheckDomains": [
-          "kingsofsatta.com",
-          "1xsatta.today",
-          "satta-king-fast.com",
-          "www.satta-king-gali.com",
-          "sattafree.com",
-          "sattaking.live",
-          "galidisawer.com",
-          "satta.live",
-          "www.realsattaking.com",
-          "www.faridabadlucky.com",
-          "www.delhilucky.com",
-          "satta-fast.com"
-        ],
-        "rule": "same_value_on_two_distinct_domains_in_two_checks"
+        "recheckDomains": [],
+        "rule": "same_value_on_two_independent_domains_single_check"
       },
       "createdAt": "2026-11-23T18:43:03.792Z"
     },
