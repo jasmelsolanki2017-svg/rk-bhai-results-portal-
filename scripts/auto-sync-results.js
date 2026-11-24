@@ -462,11 +462,11 @@ async function parseUnresolvedMarketsWithGemini(html, sourceUrl, markets, target
     for(const alias of market.source||[]){
       const a=aiCompact(alias);
       if(a.length<3)continue;
-      let from=0, found=0, index;
-      while((index=fullCompact.indexOf(a,from))>=0 && found<3){
-        const rawIndex=fullText.toUpperCase().indexOf(String(alias).toUpperCase());
-        if(rawIndex>=0)snippets.push(fullText.slice(Math.max(0,rawIndex-1400),Math.min(fullText.length,rawIndex+2600)));
-        from=index+a.length; found++;
+      let rawFrom=0, found=0, rawIndex;
+      const rawAlias=String(alias).toUpperCase();
+      while((rawIndex=fullText.toUpperCase().indexOf(rawAlias,rawFrom))>=0 && found<3){
+        snippets.push(fullText.slice(Math.max(0,rawIndex-1400),Math.min(fullText.length,rawIndex+2600)));
+        rawFrom=rawIndex+rawAlias.length; found++;
       }
     }
   }
