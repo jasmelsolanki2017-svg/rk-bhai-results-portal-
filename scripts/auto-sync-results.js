@@ -107,7 +107,8 @@ function parseSourceDate(html) {
     /(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s+([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/i,
     /([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/i,
     /(?:^|\s)(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})(?:\s|$)/,
-    /(?:^|\s)(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})(?:\s|$)/
+    /(?:^|\s)(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})(?:\s|$)/,
+    /(?:आज|कल)?[:：]?\s*(\d{1,2})\s+(जनवरी|फरवरी|मार्च|अप्रैल|मई|जून|जुलाई|अगस्त|सितंबर|अक्टूबर|नवंबर|दिसंबर)\s+(\d{4})/
   ];
   let staleDate = null;
   for (let i = 0; i < candidates.length; i++) {
@@ -116,7 +117,11 @@ function parseSourceDate(html) {
     let found;
     if (i <= 1) found = { year: Number(match[3]), month: monthNumber(match[1]), day: Number(match[2]) };
     else if (i === 2) found = { year: Number(match[3]), month: Number(match[2]), day: Number(match[1]) };
-    else found = { year: Number(match[3]), month: monthNumber(match[2]), day: Number(match[1]) };
+    else if (i === 3) found = { year: Number(match[3]), month: monthNumber(match[2]), day: Number(match[1]) };
+    else {
+      const hindiMonths = { "जनवरी":1, "फरवरी":2, "मार्च":3, "अप्रैल":4, "मई":5, "जून":6, "जुलाई":7, "अगस्त":8, "सितंबर":9, "अक्टूबर":10, "नवंबर":11, "दिसंबर":12 };
+      found = { year: Number(match[3]), month: hindiMonths[match[2]], day: Number(match[1]) };
+    }
     const previous = new Date(Date.UTC(today.year, today.month - 1, today.day) - 86400000);
     const isToday = found.year === today.year && found.month === today.month && found.day === today.day;
     const isYesterday = found.year === previous.getUTCFullYear() && found.month === previous.getUTCMonth() + 1 && found.day === previous.getUTCDate();
@@ -137,6 +142,27 @@ function parseSourceDate(html) {
   }
   throw new Error("Source date not recognized: no current dated heading or current-month chart row.");
 }
+function parseSourceSpecificMarketValue(html, sourceUrl, market) {
+  if (market.title !== "Disawar") return null;
+  const host = new URL(sourceUrl).hostname.toLowerCase().replace(/^www\./, "");
+  if (!new Set(["kingsofsatta.com", "1xsatta.today", "sattafree.com"]).has(host)) return null;
+  const aliases = ["DESAWER", "DESAWAR", "DISAWAR", "DISAWER", "DSWR"];
+  const raw = String(html || "");
+  const candidates = new Set();
+  for (const alias of aliases) {
+    const re = new RegExp("(^|[^A-Z0-9])" + alias + "(?=$|[^A-Z0-9])", "ig");
+    let match;
+    while ((match = re.exec(raw))) {
+      const after = raw.slice(match.index + match[0].length, match.index + match[0].length + 220);
+      const text = decodeHtml(after.replace(/<script\b[\s\S]*?<\/script>/gi, " ").replace(/<style\b[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " "));
+      const values = [...text.matchAll(/(?:^|\D)(\d{2})(?=\D|$)/g)].map(x => x[1]);
+      const unique = [...new Set(values)];
+      if (unique.length === 1) candidates.add(unique[0]);
+    }
+  }
+  return candidates.size === 1 ? [...candidates][0] : null;
+}
+
 function parseMarketValues(html, marketNames, targetDay = null) {
   const aliases = Array.isArray(marketNames) ? marketNames : [marketNames];
   const normalize = value => decodeHtml(String(value || ""))
@@ -276,7 +302,9 @@ async function fetchSourceHtml(passLabel) {
       }
       const marketResults = {};
       for (const market of RUN_MARKETS) {
-        const value = parseMarketValues(html, market.source, market.title === "Gali" ? galiDate : today);
+        const tableValue = parseMarketValues(html, market.source, market.title === "Gali" ? galiDate : today);
+        const liveCardValue = tableValue ? null : parseSourceSpecificMarketValue(html, sourceUrl, market);
+        const value = tableValue || liveCardValue;
         if (value) marketResults[market.title] = value;
       }
 
@@ -303,7 +331,8 @@ async function fetchSourceHtml(passLabel) {
           (ambiguousValues.length ? "ambiguous_duplicate_values" : "no_values"),
         marketsFound: Object.keys(marketResults),
         marketValues: marketResults,
-        ambiguousValues
+        ambiguousValues,
+        parser: Object.keys(marketResults).length ? "dated_table_or_verified_live_card" : "no_exact_date_market_cell"
       });
       if (!Object.keys(marketResults).length) return null;
       return { url: sourceUrl, host: new URL(sourceUrl).hostname.toLowerCase(), sourceDate, lastModified: lastModified || null, marketResults };
