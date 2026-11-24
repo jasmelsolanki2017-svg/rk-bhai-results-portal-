@@ -165,14 +165,20 @@ function parseMarketValues(html, marketNames, targetDay = null) {
       [...row[1].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(cell => normalize(cell[1]))
     ).filter(row => row.length > 1);
     if (rows.length < 2) continue;
-    const header = rows.find(row => /^(DATE|DAY|तारीख)$/.test(row[0]) || /^(?:NOV|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|DEC)\s*0?\d{1,2}$/.test(row[0]));
+    const header = rows.find(row => /^(DATE|DAY|तारीख)$/.test(row[0]) || /^(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s*0?\d{1,2}$/.test(row[0]));
     if (!header) continue;
-    let column = header.findIndex((cell, index) => index > 0 && (aliasSet.some(alias => cell.includes(alias)) || codes.some(code => cell === code)));
+    const currentMonth = new Intl.DateTimeFormat("en", { timeZone: "Asia/Kolkata", month: "short" }).format(new Date()).toUpperCase();
+    const headerMonth = header[0].match(/^[A-Z]{3}/)?.[0];
+    if (headerMonth && headerMonth !== currentMonth) continue;
+    const column = header.findIndex((cell, index) => index > 0 &&
+      (aliasSet.some(alias => cell === alias || cell.includes(alias)) || codes.some(code => cell === code)));
     if (column < 0) continue;
     const dayRow = rows.find(row => {
-      const match = row[0].match(/(?:^|\s)0?(\d{1,2})(?:\s|$)/);
+      const firstCell = row[0].replace(/[^A-Z0-9 ]/g, " ").trim();
+      const match = firstCell.match(/^(?:[A-Z]{3}\s*)?0?(\d{1,2})$/);
       return match && Number(match[1]) === today.day;
     });
+    // Only accept a two-digit result from the exact current-day row.
     if (dayRow && dayRow[column] && /^\d{2}$/.test(dayRow[column])) return dayRow[column];
   }
 
@@ -304,7 +310,8 @@ async function fetchSourceHtml(passLabel) {
       sourceDiagnostics.push({
         pass: passLabel, url: sourceUrl, status: response.status,
         result: Object.keys(marketResults).length ? "dated_values_found" : "no_values",
-        marketsFound: Object.keys(marketResults)
+        marketsFound: Object.keys(marketResults),
+        marketValues: marketResults
       });
       if (!Object.keys(marketResults).length) return null;
       return { url: sourceUrl, host: new URL(sourceUrl).hostname.toLowerCase(), sourceDate, lastModified: lastModified || null, marketResults };
