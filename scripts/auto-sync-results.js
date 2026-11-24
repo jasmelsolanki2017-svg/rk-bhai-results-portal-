@@ -2,25 +2,23 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 
 const SOURCE_URLS = [
-  // Preferred sources, in priority order
+  // Existing sources
   "https://kingsofsatta.com/",
   "https://1xsatta.today/",
   "https://gali-results.com/",
-  // Backup sources
   "https://satta-king-fast.com/",
   "https://www.satta-king-gali.com/",
   "https://satta-superfast.com/",
-  // Additional independent chart sources. Each source is parsed only
-  // from an exact current-date row / explicit Today column; blanks stay blank.
-  "https://sattaking.in/chart/gali",
+  "https://sattaking.in/?id=100",
   "https://sattafree.com/",
   "https://sattaking.live/",
   "https://galidisawer.com/",
-  // Newly added independent sources with date-wise charts
-  "https://satta.live/",
+  // Verified direct monthly chart pages / result pages
+  "https://satta.live/record_chart/disawar_record_chart.php",
   "https://www.faridabadlucky.com/chart/new-disawar/" + new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit" }).format(new Date()),
-  "https://www.ghaziabadday.com/",
-  "https://www.sattakingchartresult.com/"
+  "https://www.delhilucky.com/chart/new-disawar/" + new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit" }).format(new Date()) + "?lang=hi",
+  "https://satta-fast.com/satta-king-chart-november-2026",
+  "https://sattakingchartresult.com/"
 ];
 let activeSourceUrl = SOURCE_URLS[0];
 const sourceDiagnostics = [];
