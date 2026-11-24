@@ -711,7 +711,7 @@ function buildConsensus(observations) {
     for (const source of observations) {
       const value = String(source.marketResults[market.title] || "").trim();
       const host = String(source.host || "").toLowerCase();
-      if (!/^\\d{2}$/.test(value) || !host) continue;
+      if (!/^\d{2}$/.test(value) || !host) continue;
       if (!domainVotes.has(host)) domainVotes.set(host, new Map());
       const values = domainVotes.get(host);
       if (!values.has(value)) values.set(value, source.url);
