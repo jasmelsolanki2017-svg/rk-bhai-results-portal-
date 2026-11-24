@@ -465,13 +465,13 @@ async function parseUnresolvedMarketsWithGemini(html, sourceUrl, markets, target
   // For the two pilot domains, send complete relevant HTML chart tables
   // instead of a tiny excerpt around the first market-name occurrence.
   // Preserve every row and cell so date, market and result columns remain visible.
-  const tableBlocks=[...String(html||"").matchAll(/<table\\b[^>]*>([\\s\\S]*?)<\\/table>/gi)].map((match,index)=>{
-    const rows=[...match[1].matchAll(/<tr\\b[^>]*>([\\s\\S]*?)<\\/tr>/gi)].map(row=>
-      [...row[1].matchAll(/<t[dh]\\b[^>]*>([\\s\\S]*?)<\\/t[dh]>/gi)]
-        .map(cell=>decodeHtml(cell[1].replace(/<[^>]+>/g," ")).replace(/\\s+/g," ").trim())
+  const tableBlocks=[...String(html||"").matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)].map((match,index)=>{
+    const rows=[...match[1].matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)].map(row=>
+      [...row[1].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)]
+        .map(cell=>decodeHtml(cell[1].replace(/<[^>]+>/g," ")).replace(/\s+/g," ").trim())
         .join(" | ")
     ).filter(Boolean);
-    return rows.length ? "HTML TABLE "+(index+1)+"\\n"+rows.join("\\n") : "";
+    return rows.length ? "HTML TABLE "+(index+1)+"\n"+rows.join("\n") : "";
   }).filter(Boolean);
   const relevantTables=tableBlocks.filter(block=>{
     const compact=aiCompact(block);
@@ -482,11 +482,11 @@ async function parseUnresolvedMarketsWithGemini(html, sourceUrl, markets, target
   const fullPageText=fullText.slice(0,5000);
   const chartParts=[
     ...relevantTables,
-    "FULL PAGE TEXT (beginning):\\n"+fullPageText
+    "FULL PAGE TEXT (beginning):\n"+fullPageText
   ];
-  const chart=[...new Set(chartParts)].join("\\n\\n--- COMPLETE CHART SECTION ---\\n\\n").slice(0,24000);
+  const chart=[...new Set(chartParts)].join("\n\n--- COMPLETE CHART SECTION ---\n\n").slice(0,24000);
   if(chart.length<80)return {values:{},reason:"chart_context_too_short"};
-  const chartWasTruncated=relevantTables.join("\\n").length>19000 || fullText.length>5000;
+  const chartWasTruncated=relevantTables.join("\n").length>19000 || fullText.length>5000;
   const requested=relevantMarkets.map(m=>{
     const d=targetDays[m.title];
     return m.title+" aliases ["+(m.source||[]).slice(0,8).join(", ")+"] exact date "+
