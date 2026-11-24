@@ -239,6 +239,10 @@ function parseMarketValues(html, marketNames, targetDay = null) {
       return match && Number(match[1]) === today.day;
     });
     // Only accept a two-digit result from the exact current-day row.
+    // Some chart pages omit empty <td> cells from rows. That shifts later
+    // columns left and can label Disawar's number as Faridabad/Gali.
+    // Require a complete row matching the header width before reading.
+    if (dayRow && dayRow.length !== header.length) continue;
     if (dayRow && dayRow[column] && /^\d{2}$/.test(dayRow[column])) return dayRow[column];
   }
 
