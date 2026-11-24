@@ -230,7 +230,7 @@ function parseMarketValues(html, marketNames, targetDay = null) {
     const currentMonth = new Intl.DateTimeFormat("en", { timeZone: "Asia/Kolkata", month: "short" }).format(new Date()).toUpperCase();
     // DATE/DAY headers are not month names. Only enforce a month match
     // when the first header cell is actually a month label (e.g. NOV 24).
-    const headerMonth = /^(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\\b/.exec(header[0])?.[1] || null;
+    const headerMonth = /^(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\b/.exec(header[0])?.[1] || null;
     if (headerMonth && headerMonth !== currentMonth) continue;
     const column = header.findIndex((cell, index) => index > 0 &&
       (aliasSet.some(alias => cell === alias) || codes.some(code => cell === code)));
