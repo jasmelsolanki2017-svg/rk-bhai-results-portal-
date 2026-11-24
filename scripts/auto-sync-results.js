@@ -451,9 +451,28 @@ async function parseUnresolvedMarketsWithGemini(html, sourceUrl, markets, target
   const key=process.env.GEMINI_API_KEY;
   if(!key || !markets.length || aiFallbackCallsThisPass>=AI_FALLBACK_MAX_PER_PASS)
     return {values:{},reason:!key?"gemini_key_missing":"ai_limit"};
-  const chart=aiChartText(html).slice(0,16000);
-  if(chart.length<80)return {values:{},reason:"chart_text_too_short"};
-  const requested=markets.map(m=>{
+  const fullText=aiChartText(html);
+  const fullCompact=aiCompact(fullText);
+  const relevantMarkets=markets.filter(m=>(m.source||[]).some(alias=>{
+    const a=aiCompact(alias); return a.length>=3 && fullCompact.includes(a);
+  }));
+  if(!relevantMarkets.length)return {values:{},reason:"no_requested_market_label_on_page"};
+  const snippets=[];
+  for(const market of relevantMarkets){
+    for(const alias of market.source||[]){
+      const a=aiCompact(alias);
+      if(a.length<3)continue;
+      let from=0, found=0, index;
+      while((index=fullCompact.indexOf(a,from))>=0 && found<3){
+        const rawIndex=fullText.toUpperCase().indexOf(String(alias).toUpperCase());
+        if(rawIndex>=0)snippets.push(fullText.slice(Math.max(0,rawIndex-1400),Math.min(fullText.length,rawIndex+2600)));
+        from=index+a.length; found++;
+      }
+    }
+  }
+  const chart=[...new Set(snippets)].join("\n--- CHART EXCERPT ---\n").slice(0,16000);
+  if(chart.length<80)return {values:{},reason:"chart_context_too_short"};
+  const requested=relevantMarkets.map(m=>{
     const d=targetDays[m.title];
     return m.title+" aliases ["+(m.source||[]).slice(0,8).join(", ")+"] exact date "+
       d.year+"-"+String(d.month).padStart(2,"0")+"-"+String(d.day).padStart(2,"0");
@@ -478,7 +497,7 @@ async function parseUnresolvedMarketsWithGemini(html, sourceUrl, markets, target
     try{data=JSON.parse(raw);}catch(e){const m=raw.match(/\{[\s\S]*\}/);if(!m)return {values:{},reason:"gemini_invalid_json"};data=JSON.parse(m[0]);}
     const sourceCompact=aiCompact(chart), values={};
     for(const item of Array.isArray(data.results)?data.results:[]){
-      const market=markets.find(m=>m.title.toLowerCase()===String(item.market||"").trim().toLowerCase());
+      const market=relevantMarkets.find(m=>m.title.toLowerCase()===String(item.market||"").trim().toLowerCase());
       const value=String(item.value||"").trim(), evidence=String(item.evidence||"").trim();
       if(!market||!/^\d{2}$/.test(value)||evidence.length<8)continue;
       const quote=aiCompact(evidence);
