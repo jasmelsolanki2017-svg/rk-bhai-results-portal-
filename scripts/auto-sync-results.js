@@ -448,9 +448,9 @@ function aiCompact(value) {
   return String(value || "").toUpperCase().replace(/[^A-Z0-9\u0900-\u097F]/g, "");
 }
 async function parseUnresolvedMarketsWithGemini(html, sourceUrl, markets, targetDays) {
-  const key=process.env.GEMINI_API_KEY;
+  const key=process.env.GROQ_API_KEY;
   if(!key || !markets.length || aiFallbackCallsThisPass>=AI_FALLBACK_MAX_PER_PASS)
-    return {values:{},reason:!key?"gemini_key_missing":"ai_limit"};
+    return {values:{},reason:!key?"groq_key_missing":"ai_limit"};
   const fullText=aiChartText(html);
   const fullCompact=aiCompact(fullText);
   const relevantMarkets=markets.filter(m=>(m.source||[]).some(alias=>{
@@ -479,27 +479,29 @@ async function parseUnresolvedMarketsWithGemini(html, sourceUrl, markets, target
   }).join("\n");
   aiFallbackCallsThisPass++;
   try {
-    const res=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key="+encodeURIComponent(key),{
-      method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({contents:[{role:"user",parts:[{text:[
-        "Strict chart transcription only. Read the supplied source text; do not guess, infer, calculate, or use nearby dates.",
-        "For each requested market, return a value only if its visible market label, exact requested date context, and two-digit result are shown in the same chart/table context.",
-        "Include evidence as an exact contiguous quotation copied from the source text, showing market, date context, and result. Omit uncertain or absent results.",
-        "Return JSON only: {\"results\":[{\"market\":\"Disawar\",\"value\":\"12\",\"evidence\":\"exact copied quote\"}]}",
-        "Requested markets:\n"+requested,"Source URL: "+sourceUrl,"Source text:\n"+chart
-      ].join("\n\n") }]}],generationConfig:{temperature:0,responseMimeType:"application/json"}}),
+    const prompt=[
+      "Strict chart transcription only. Read the supplied source text; do not guess, infer, calculate, or use nearby dates.",
+      "For each requested market, return a value only if its visible market label, exact requested date context, and two-digit result are shown in the same chart/table context.",
+      "Include evidence as an exact contiguous quotation copied from the source text, showing market, date context, and result. Omit uncertain or absent results.",
+      "Return JSON only: {\\"results\\":[{\\"market\\":\\"Disawar\\",\\"value\\":\\"12\\",\\"evidence\\":\\"exact copied quote\\"}]}",
+      "Requested markets:\\n"+requested,"Source URL: "+sourceUrl,"Source text:\\n"+chart
+    ].join("\n\n");
+    const res=await fetch("https://api.groq.com/openai/v1/chat/completions",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
+      body:JSON.stringify({model:"openai/gpt-oss-120b",messages:[{role:"user",content:prompt}],response_format:{type:"json_object"}}),
       signal:AbortSignal.timeout(25000)
     });
-    if(!res.ok)return {values:{},reason:"gemini_http_"+res.status,detail:(await res.text()).slice(0,200)};
+    if(!res.ok)return {values:{},reason:"groq_http_"+res.status,detail:(await res.text()).slice(0,200)};
     const payload=await res.json();
-    const raw=payload.candidates?.[0]?.content?.parts?.map(p=>p.text||"").join("")||"";
+    const raw=payload.choices?.[0]?.message?.content||"";
     let data;
-    try{data=JSON.parse(raw);}catch(e){const m=raw.match(/\{[\s\S]*\}/);if(!m)return {values:{},reason:"gemini_invalid_json"};data=JSON.parse(m[0]);}
+    try{data=JSON.parse(raw);}catch(e){const m=raw.match(/\{[\s\S]*\}/);if(!m)return {values:{},reason:"groq_invalid_json"};data=JSON.parse(m[0]);}
     const sourceCompact=aiCompact(chart), values={};
     for(const item of Array.isArray(data.results)?data.results:[]){
       const market=relevantMarkets.find(m=>m.title.toLowerCase()===String(item.market||"").trim().toLowerCase());
       const value=String(item.value||"").trim(), evidence=String(item.evidence||"").trim();
-      if(!market||!/^\d{2}$/.test(value)||evidence.length<8)continue;
+      if(!market||!/^\\d{2}$/.test(value)||evidence.length<8)continue;
       const quote=aiCompact(evidence);
       if(quote.length<8||!sourceCompact.includes(quote))continue;
       const aliases=(market.source||[]).map(aiCompact).filter(a=>a.length>=3);
@@ -513,8 +515,8 @@ async function parseUnresolvedMarketsWithGemini(html, sourceUrl, markets, target
         dd+"-"+mm+"-"+yyyy,day+"-"+mm+"-"+yyyy].some(x=>quote.includes(aiCompact(x)));
       if(dated)values[market.title]=value;
     }
-    return {values,reason:Object.keys(values).length?"gemini_exact_evidence":"gemini_no_verified_evidence"};
-  }catch(e){return {values:{},reason:"gemini_request_error",detail:String(e.message||e).slice(0,180)};}
+    return {values,reason:Object.keys(values).length?"groq_exact_evidence":"groq_no_verified_evidence"};
+  }catch(e){return {values:{},reason:"groq_request_error",detail:String(e.message||e).slice(0,180)};}
 }
 
 async function publishSyncStatus(status, message) {
@@ -656,7 +658,7 @@ async function fetchSourceHtml(passLabel) {
       }
 
       const unresolvedMarkets = RUN_MARKETS.filter(market => !marketResults[market.title]);
-      if (unresolvedMarkets.length && process.env.GEMINI_API_KEY &&
+      if (unresolvedMarkets.length && process.env.GROQ_API_KEY &&
           aiFallbackCallsThisPass < AI_FALLBACK_MAX_PER_PASS) {
         const targetDays = Object.fromEntries(unresolvedMarkets.map(market => [
           market.title, market.title === "Gali" ? galiDate : today
