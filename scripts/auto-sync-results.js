@@ -145,8 +145,8 @@ function parseSourceDate(html) {
 function parseSourceSpecificMarketValue(html, sourceUrl, market, targetDay) {
   const normalize = value => decodeHtml(String(value || ""))
     .replace(/<[^>]+>/g, " ")
-    .replace(/[^A-Z0-9\\u0900-\\u097F ]/gi, " ")
-    .replace(/\\s+/g, " ").trim().toUpperCase();
+    .replace(/[^A-Z0-9\u0900-\u097F ]/gi, " ")
+    .replace(/\s+/g, " ").trim().toUpperCase();
   const aliases = (market.source || []).map(normalize).filter(Boolean);
   const today = getIndiaDateParts();
   const previous = new Date(Date.UTC(today.year, today.month - 1, today.day) - 86400000);
@@ -155,14 +155,11 @@ function parseSourceSpecificMarketValue(html, sourceUrl, market, targetDay) {
     targetDay.month === previous.getUTCMonth() + 1 && targetDay.day === previous.getUTCDate();
   if (!isTargetToday && !isTargetYesterday) return null;
 
-  const cellsFromRow = row => [...row.matchAll(/<t[dh]\\b[^>]*>([\\s\\S]*?)<\\/t[dh]>/gi)]
+  const cellsFromRow = row => [...row.matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)]
     .map(match => normalize(match[1]));
-  const rows = [...String(html || "").matchAll(/<tr\\b[^>]*>([\\s\\S]*?)<\\/tr>/gi)]
+  const rows = [...String(html || "").matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)]
     .map(match => cellsFromRow(match[1])).filter(row => row.length >= 3);
 
-  // Live result tables commonly use: Game | Yesterday | Today.
-  // Pick the column by the requested result date, never by position guessed
-  // from nearby numbers or scheduled game times.
   for (let h = 0; h < rows.length; h++) {
     const header = rows[h];
     const yesterdayCol = header.findIndex(cell => /^(YESTERDAY|KAL|KAL KA RESULT|कल)$/.test(cell));
@@ -172,7 +169,6 @@ function parseSourceSpecificMarketValue(html, sourceUrl, market, targetDay) {
     const gameCol = header.findIndex((cell, index) => index !== resultCol &&
       /^(GAME|MARKET|RESULT|KHEL|गेम)$/.test(cell));
     if (gameCol < 0) continue;
-
     const matches = [];
     for (let r = h + 1; r < rows.length; r++) {
       const row = rows[r];
@@ -180,23 +176,20 @@ function parseSourceSpecificMarketValue(html, sourceUrl, market, targetDay) {
       const game = row[gameCol];
       if (!aliases.some(alias => game === alias || game.startsWith(alias + " ") || game.includes(" " + alias + " "))) continue;
       const value = row[resultCol];
-      if (/^\\d{2}$/.test(value)) matches.push(value);
+      if (/^\d{2}$/.test(value)) matches.push(value);
     }
     const unique = [...new Set(matches)];
     if (unique.length === 1) return unique[0];
     if (unique.length > 1) return null;
   }
 
-  // Card-style live boards: require an explicit Today/Yesterday label and
-  // read only the immediately following standalone two-digit value.
-  // Schedule times and numbers shown before the date label are ignored.
   const textLines = decodeHtml(String(html || "")
-    .replace(/<script\\b[\\s\\S]*?<\\/script>/gi, " ")
-    .replace(/<style\\b[\\s\\S]*?<\\/style>/gi, " ")
-    .replace(/<br\\s*\\/?\\s*>/gi, "\\n")
-    .replace(/<\\/(?:div|section|article|li|tr|h[1-6]|p|header|footer)>/gi, "\\n")
+    .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style\b[\s\S]*?<\/style>/gi, " ")
+    .replace(/<br\s*\/?\s*>/gi, "\n")
+    .replace(/<\/(?:div|section|article|li|tr|h[1-6]|p|header|footer)>/gi, "\n")
     .replace(/<[^>]+>/g, " "))
-    .split(/\\r?\\n/)
+    .split(/\r?\n/)
     .map(line => normalize(line))
     .filter(Boolean);
   const allAliases = SOURCE_MARKETS.flatMap(item => item.source.map(normalize));
@@ -204,21 +197,20 @@ function parseSourceSpecificMarketValue(html, sourceUrl, market, targetDay) {
     line === alias || line.startsWith(alias + " ") || line.startsWith(alias + ":") || line.startsWith(alias + "-"));
   const otherMarketLine = line => allAliases.some(alias =>
     !aliases.includes(alias) && (line === alias || line.startsWith(alias + " ") || line.startsWith(alias + ":") || line.startsWith(alias + "-")));
-  const labelPattern = isTargetToday ? /^(TODAY|AAJ|आज)(?:\\s|$|:)/ : /^(YESTERDAY|KAL|कल)(?:\\s|$|:)/;
+  const labelPattern = isTargetToday ? /^(TODAY|AAJ|आज)(?:\s|$|:)/ : /^(YESTERDAY|KAL|कल)(?:\s|$|:)/;
   for (let i = 0; i < textLines.length; i++) {
     if (!marketLine(textLines[i])) continue;
     for (let j = i + 1; j < Math.min(textLines.length, i + 30); j++) {
       if (otherMarketLine(textLines[j])) break;
       if (!labelPattern.test(textLines[j])) continue;
       for (let k = j + 1; k <= Math.min(textLines.length - 1, j + 4); k++) {
-        if (/^\\d{2}$/.test(textLines[k])) return textLines[k];
+        if (/^\d{2}$/.test(textLines[k])) return textLines[k];
         if (/^(--|—|–|PENDING|ABHI NAHI|अभी नहीं)/.test(textLines[k])) break;
       }
     }
   }
   return null;
 }
-
 function parseMarketValues(html, marketNames, targetDay = null) {
   const aliases = Array.isArray(marketNames) ? marketNames : [marketNames];
   const normalize = value => decodeHtml(String(value || ""))
