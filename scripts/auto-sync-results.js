@@ -59,14 +59,20 @@ const MARKET_SCHEDULES = {
 // scheduled release time (India time). The normal parser continues all day.
 const GROQ_RELEASE_WINDOW_MINUTES = 30;
 function isGroqMarketWindowOpen(marketTitle, now = new Date()) {
-  const scheduled = MARKET_SCHEDULES[marketTitle];
-  if (!scheduled) return false;
   const clock = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hourCycle: "h23"
   }).format(now);
   const [hour, minute] = clock.split(":").map(Number);
-  const [scheduledHour, scheduledMinute] = scheduled.split(":").map(Number);
   const currentMinutes = hour * 60 + minute;
+
+  // Faridabad AI is allowed only from 6:00 PM to 7:00 PM India time.
+  if (marketTitle === "Faridabad") {
+    return currentMinutes >= 18 * 60 && currentMinutes < 19 * 60;
+  }
+
+  const scheduled = MARKET_SCHEDULES[marketTitle];
+  if (!scheduled) return false;
+  const [scheduledHour, scheduledMinute] = scheduled.split(":").map(Number);
   const releaseMinutes = scheduledHour * 60 + scheduledMinute;
   const elapsed = (currentMinutes - releaseMinutes + 1440) % 1440;
   return elapsed >= 0 && elapsed < GROQ_RELEASE_WINDOW_MINUTES;
