@@ -18,7 +18,13 @@ const SOURCE_URLS = [
   "https://www.faridabadlucky.com/chart/new-disawar/" + new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit" }).format(new Date()),
   "https://www.delhilucky.com/chart/new-disawar/" + new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit" }).format(new Date()) + "?lang=hi",
   "https://satta-fast.com/satta-king-chart-" + new Intl.DateTimeFormat("en", { timeZone: "Asia/Kolkata", month: "long" }).format(new Date()).toLowerCase() + "-" + getIndiaDateParts().year,
-  "https://sattakingchartresult.com/"
+  "https://sattakingchartresult.com/",
+  "https://1xsatta.today/record-chart/disawar/",
+  "https://1xsatta.today/record-chart/shri-ganesh/",
+  "https://1xsatta.today/record-chart/faridabad/",
+  "https://1xsatta.today/record-chart/ghaziabad/",
+  "https://1xsatta.today/record-chart/gali/",
+  "https://sattafree.com/game-history.php?game=shree-ganesh"
 ];
 let activeSourceUrl = SOURCE_URLS[0];
 const sourceDiagnostics = [];
@@ -28,12 +34,12 @@ const STATUS_FILE = "data/auto-sync-status.json";
 let sourceFetchAttempts = 0;
 let sourceHttpStatus = null;
 const SOURCE_MARKETS = [
-  { source: ["DESAWER", "DESAWAR", "DISAWAR", "DISAWER"], title: "Disawar" },
-  { source: ["FARIDABAD"], title: "Faridabad" },
-  { source: ["GHAZIABAD"], title: "Ghaziabad" },
-  { source: ["GALI"], title: "Gali" },
-  { source: ["DELHI BAZAR", "DELHI BAZAR"], title: "Delhi Bazar" },
-  { source: ["SHRI GANESH", "SHREE GANESH"], title: "Shree Ganesh" }
+  { source: ["DESAWER", "DESAWAR", "DISAWAR", "DISAWER", "DSWR", "दिसावर"], title: "Disawar" },
+  { source: ["FARIDABAD", "FRBD", "फरीदाबाद"], title: "Faridabad" },
+  { source: ["GHAZIABAD", "GZBD", "GB", "गाजियाबाद", "गाज़ियाबाद"], title: "Ghaziabad" },
+  { source: ["GALI", "GL", "गली"], title: "Gali" },
+  { source: ["DELHI BAZAR", "DELHI BAZAAR", "DLBZ", "DB", "दिल्ली बाजार"], title: "Delhi Bazar" },
+  { source: ["SHRI GANESH", "SHREE GANESH", "SRGN", "SG", "श्री गणेश"], title: "Shree Ganesh" }
 ];
 let RUN_MARKETS = SOURCE_MARKETS;
 let cycleResolvedMarkets = new Set();
@@ -109,9 +115,9 @@ function parseSourceDate(html) {
   };
   const candidates = [
     /(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s+([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/i,
-    /([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/i,
+    /([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/i,
     /(?:^|\s)(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})(?:\s|$)/,
-    /(?:^|\s)(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})(?:\s|$)/,
+    /(?:^|\s)(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)\s+(\d{4})(?:\s|$)/,
     /(?:आज|कल)?[:：]?\s*(\d{1,2})\s+(जनवरी|फरवरी|मार्च|अप्रैल|मई|जून|जुलाई|अगस्त|सितंबर|अक्टूबर|नवंबर|दिसंबर)\s+(\d{4})/
   ];
   let staleDate = null;
@@ -199,7 +205,7 @@ function parseSourceSpecificMarketValue(html, sourceUrl, market, targetDay) {
         const row = rows[r];
         if (row.length <= Math.max(gameCol, resultCol)) continue;
         const game = row[gameCol];
-        if (!aliases.some(alias => game === alias)) continue;
+        if (!aliases.some(alias => game === alias || game.includes(alias) || game.split(" ").includes(alias))) continue;
         const value = row[resultCol];
         if (/^\d{2}$/.test(value)) matches.push(value);
       }
@@ -213,6 +219,72 @@ function parseSourceSpecificMarketValue(html, sourceUrl, market, targetDay) {
   // a date-labelled table row for this market, report no value for this source.
   return null;
 }
+
+function parseYearlyMonthGrid(html, market, targetDay) {
+  const norm = value => decodeHtml(String(value || "")).replace(/<[^>]+>/g, " ")
+    .replace(/[^A-Z0-9\u0900-\u097F ]/gi, " ").replace(/\s+/g, " ").trim().toUpperCase();
+  const plain = norm(String(html || "").replace(/<script\b[\s\S]*?<\/script>/gi, " "));
+  if (!plain.includes(String(targetDay.year))) return null;
+  const aliases = (market.source || []).map(norm);
+  if (!aliases.some(alias => plain.slice(0, 1800).includes(alias))) return null;
+  const months = {
+    1:["JAN","JANUARY","जन","जनवरी"],2:["FEB","FEBRUARY","फर","फरवरी"],
+    3:["MAR","MARCH","मार्च"],4:["APR","APRIL","अप्रै","अप्रैल"],
+    5:["MAY","मई"],6:["JUN","JUNE","जून"],7:["JUL","JULY","जुला","जुलाई"],
+    8:["AUG","AUGUST","अग","अगस्त"],9:["SEP","SEPTEMBER","सित","सितंबर"],
+    10:["OCT","OCTOBER","अक्टू","अक्टूबर"],11:["NOV","NOVEMBER","नव","नवंबर"],
+    12:["DEC","DECEMBER","दिस","दिसंबर"]
+  };
+  const tables = [...String(html || "").matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)];
+  for (const table of tables) {
+    const rows = [...table[1].matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)].map(row =>
+      [...row[1].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(cell => norm(cell[1])));
+    const hi = rows.findIndex(row => row.length >= 10 && /^(DAY|DATE|दिन|तारीख)$/.test(row[0] || ""));
+    if (hi < 0) continue;
+    const col = rows[hi].findIndex((cell,i) => i > 0 && months[targetDay.month].some(m => cell === m || cell.startsWith(m)));
+    if (col < 0) continue;
+    const row = rows.slice(hi+1).find(r => r[0] && Number(r[0].replace(/\D/g,"")) === targetDay.day);
+    if (row && /^\d{2}$/.test(row[col] || "")) return row[col];
+  }
+  return null;
+}
+
+function parseMarketCardValue(html, market) {
+  const norm = value => decodeHtml(String(value || "")).replace(/<[^>]+>/g," ")
+    .replace(/[^A-Z0-9\u0900-\u097F ]/gi," ").replace(/\s+/g," ").trim().toUpperCase();
+  const aliases = (market.source || []).map(norm);
+  const tokens = String(html || "").match(/<\/?[a-z][^>]*>|[^<]+/gi) || [];
+  const root = {tag:"root",text:"",children:[]}, stack=[root];
+  for (const token of tokens) {
+    const close=token.match(/^<\/\s*([a-z0-9]+)/i);
+    if (close) { for(let i=stack.length-1;i>0;i--){if(stack[i].tag===close[1].toLowerCase()){stack.length=i;break;}} continue; }
+    const open=token.match(/^<\s*([a-z0-9]+)(?:\s[^>]*)?>$/i);
+    if(open){const tag=open[1].toLowerCase();if(tag==="script"||tag==="style")continue;
+      const node={tag,text:"",children:[]};stack[stack.length-1].children.push(node);
+      if(!/^(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/.test(tag)&&! /\/>$/.test(token))stack.push(node);
+    } else stack[stack.length-1].text+=" "+token;
+  }
+  const collect=n=>norm(n.text+" "+n.children.map(collect).join(" "));
+  const candidates=[];
+  const walk=n=>{const t=collect(n);const named=aliases.some(a=>a.length<=2?t.split(" ").includes(a):t.includes(a));
+    if(named&&/(TODAY|AAJ|आज)/i.test(t))candidates.push(t);
+    n.children.forEach(walk);};
+  walk(root);candidates.sort((a,b)=>a.length-b.length);
+  for(const t of candidates){const m=t.match(/(?:TODAY|AAJ|आज)\s*(?:RESULT)?\s*(?:\(\s*\d{1,2}[^)]*\))?\s*[:：|–—-]?\s*(\d{2})(?!\d)/i);if(m)return m[1];}
+  return null;
+}
+
+function parseDateResultHistory(html, targetDay) {
+  const norm=value=>decodeHtml(String(value||"")).replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim();
+  const tables=[...String(html||"").matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)];
+  for(const table of tables){const rows=[...table[1].matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)].map(row=>[...row[1].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(c=>norm(c[1])));
+    for(const row of rows){if(row.length<2)continue;const d=row[0].match(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+(\d{1,2}),?\s+(\d{4})/i);
+      if(!d||Number(d[2])!==targetDay.day||Number(d[3])!==targetDay.year)continue;
+      if(new Date(d[1]+" 1, "+targetDay.year).getMonth()+1!==targetDay.month)continue;
+      if(/^\d{2}$/.test(row[1]))return row[1];}}
+  return null;
+}
+
 function parseMarketValues(html, marketNames, targetDay = null) {
   const aliases = Array.isArray(marketNames) ? marketNames : [marketNames];
   const normalize = value => decodeHtml(String(value || ""))
@@ -250,7 +322,7 @@ function parseMarketValues(html, marketNames, targetDay = null) {
     const headerMonth = /^(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\b/.exec(header[0])?.[1] || null;
     if (headerMonth && headerMonth !== currentMonth) continue;
     const column = header.findIndex((cell, index) => index > 0 &&
-      (aliasSet.some(alias => cell === alias) || codes.some(code => cell === code)));
+      (aliasSet.some(alias => cell === alias || cell.includes(alias)) || codes.some(code => cell === code || cell.includes(code))));
     if (column < 0) continue;
     const dayRow = rows.find(row => {
       const firstCell = row[0].replace(/[^A-Z0-9 ]/g, " ").trim();
@@ -289,7 +361,7 @@ function parseMarketValues(html, marketNames, targetDay = null) {
     const dateCol = headerCells.findIndex(cell => /^(DATE|DAY|TAREEKH|तारीख)$/.test(cell));
     if (dateCol < 0) continue;
     const marketCol = headerCells.findIndex((cell, index) => index !== dateCol &&
-      aliases.some(alias => cell === alias));
+      aliases.some(alias => cell === alias || cell.includes(alias)));
     if (marketCol < 0) continue;
     for (let r = h + 1; r < Math.min(lines.length, h + 40); r++) {
       const rowCells = lines[r].split("|").map(normalize).filter(Boolean);
@@ -383,8 +455,11 @@ async function fetchSourceHtml(passLabel) {
       let sourceDate;
       try { sourceDate = parseSourceDate(html); }
       catch (error) {
-        sourceDiagnostics.push({ pass: passLabel, url: sourceUrl, status: response.status, result: "date_not_recognized" });
-        return null;
+        if (RUN_MARKETS.some(market => parseYearlyMonthGrid(html, market, today))) sourceDate = today;
+        else {
+          sourceDiagnostics.push({ pass: passLabel, url: sourceUrl, status: response.status, result: "date_not_recognized" });
+          return null;
+        }
       }
       const previous = new Date(Date.UTC(today.year, today.month - 1, today.day) - 86400000);
       const isCurrentDate = sourceDate.year === today.year && sourceDate.month === today.month && sourceDate.day === today.day;
@@ -411,26 +486,30 @@ async function fetchSourceHtml(passLabel) {
         if (value) {
           marketResults[market.title] = value;
           marketParsers[market.title] = "same_row_explicit_today_yesterday_table";
+          continue;
+        }
+        value = parseMarketCardValue(html, market);
+        if (value) {
+          marketResults[market.title] = value;
+          marketParsers[market.title] = "market_card_today_label";
+          continue;
+        }
+        value = parseYearlyMonthGrid(html, market, targetDay);
+        if (value) {
+          marketResults[market.title] = value;
+          marketParsers[market.title] = "dedicated_yearly_month_grid";
+          continue;
+        }
+        value = parseDateResultHistory(html, targetDay);
+        if (value) {
+          marketResults[market.title] = value;
+          marketParsers[market.title] = "date_result_history_table";
         }
       }
 
-      // Safety guard: one source must not accidentally assign the same parsed
-      // cell/value to multiple markets. This previously caused false positives
-      // when a page's chart columns or live-result blocks were misidentified.
-      // Treat every repeated value within one source as ambiguous and do not
-      // let that source vote for any of the affected markets.
-      const valueMarkets = new Map();
-      for (const [marketName, value] of Object.entries(marketResults)) {
-        if (!valueMarkets.has(value)) valueMarkets.set(value, []);
-        valueMarkets.get(value).push(marketName);
-      }
+      // Equal two-digit values may legitimately occur in different markets.
+      // Keep independently labelled results instead of deleting both.
       const ambiguousValues = [];
-      for (const [value, markets] of valueMarkets.entries()) {
-        if (markets.length > 1) {
-          ambiguousValues.push({ value, markets });
-          for (const marketName of markets) delete marketResults[marketName];
-        }
-      }
       sourceDiagnostics.push({
         pass: passLabel, url: sourceUrl, status: response.status,
         result: Object.keys(marketResults).length ? "dated_values_found" :
