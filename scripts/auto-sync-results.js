@@ -351,9 +351,10 @@ async function fetchSourceHtml(passLabel) {
       const marketResults = {};
       for (const market of RUN_MARKETS) {
         const targetDay = market.title === "Gali" ? galiDate : today;
-        const tableValue = parseMarketValues(html, market.source, targetDay);
-        const liveCardValue = tableValue ? null : parseSourceSpecificMarketValue(html, sourceUrl, market, targetDay);
-        const value = tableValue || liveCardValue;
+        // Safety: accept results only from the exact target-date row and exact market column.
+        // Do not use proximity-based live-text fallback: unrelated market cards
+        // (for example Dhanlaxmi) can appear between a market label and its result.
+        const value = parseMarketValues(html, market.source, targetDay);
         if (value) marketResults[market.title] = value;
       }
 
