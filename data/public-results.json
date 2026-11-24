@@ -1,33 +1,7 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-24T12:46:23.285Z",
+  "updatedAt": "2026-11-24T12:48:56.698Z",
   "results": [
-    {
-      "_id": "6b057c6728a5f35075a12d23",
-      "title": "Faridabad",
-      "resultText": "45",
-      "resultDate": "2026-11-24T12:00:00.000Z",
-      "sourceUrl": "https://www.faridabadlucky.com/chart/new-disawar/2026-11, https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi",
-      "verificationMeta": {
-        "value": "45",
-        "sources": [
-          "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
-          "https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi"
-        ],
-        "domains": [
-          "www.faridabadlucky.com",
-          "www.delhilucky.com"
-        ],
-        "checkedAt": "2026-11-24T12:46:09.744Z",
-        "firstPassDomains": [
-          "www.faridabadlucky.com",
-          "www.delhilucky.com"
-        ],
-        "recheckDomains": [],
-        "rule": "same_value_on_two_independent_domains_single_check"
-      },
-      "createdAt": "2026-11-24T12:00:39.804Z"
-    },
     {
       "_id": "6b055c43e02b9a163f569ec1",
       "title": "Delhi Bazar",
