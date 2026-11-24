@@ -431,7 +431,7 @@ function parseMarketValues(html, marketNames, targetDay = null) {
 
 
 let aiFallbackCallsThisPass = 0;
-const AI_FALLBACK_MAX_PER_PASS = 6;
+const AI_FALLBACK_MAX_PER_PASS = 2;
 
 function aiChartText(html) {
   return decodeHtml(String(html || "")
@@ -457,20 +457,24 @@ async function parseUnresolvedMarketsWithGemini(html, sourceUrl, markets, target
     const a=aiCompact(alias); return a.length>=3 && fullCompact.includes(a);
   }));
   if(!relevantMarkets.length)return {values:{},reason:"no_requested_market_label_on_page"};
+  // Keep only a small, focused excerpt for each unresolved market.
+  // Sending entire page fragments repeatedly exhausted Groq's free TPM quota.
   const snippets=[];
   for(const market of relevantMarkets){
+    let excerptAdded=false;
     for(const alias of market.source||[]){
-      const a=aiCompact(alias);
-      if(a.length<3)continue;
-      let rawFrom=0, found=0, rawIndex;
-      const rawAlias=String(alias).toUpperCase();
-      while((rawIndex=fullText.toUpperCase().indexOf(rawAlias,rawFrom))>=0 && found<3){
-        snippets.push(fullText.slice(Math.max(0,rawIndex-1400),Math.min(fullText.length,rawIndex+2600)));
-        rawFrom=rawIndex+rawAlias.length; found++;
-      }
+      const rawAlias=String(alias||"").trim();
+      if(rawAlias.length<3)continue;
+      const rawIndex=fullText.toUpperCase().indexOf(rawAlias.toUpperCase());
+      if(rawIndex<0)continue;
+      const excerpt=fullText.slice(Math.max(0,rawIndex-350),Math.min(fullText.length,rawIndex+850));
+      if(excerpt.length>=80)snippets.push("MARKET "+market.title+": "+excerpt);
+      excerptAdded=true;
+      break;
     }
+    if(!excerptAdded)continue;
   }
-  const chart=[...new Set(snippets)].join("\n--- CHART EXCERPT ---\n").slice(0,16000);
+  const chart=[...new Set(snippets)].join("\n---\n").slice(0,4200);
   if(chart.length<80)return {values:{},reason:"chart_context_too_short"};
   const requested=relevantMarkets.map(m=>{
     const d=targetDays[m.title];
