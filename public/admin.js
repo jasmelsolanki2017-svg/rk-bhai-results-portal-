@@ -105,6 +105,19 @@ async function loadAutoSyncStatus(){
     ?'<div style="margin-top:5px;color:#e7b84c;font-size:12px">संदिग्ध मिलान रोका: '+item.ambiguousValues.map(x=>esc(x.value)+" ("+(x.markets||[]).map(esc).join(", ")+")").join(" · ")+'</div>':"";
    return '<div style="padding:9px 0;border-top:1px solid var(--border,#333);font-size:13px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div style="min-width:0;overflow-wrap:anywhere"><strong>'+esc(host||item.market||"Source")+'</strong><div class="muted">'+esc(passNames[item.pass]||item.pass||"")+' · '+esc(resultNames[item.result]||item.result||"स्थिति उपलब्ध नहीं")+'</div></div><span class="muted" style="white-space:nowrap">'+esc(status)+'</span></div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px">'+cells+'</div>'+ambiguous+'</div>';
   }).join("");
+  const aiBox=$("#aiDataMonitor");
+  if(aiBox){
+   const aiEvents=diagnostics.filter(item=>item.aiProvider==="groq"||item.aiReason||item.result==="groq_fallback");
+   const reasonNames={groq_exact_evidence:"AI ने exact evidence के साथ नंबर पहचाना",groq_no_verified_evidence:"AI को verify करने योग्य नंबर नहीं मिला",groq_http_429:"Groq rate limit (429)",groq_http_401:"Groq API key स्वीकार नहीं हुई (401)",groq_http_403:"Groq access denied (403)",groq_http_500:"Groq server error (500)",groq_invalid_json:"AI response JSON सही नहीं था",groq_request_error:"AI request में error",chart_context_too_short:"AI को पर्याप्त chart data नहीं मिला"};
+   aiBox.innerHTML=aiEvents.length?aiEvents.map(item=>{
+    const host=String(item.url||"").replace(/^https?:\\/\\//,"").split("/")[0]||"AI source";
+    const found=Array.isArray(item.aiMarketsFound)?item.aiMarketsFound:[];
+    const ok=item.aiReason==="groq_exact_evidence"&&found.length>0;
+    const status=reasonNames[item.aiReason]||item.aiReason||"AI status उपलब्ध नहीं";
+    const numbers=found.length?found.map(m=>'<span style="display:inline-flex;gap:5px;padding:5px 8px;border:1px solid var(--border,#444);border-radius:7px;font-size:12px"><strong>'+esc(m)+'</strong><span style="color:#35c979">Evidence verified</span></span>').join(""):'<span class="muted">कोई AI-verified नंबर नहीं</span>';
+    return '<article style="padding:11px 0;border-top:1px solid var(--border,#333)"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><strong>'+esc(host)+'</strong><span style="font-size:12px;color:'+(ok?'#35c979':'#e7b84c')+'">'+esc(status)+'</span></div><p class="muted" style="font-size:12px;margin:5px 0">Pass: '+esc(item.pass||"—")+' · Chart data: '+esc(item.chartChars??"—")+' characters · Truncated: '+(item.chartWasTruncated?"हाँ":"नहीं")+'</p><div style="display:flex;flex-wrap:wrap;gap:6px">'+numbers+'</div>'+(item.detail?'<p class="muted" style="font-size:12px;overflow-wrap:anywhere">'+esc(item.detail)+'</p>':"")+'</article>';
+   }).join(""):'<p class="muted">इस Sync cycle में Groq AI का कोई attempt दर्ज नहीं है। AI सिर्फ चुनी हुई websites पर चलता है।</p>';
+  }
   box.innerHTML='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0"><strong style="color:'+color+'">'+esc(labels[data.status]||data.status||"Unknown")+'</strong><span class="muted">Last check: '+esc(when)+'</span></div><p style="margin:6px 0;white-space:pre-wrap">'+esc(data.message||"कोई विवरण नहीं")+'</p><p class="muted" style="margin:4px 0">कुल Source Requests: '+esc(data.attempts??diagnostics.length)+' · हर वेबसाइट की स्थिति नीचे</p>'+buildSourceCityChart(diagnostics)+'<div style="margin-top:8px"><h3 style="font-size:15px;margin:0 0 6px">वेबसाइट की जाँच का विवरण</h3>'+(sourceRows||'<p class="muted">अभी Source-wise विवरण उपलब्ध नहीं है। अगली Sync के बाद दिखेगा।</p>')+'</div>';
  }catch(error){
   box.innerHTML='<span class="muted">अभी sync status उपलब्ध नहीं है। अगली automatic run के बाद यहाँ दिखाई देगा। ('+esc(error.message)+')</span>';
