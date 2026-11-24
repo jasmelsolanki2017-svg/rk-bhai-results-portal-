@@ -429,6 +429,73 @@ function parseMarketValues(html, marketNames, targetDay = null) {
   return null;
 }
 
+
+let aiFallbackCallsThisPass = 0;
+const AI_FALLBACK_MAX_PER_PASS = 3;
+
+function aiChartText(html) {
+  return decodeHtml(String(html || "")
+    .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style\b[\s\S]*?<\/style>/gi, " ")
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<\/(?:td|th)\s*>/gi, " | ")
+    .replace(/<\/(?:tr|li|article|section|div|p|h[1-6])\s*>/gi, "\n")
+    .replace(/<br\s*\/?\s*>/gi, "\n")
+    .replace(/<[^>]+>/g, " "))
+    .replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n").trim();
+}
+function aiCompact(value) {
+  return String(value || "").toUpperCase().replace(/[^A-Z0-9\u0900-\u097F]/g, "");
+}
+async function parseUnresolvedMarketsWithGemini(html, sourceUrl, markets, targetDays) {
+  const key=process.env.GEMINI_API_KEY;
+  if(!key || !markets.length || aiFallbackCallsThisPass>=AI_FALLBACK_MAX_PER_PASS)
+    return {values:{},reason:!key?"gemini_key_missing":"ai_limit"};
+  const chart=aiChartText(html).slice(0,16000);
+  if(chart.length<80)return {values:{},reason:"chart_text_too_short"};
+  const requested=markets.map(m=>{
+    const d=targetDays[m.title];
+    return m.title+" aliases ["+(m.source||[]).slice(0,8).join(", ")+"] exact date "+
+      d.year+"-"+String(d.month).padStart(2,"0")+"-"+String(d.day).padStart(2,"0");
+  }).join("\n");
+  aiFallbackCallsThisPass++;
+  try {
+    const res=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key="+encodeURIComponent(key),{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({contents:[{role:"user",parts:[{text:[
+        "Strict chart transcription only. Read the supplied source text; do not guess, infer, calculate, or use nearby dates.",
+        "For each requested market, return a value only if its visible market label, exact requested date context, and two-digit result are shown in the same chart/table context.",
+        "Include evidence as an exact contiguous quotation copied from the source text, showing market, date context, and result. Omit uncertain or absent results.",
+        "Return JSON only: {\"results\":[{\"market\":\"Disawar\",\"value\":\"12\",\"evidence\":\"exact copied quote\"}]}",
+        "Requested markets:\n"+requested,"Source URL: "+sourceUrl,"Source text:\n"+chart
+      ].join("\n\n") }]}],generationConfig:{temperature:0,responseMimeType:"application/json"}}),
+      signal:AbortSignal.timeout(12000)
+    });
+    if(!res.ok)return {values:{},reason:"gemini_http_"+res.status,detail:(await res.text()).slice(0,200)};
+    const payload=await res.json();
+    const raw=payload.candidates?.[0]?.content?.parts?.map(p=>p.text||"").join("")||"";
+    let data;
+    try{data=JSON.parse(raw);}catch(e){const m=raw.match(/\{[\s\S]*\}/);if(!m)return {values:{},reason:"gemini_invalid_json"};data=JSON.parse(m[0]);}
+    const sourceCompact=aiCompact(chart), values={};
+    for(const item of Array.isArray(data.results)?data.results:[]){
+      const market=markets.find(m=>m.title.toLowerCase()===String(item.market||"").trim().toLowerCase());
+      const value=String(item.value||"").trim(), evidence=String(item.evidence||"").trim();
+      if(!market||!/^\d{2}$/.test(value)||evidence.length<8)continue;
+      const quote=aiCompact(evidence);
+      if(quote.length<8||!sourceCompact.includes(quote))continue;
+      const aliases=(market.source||[]).map(aiCompact).filter(a=>a.length>=3);
+      if(!aliases.some(a=>quote.includes(a))||!quote.includes(value))continue;
+      const d=targetDays[market.title], months=["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
+      const day=String(d.day), month=months[d.month-1], short=month.slice(0,3);
+      const dated=[day+" "+month,month+" "+day,day+" "+short,short+" "+day,
+        String(d.year)+"-"+String(d.month).padStart(2,"0")+"-"+String(d.day).padStart(2,"0"),
+        String(d.day).padStart(2,"0")+"/"+String(d.month).padStart(2,"0")+"/"+d.year].some(x=>quote.includes(aiCompact(x)));
+      if(dated)values[market.title]=value;
+    }
+    return {values,reason:Object.keys(values).length?"gemini_exact_evidence":"gemini_no_verified_evidence"};
+  }catch(e){return {values:{},reason:"gemini_request_error",detail:String(e.message||e).slice(0,180)};}
+}
+
 async function publishSyncStatus(status, message) {
   const token = process.env.GITHUB_TOKEN;
   if (!token) throw new Error("GitHub Actions token is missing; sync status could not be published.");
@@ -468,6 +535,7 @@ async function publishSyncStatus(status, message) {
 }
 
 async function fetchSourceHtml(passLabel) {
+  aiFallbackCallsThisPass = 0;
   const today = getIndiaDateParts();
   const galiDate = getGaliResultDateParts();
 
@@ -564,6 +632,26 @@ async function fetchSourceHtml(passLabel) {
             marketParsers[market.title] = "date_result_history_table";
           }
         }
+      }
+
+      const unresolvedMarkets = RUN_MARKETS.filter(market => !marketResults[market.title]);
+      if (unresolvedMarkets.length && process.env.GEMINI_API_KEY &&
+          aiFallbackCallsThisPass < AI_FALLBACK_MAX_PER_PASS) {
+        const targetDays = Object.fromEntries(unresolvedMarkets.map(market => [
+          market.title, market.title === "Gali" ? galiDate : today
+        ]));
+        const aiResult = await parseUnresolvedMarketsWithGemini(html, sourceUrl, unresolvedMarkets, targetDays);
+        for (const [marketTitle, value] of Object.entries(aiResult.values || {})) {
+          if (!marketResults[marketTitle]) {
+            marketResults[marketTitle] = value;
+            marketParsers[marketTitle] = "gemini_exact_source_evidence";
+          }
+        }
+        sourceDiagnostics.push({
+          pass: passLabel, url: sourceUrl, result: "gemini_fallback",
+          aiReason: aiResult.reason, aiMarketsFound: Object.keys(aiResult.values || {}),
+          detail: aiResult.detail || undefined
+        });
       }
 
       // Equal two-digit values may legitimately occur in different markets.
