@@ -682,6 +682,12 @@ async function fetchSourceHtml(passLabel) {
             (market.title === "Faridabad" || market.title === "Ghaziabad")) {
           continue;
         }
+        // sattaking.live currently labels an unconfirmed 44 as Ghaziabad.
+        // Exclude only this market from this source; retain its other markets.
+        if (new URL(sourceUrl).hostname.toLowerCase() === "sattaking.live" &&
+            market.title === "Ghaziabad") {
+          continue;
+        }
         const targetDay = market.title === "Gali" ? galiDate : today;
         // First choice: exact date row + exact market column in monthly charts.
         // 1XSatta uses a separate year-grid page per market; its home page
