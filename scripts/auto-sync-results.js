@@ -501,7 +501,7 @@ async function parseUnresolvedMarketsWithGemini(html, sourceUrl, markets, target
     for(const item of Array.isArray(data.results)?data.results:[]){
       const market=relevantMarkets.find(m=>m.title.toLowerCase()===String(item.market||"").trim().toLowerCase());
       const value=String(item.value||"").trim(), evidence=String(item.evidence||"").trim();
-      if(!market||!/^\\d{2}$/.test(value)||evidence.length<8)continue;
+      if(!market||!/^\d{2}$/.test(value)||evidence.length<8)continue;
       const quote=aiCompact(evidence);
       if(quote.length<8||!sourceCompact.includes(quote))continue;
       const aliases=(market.source||[]).map(aiCompact).filter(a=>a.length>=3);
