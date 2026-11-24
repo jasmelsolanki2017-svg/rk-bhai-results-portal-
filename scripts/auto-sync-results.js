@@ -143,23 +143,11 @@ function parseSourceDate(html) {
   throw new Error("Source date not recognized: no current dated heading or current-month chart row.");
 }
 function parseSourceSpecificMarketValue(html, sourceUrl, market, targetDay) {
-  // Generic fallback for every configured automatic market and source.
-  // Only a unique two-digit value immediately after the market's own alias is accepted.
-  const raw = String(html || '').replace(/<script\b[\s\S]*?<\/script>/gi, ' ').replace(/<style\b[\s\S]*?<\/style>/gi, ' ');
-  const candidates = new Set();
-  for (const alias of market.source || []) {
-    const normalizedAlias = String(alias).trim().toUpperCase().replace(/\s+/g, '\\s+');
-    const re = new RegExp('(^|[^A-Z0-9])' + normalizedAlias + '(?=$|[^A-Z0-9])', 'ig');
-    let match;
-    while ((match = re.exec(raw))) {
-      const after = raw.slice(match.index + match[0].length, match.index + match[0].length + 140);
-      const text = decodeHtml(after.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
-      const values = [...text.matchAll(/(?:^|\D)(\d{2})(?=\D|$)/g)].map(item => item[1]);
-      const unique = [...new Set(values)];
-      if (unique.length === 1) candidates.add(unique[0]);
-    }
-  }
-  return candidates.size === 1 ? [...candidates][0] : null;
+  // Do not infer results from loose text following a market name.
+  // That can mistake schedule times (for example 5:50 PM) or unrelated
+  // numbers for a result. Until a source-specific, date-bound card parser
+  // exists, accept values only from parseMarketValues() exact date+column rows.
+  return null;
 }
 
 function parseMarketValues(html, marketNames, targetDay = null) {
