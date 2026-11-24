@@ -768,7 +768,7 @@ function buildConsensus(observations) {
       pending[market.title] = {
         votes: ranked.map(([value, hosts]) => ({ value, count: hosts.size, sources: [...hosts.values()] })),
         disputedDomains,
-        reason: !winner || winner[1].size < 2 ? "fewer_than_two_independent_domains" :
+        reason: !winner || winner[1].size < 3 ? "fewer_than_three_independent_domains" :
           (tiedForFirst ? "tie_for_highest_votes" : "no_clear_majority")
       };
     }
