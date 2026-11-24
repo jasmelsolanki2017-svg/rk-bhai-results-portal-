@@ -15,6 +15,7 @@ const SOURCE_URLS = [
   "https://galidisawer.com/",
   // Verified direct monthly chart pages / result pages
   "https://satta.live/record_chart/disawar_record_chart.php",
+  "https://www.realsattaking.com/",
   "https://www.faridabadlucky.com/chart/new-disawar/" + new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit" }).format(new Date()),
   "https://www.delhilucky.com/chart/new-disawar/" + new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit" }).format(new Date()) + "?lang=hi",
   "https://satta-fast.com/satta-king-chart-" + new Intl.DateTimeFormat("en", { timeZone: "Asia/Kolkata", month: "long" }).format(new Date()).toLowerCase() + "-" + getIndiaDateParts().year,
@@ -27,6 +28,8 @@ const SOURCE_URLS = [
   "https://sattafree.com/game-history.php?game=shree-ganesh"
 ];
 let activeSourceUrl = SOURCE_URLS[0];
+// Groq AI is intentionally restricted to these two pilot source domains.
+const GROQ_ALLOWED_HOSTS = new Set(["satta.live", "www.realsattaking.com", "realsattaking.com"]);
 const sourceDiagnostics = [];
 const REPO = process.env.GITHUB_REPOSITORY || "jasmelsolanki2017-svg/rk-bhai-results-portal-";
 const SNAPSHOT_BRANCH = "public-data";
@@ -448,6 +451,8 @@ function aiCompact(value) {
   return String(value || "").toUpperCase().replace(/[^A-Z0-9\u0900-\u097F]/g, "");
 }
 async function parseUnresolvedMarketsWithGemini(html, sourceUrl, markets, targetDays) {
+  const host = new URL(sourceUrl).hostname.toLowerCase();
+  if (!GROQ_ALLOWED_HOSTS.has(host)) return {values:{},reason:"groq_site_not_enabled"};
   const key=process.env.GROQ_API_KEY;
   if(!key || !markets.length || aiFallbackCallsThisPass>=AI_FALLBACK_MAX_PER_PASS)
     return {values:{},reason:!key?"groq_key_missing":"ai_limit"};
@@ -662,7 +667,8 @@ async function fetchSourceHtml(passLabel) {
       }
 
       const unresolvedMarkets = RUN_MARKETS.filter(market => !marketResults[market.title]);
-      if (unresolvedMarkets.length && process.env.GROQ_API_KEY &&
+      const groqEnabledForSource = GROQ_ALLOWED_HOSTS.has(new URL(sourceUrl).hostname.toLowerCase());
+      if (unresolvedMarkets.length && groqEnabledForSource && process.env.GROQ_API_KEY &&
           aiFallbackCallsThisPass < AI_FALLBACK_MAX_PER_PASS) {
         const targetDays = Object.fromEntries(unresolvedMarkets.map(market => [
           market.title, market.title === "Gali" ? galiDate : today
@@ -671,12 +677,12 @@ async function fetchSourceHtml(passLabel) {
         for (const [marketTitle, value] of Object.entries(aiResult.values || {})) {
           if (!marketResults[marketTitle]) {
             marketResults[marketTitle] = value;
-            marketParsers[marketTitle] = "gemini_exact_source_evidence";
+            marketParsers[marketTitle] = "groq_exact_source_evidence";
           }
         }
         sourceDiagnostics.push({
-          pass: passLabel, url: sourceUrl, result: "gemini_fallback",
-          aiReason: aiResult.reason, aiMarketsFound: Object.keys(aiResult.values || {}),
+          pass: passLabel, url: sourceUrl, result: "groq_fallback",
+          aiProvider: "groq", aiReason: aiResult.reason, aiMarketsFound: Object.keys(aiResult.values || {}),
           detail: aiResult.detail || undefined
         });
       }
