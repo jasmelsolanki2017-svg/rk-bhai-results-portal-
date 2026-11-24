@@ -242,8 +242,44 @@ function parseMarketValues(html, marketNames, targetDay = null) {
     if (dayRow && dayRow[column] && /^\d{2}$/.test(dayRow[column])) return dayRow[column];
   }
 
-  // Safety: do not scrape loosely-associated live text blocks. Only a value
-  // from the exact current-date row and the exact market column is acceptable.
+  // Structured text-table fallback for sites that render chart rows with
+  // div/span markup instead of semantic <table>/<tr>/<td> elements.
+  // Preserve cell boundaries, then require an exact date header + exact
+  // market header + exact target-day row before reading a two-digit value.
+  const structured = decodeHtml(String(html || ""))
+    .replace(/<\\/(?:td|th)\\s*>/gi, " | ")
+    .replace(/<\\/(?:tr|li|article|section)\\s*>/gi, "\\n")
+    .replace(/<br\\s*\\/?\\s*>/gi, "\\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ");
+  const lines = structured.split(/[\\r\\n]+/)
+    .map(line => line.replace(/\\s+/g, " ").trim())
+    .filter(Boolean);
+  const dayTokens = new Set([
+    String(targetDay.day),
+    String(targetDay.day).padStart(2, "0"),
+    String(targetDay.day).padStart(2, "0") + "-" + String(targetDay.month).padStart(2, "0"),
+    String(targetDay.day).padStart(2, "0") + "/" + String(targetDay.month).padStart(2, "0")
+  ]);
+  for (let h = 0; h < lines.length; h++) {
+    const headerCells = lines[h].split("|").map(normalize).filter(Boolean);
+    const dateCol = headerCells.findIndex(cell => /^(DATE|DAY|TAREEKH|तारीख)$/.test(cell));
+    if (dateCol < 0) continue;
+    const marketCol = headerCells.findIndex((cell, index) => index !== dateCol &&
+      aliases.some(alias => cell === alias || cell.startsWith(alias + " ") || cell.includes(" " + alias + " ")));
+    if (marketCol < 0) continue;
+    for (let r = h + 1; r < Math.min(lines.length, h + 40); r++) {
+      const rowCells = lines[r].split("|").map(normalize).filter(Boolean);
+      if (rowCells.length <= Math.max(dateCol, marketCol)) continue;
+      const rowDate = rowCells[dateCol].replace(/[^A-Z0-9/-]/g, "");
+      if (!dayTokens.has(rowDate)) continue;
+      const value = rowCells[marketCol];
+      if (/^\\d{2}$/.test(value)) return value;
+      return null;
+    }
+  }
+
+  // Never infer a result from nearby page text.
   return null;
 }
 
