@@ -251,7 +251,7 @@ function parseSourceDate(html) {
   }
   throw new Error("Source date not recognized: no current dated heading or current-month chart row.");
 }
-function parseSattaSuperfastTodayTable(html, market, targetDay) {
+function parseSattaSuperfastTodayTable(html, market, targetDay, trace = null) {
   // This source uses a fixed MARKET | TIME | RECORD | YESTERDAY | TODAY table.
   // Read only the correct date column from the exact market row. In particular,
   // never let a previous-day number (e.g. Faridabad 81) leak into another market.
@@ -289,6 +289,13 @@ function parseSattaSuperfastTodayTable(html, market, targetDay) {
       const rowMarket = row[marketCol];
       if (!aliases.some(alias => rowMarket === alias)) continue;
       const value = row[resultCol];
+      if (Array.isArray(trace)) trace.push({
+        market: rowMarket,
+        targetDate: String(targetDay.year) + "-" + String(targetDay.month).padStart(2, "0") + "-" + String(targetDay.day).padStart(2, "0"),
+        selectedColumn: isTargetToday ? "TODAY" : "YESTERDAY",
+        selectedValue: value || null,
+        rowCells: row
+      });
       if (/^\d{2}$/.test(value)) matches.push(value);
     }
   }
@@ -779,7 +786,15 @@ async function fetchSourceHtml(passLabel) {
         const isSattaSuperfast = new URL(sourceUrl).hostname.toLowerCase() === "satta-superfast.com";
         if (isSattaSuperfast) {
           aiExcludedMarkets.add(market.title);
-          const value = parseSattaSuperfastTodayTable(html, market, targetDay);
+          const parserTrace = [];
+          const value = parseSattaSuperfastTodayTable(html, market, targetDay, parserTrace);
+          sourceDiagnostics.push({
+            pass: passLabel, url: sourceUrl, result: "satta_superfast_parser_trace",
+            market: market.title,
+            targetDate: String(targetDay.year) + "-" + String(targetDay.month).padStart(2, "0") + "-" + String(targetDay.day).padStart(2, "0"),
+            parsedValue: value,
+            trace: parserTrace
+          });
           if (value) {
             marketResults[market.title] = value;
             marketParsers[market.title] = "satta_superfast_exact_market_today_yesterday_table";
