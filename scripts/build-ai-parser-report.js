@@ -41,16 +41,30 @@ async function main() {
   const aiByMarket = {};
 
   for (const item of diagnostics) {
-    if (item.result !== "dated_values_found" || !item.marketValues) continue;
-    const parsers = item.marketParsers || {};
     const host = (() => { try { return new URL(item.url).hostname.toLowerCase(); } catch { return item.url || "unknown"; } })();
+
+    // DeepSeek values are stored in a separate deepseek_fallback diagnostic.
+    // Read them directly instead of expecting them inside marketValues.
+    if (item.result === "deepseek_fallback" && item.aiMarketValues && typeof item.aiMarketValues === "object") {
+      for (const [market, value] of Object.entries(item.aiMarketValues)) {
+        if (!/^\d{2}$/.test(String(value))) continue;
+        (aiByMarket[market] ||= []).push({
+          value: String(value), host, url: item.url, provider: item.aiProvider || "AI",
+          model: item.aiModel || "", pass: item.pass || ""
+        });
+      }
+    }
+
+    if (item.result !== "dated_values_found" || !item.marketValues || typeof item.marketValues !== "object") continue;
+    const parsers = item.marketParsers || {};
     for (const [market, value] of Object.entries(item.marketValues)) {
       if (!/^\d{2}$/.test(String(value))) continue;
       const method = parsers[market] || "unknown";
+      const observation = { value: String(value), host, url: item.url, parser: method, pass: item.pass || "" };
       if (method === "deepseek_exact_source_evidence") {
-        (aiByMarket[market] ||= []).push({ value: String(value), host, url: item.url, pass: item.pass || "" });
+        (aiByMarket[market] ||= []).push({ ...observation, provider: "AI" });
       } else {
-        (parserByMarket[market] ||= []).push({ value: String(value), host, url: item.url, parser: method, pass: item.pass || "" });
+        (parserByMarket[market] ||= []).push(observation);
       }
     }
   }
