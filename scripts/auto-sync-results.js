@@ -26,9 +26,9 @@ const SOURCE_URLS = [
   "https://sattafree.com/game-history.php?game=shree-ganesh"
 ];
 let activeSourceUrl = SOURCE_URLS[0];
-// Groq AI is intentionally restricted to these two pilot source domains.
-// Groq AI fallback is now restricted to the four user-prioritized source domains.
-const GROQ_ALLOWED_HOSTS = new Set(["kingsofsatta.com", "satta-king-gali.com", "sattafree.com", "galidisawer.com"]);
+// DeepSeek AI fallback can inspect every source URL already configured in the normal parser.
+// A source still contributes only one independent-domain vote to consensus.
+const AI_ALLOWED_HOSTS = new Set(SOURCE_URLS.map(url => new URL(url).hostname.toLowerCase()));
 const sourceDiagnostics = [];
 const REPO = process.env.GITHUB_REPOSITORY || "jasmelsolanki2017-svg/rk-bhai-results-portal-";
 const SNAPSHOT_BRANCH = "public-data";
@@ -55,10 +55,10 @@ const MARKET_SCHEDULES = {
   "Shree Ganesh": "16:45"
 };
 
-// Groq AI is allowed only during the first 30 minutes after each market's
-// scheduled release time (India time). The normal parser continues all day.
-const GROQ_RELEASE_WINDOW_MINUTES = 30;
-function isGroqMarketWindowOpen(marketTitle, now = new Date()) {
+// DeepSeek AI is allowed only during the configured release window for each market.
+// The normal parser continues checking all configured sources throughout the day.
+const AI_RELEASE_WINDOW_MINUTES = 30;
+function isAiMarketWindowOpen(marketTitle, now = new Date()) {
   const clock = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hourCycle: "h23"
   }).format(now);
@@ -75,7 +75,7 @@ function isGroqMarketWindowOpen(marketTitle, now = new Date()) {
   const [scheduledHour, scheduledMinute] = scheduled.split(":").map(Number);
   const releaseMinutes = scheduledHour * 60 + scheduledMinute;
   const elapsed = (currentMinutes - releaseMinutes + 1440) % 1440;
-  return elapsed >= 0 && elapsed < GROQ_RELEASE_WINDOW_MINUTES;
+  return elapsed >= 0 && elapsed < AI_RELEASE_WINDOW_MINUTES;
 }
 
 const Result = mongoose.model("Result", new mongoose.Schema({
@@ -501,7 +501,7 @@ function parseMarketValues(html, marketNames, targetDay = null) {
 
 
 let aiFallbackCallsThisPass = 0;
-const AI_FALLBACK_MAX_PER_PASS = 4;
+const AI_FALLBACK_MAX_PER_PASS = 4; // Token/rate-limit guard; AI is not called for every page.
 
 function aiChartText(html) {
   return decodeHtml(String(html || "")
@@ -517,12 +517,12 @@ function aiChartText(html) {
 function aiCompact(value) {
   return String(value || "").toUpperCase().replace(/[^A-Z0-9\u0900-\u097F]/g, "");
 }
-async function parseUnresolvedMarketsWithGemini(html, sourceUrl, markets, targetDays) {
+async function parseUnresolvedMarketsWithDeepSeek(html, sourceUrl, markets, targetDays) {
   const host = new URL(sourceUrl).hostname.toLowerCase();
-  if (!GROQ_ALLOWED_HOSTS.has(host)) return {values:{},reason:"groq_site_not_enabled"};
-  const key=process.env.GROQ_API_KEY;
+  if (!AI_ALLOWED_HOSTS.has(host)) return {values:{},reason:"ai_site_not_enabled"};
+  const key=process.env.COARENA_API_KEY;
   if(!key || !markets.length || aiFallbackCallsThisPass>=AI_FALLBACK_MAX_PER_PASS)
-    return {values:{},reason:!key?"groq_key_missing":"ai_limit"};
+    return {values:{},reason:!key?"coarena_key_missing":"ai_limit"};
   const fullText=aiChartText(html);
   const fullCompact=aiCompact(fullText);
   const relevantMarkets=markets.filter(m=>(m.source||[]).some(alias=>{
@@ -562,23 +562,23 @@ async function parseUnresolvedMarketsWithGemini(html, sourceUrl, markets, target
   aiFallbackCallsThisPass++;
   try {
     const prompt=[
-      "Strict chart transcription only. The supplied text contains complete relevant HTML table rows plus page text from this pilot website. Read all supplied chart rows; do not guess, infer, calculate, or use nearby dates.",
+      "Strict chart transcription only. The supplied text comes from a website already configured in the normal results parser. Read the supplied chart rows; do not guess, infer, calculate, or use nearby dates.",
       "For each requested market, return a value only if its visible market label, exact requested date context, and two-digit result are shown in the same chart/table context.",
       "Include evidence as an exact contiguous quotation copied from the source text, showing market, date context, and result. Omit uncertain or absent results.",
       'Return JSON only: {"results":[{"market":"Disawar","value":"12","evidence":"exact copied quote"}]}',
       "Requested markets:\\n"+requested,"Source URL: "+sourceUrl,"Complete chart/page data (may include multiple full tables):\\n"+chart
     ].join("\n\n");
-    const res=await fetch("https://api.groq.com/openai/v1/chat/completions",{
+    const res=await fetch("https://coarena.ai/api/v1/chat/completions",{
       method:"POST",
       headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
-      body:JSON.stringify({model:"openai/gpt-oss-120b",messages:[{role:"user",content:prompt}],response_format:{type:"json_object"}}),
+      body:JSON.stringify({model:"deepseek-v4-1-flash-1017",messages:[{role:"user",content:prompt}],response_format:{type:"json_object"}}),
       signal:AbortSignal.timeout(25000)
     });
-    if(!res.ok)return {values:{},reason:"groq_http_"+res.status,detail:(await res.text()).slice(0,200)};
+    if(!res.ok)return {values:{},reason:"coarena_http_"+res.status,detail:(await res.text()).slice(0,200)};
     const payload=await res.json();
     const raw=payload.choices?.[0]?.message?.content||"";
     let data;
-    try{data=JSON.parse(raw);}catch(e){const m=raw.match(/\{[\s\S]*\}/);if(!m)return {values:{},reason:"groq_invalid_json"};data=JSON.parse(m[0]);}
+    try{data=JSON.parse(raw);}catch(e){const m=raw.match(/\{[\s\S]*\}/);if(!m)return {values:{},reason:"coarena_invalid_json"};data=JSON.parse(m[0]);}
     const sourceCompact=aiCompact(chart), values={};
     for(const item of Array.isArray(data.results)?data.results:[]){
       const market=relevantMarkets.find(m=>m.title.toLowerCase()===String(item.market||"").trim().toLowerCase());
@@ -597,8 +597,8 @@ async function parseUnresolvedMarketsWithGemini(html, sourceUrl, markets, target
         dd+"-"+mm+"-"+yyyy,day+"-"+mm+"-"+yyyy].some(x=>quote.includes(aiCompact(x)));
       if(dated)values[market.title]=value;
     }
-    return {values,reason:Object.keys(values).length?"groq_exact_evidence":"groq_no_verified_evidence",chartChars:chart.length,chartWasTruncated};
-  }catch(e){return {values:{},reason:"groq_request_error",detail:String(e.message||e).slice(0,180)};}
+    return {values,reason:Object.keys(values).length?"deepseek_exact_evidence":"deepseek_no_verified_evidence",chartChars:chart.length,chartWasTruncated};
+  }catch(e){return {values:{},reason:"coarena_request_error",detail:String(e.message||e).slice(0,180)};}
 }
 
 async function publishSyncStatus(status, message) {
@@ -696,6 +696,7 @@ async function fetchSourceHtml(passLabel) {
       }
       const marketResults = {};
       const marketParsers = {};
+      const aiExcludedMarkets = new Set();
       for (const market of RUN_MARKETS) {
         // These two "new-disawar" chart endpoints have produced premature
         // Faridabad and Ghaziabad values that are not today's results.
@@ -705,12 +706,14 @@ async function fetchSourceHtml(passLabel) {
           sourceUrl.includes("delhilucky.com/chart/new-disawar");
         if (isNewDisawarChart &&
             (market.title === "Faridabad" || market.title === "Ghaziabad")) {
+          aiExcludedMarkets.add(market.title);
           continue;
         }
         // sattaking.live currently labels an unconfirmed 44 as Ghaziabad.
         // Exclude only this market from this source; retain its other markets.
         if (new URL(sourceUrl).hostname.toLowerCase() === "sattaking.live" &&
             market.title === "Ghaziabad") {
+          aiExcludedMarkets.add(market.title);
           continue;
         }
         const targetDay = market.title === "Gali" ? galiDate : today;
@@ -721,6 +724,7 @@ async function fetchSourceHtml(passLabel) {
         const is1xSatta = sourceUrl.includes("1xsatta.today/");
         const isSattaSuperfast = new URL(sourceUrl).hostname.toLowerCase() === "satta-superfast.com";
         if (isSattaSuperfast) {
+          aiExcludedMarkets.add(market.title);
           const value = parseSattaSuperfastTodayTable(html, market, targetDay);
           if (value) {
             marketResults[market.title] = value;
@@ -767,10 +771,10 @@ async function fetchSourceHtml(passLabel) {
       }
 
       const unresolvedMarkets = RUN_MARKETS.filter(market =>
-        !marketResults[market.title] && isGroqMarketWindowOpen(market.title)
+        !marketResults[market.title] && !aiExcludedMarkets.has(market.title) && isAiMarketWindowOpen(market.title)
       );
-      const groqEnabledForSource = GROQ_ALLOWED_HOSTS.has(new URL(sourceUrl).hostname.toLowerCase());
-      if (unresolvedMarkets.length && groqEnabledForSource && process.env.GROQ_API_KEY) {
+      const aiEnabledForSource = AI_ALLOWED_HOSTS.has(new URL(sourceUrl).hostname.toLowerCase());
+      if (unresolvedMarkets.length && aiEnabledForSource && process.env.COARENA_API_KEY) {
         // Ask Groq about one unresolved market per request. This keeps each
         // prompt focused and prevents unrelated market charts from consuming tokens.
         for (const market of unresolvedMarkets) {
@@ -778,16 +782,16 @@ async function fetchSourceHtml(passLabel) {
           const targetDays = {
             [market.title]: market.title === "Gali" ? galiDate : today
           };
-          const aiResult = await parseUnresolvedMarketsWithGemini(html, sourceUrl, [market], targetDays);
+          const aiResult = await parseUnresolvedMarketsWithDeepSeek(html, sourceUrl, [market], targetDays);
           for (const [marketTitle, value] of Object.entries(aiResult.values || {})) {
             if (!marketResults[marketTitle]) {
               marketResults[marketTitle] = value;
-              marketParsers[marketTitle] = "groq_exact_source_evidence";
+              marketParsers[marketTitle] = "deepseek_exact_source_evidence";
             }
           }
           sourceDiagnostics.push({
-            pass: passLabel, url: sourceUrl, result: "groq_fallback",
-            aiProvider: "groq", aiRequestedMarket: market.title,
+            pass: passLabel, url: sourceUrl, result: "deepseek_fallback",
+            aiProvider: "coarena", aiModel: "deepseek-v4-1-flash-1017", aiRequestedMarket: market.title,
             aiReason: aiResult.reason, aiMarketsFound: Object.keys(aiResult.values || {}),
             chartChars: aiResult.chartChars, chartWasTruncated: aiResult.chartWasTruncated,
             detail: aiResult.detail || undefined
