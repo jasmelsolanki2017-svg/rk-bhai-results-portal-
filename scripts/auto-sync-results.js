@@ -777,7 +777,7 @@ async function fetchSourceHtml(passLabel) {
           pass: passLabel, url: sourceUrl, result: "deepseek_fallback",
           aiProvider: "coarena", aiModel: "deepseek-v4-1-flash-1017",
           aiRequestedMarkets: aiMarkets.map(market => market.title),
-          aiReason: aiResult.reason, aiMarketsFound: Object.keys(aiResult.values || {}),
+          aiReason: aiResult.reason, aiMarketsFound: Object.keys(aiResult.values || {}), aiMarketValues: aiResult.values || {},
           chartChars: aiResult.chartChars, chartWasTruncated: aiResult.chartWasTruncated,
           detail: aiResult.detail || undefined
         });
