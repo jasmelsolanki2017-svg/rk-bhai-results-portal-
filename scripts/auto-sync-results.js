@@ -79,6 +79,25 @@ const Result = mongoose.model("Result", new mongoose.Schema({
   createdAt: Date
 }, { strict: false }));
 
+// Notify Telegram only for explicitly published, non-deleted results.
+async function notifyTelegramPublishedResult(row) {
+  const endpoint = process.env.TELEGRAM_WORKER_URL;
+  const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
+  if (!endpoint || !secret || !row || row.published !== true || row.deleted === true) return;
+  try {
+    const response = await fetch(endpoint.replace(/\/$/, "") + "/publish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-webhook-secret": secret },
+      body: JSON.stringify({ id: String(row._id), title: row.title, resultText: row.resultText, resultDate: row.resultDate, published: true, deleted: false }),
+      signal: AbortSignal.timeout(10000)
+    });
+    if (!response.ok) throw new Error("Telegram Worker HTTP " + response.status);
+    console.log("Telegram publish notification accepted:", String(row._id));
+  } catch (error) {
+    console.error("Telegram publish notification failed:", error.message);
+  }
+}
+
 const City = mongoose.model("PortalCity", new mongoose.Schema({
   userId: mongoose.Schema.Types.ObjectId,
   cityName: String,
@@ -1313,7 +1332,14 @@ async function main() {
     cycleResolvedMarkets.add(market.title);
     console.log("Verified and synced", market.title, evidence.value, "from", evidence.domains.join(", "));
   }
-  if (insertedOrUpdated) await updatePublicSnapshot();
+  if (insertedOrUpdated) {
+    await updatePublicSnapshot();
+    const publishedRows = await Result.find({
+      title: { $in: RUN_MARKETS.map(market => market.title) },
+      published: true, deleted: { $ne: true }
+    }).sort({ resultDate: -1 }).limit(RUN_MARKETS.length + 2).lean();
+    for (const row of publishedRows) await notifyTelegramPublishedResult(row);
+  }
   const summary = insertedOrUpdated + " मार्केट रिकॉर्ड दो स्वतंत्र डोमेन के सामान्य Parser मिलान के तुरंत बाद sync हुए।";
   console.log(summary + (pendingMarkets.length ? " पुष्टि बाकी: " + pendingMarkets.join(", ") + "." : "") +
     (conflicts.length ? " पुराने रिकॉर्ड से टकराव: " + conflicts.join(", ") + "; पुराने रिकॉर्ड सुरक्षित रखे।" : "") +
