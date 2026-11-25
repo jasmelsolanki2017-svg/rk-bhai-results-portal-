@@ -11,7 +11,13 @@ const XLSX = require("xlsx");
 const app = express();
 // Render runs behind one trusted proxy; use the original client IP for login throttling.
 app.set("trust proxy", 1);
-app.use(helmet({ contentSecurityPolicy: false }));
+// Start CSP in report-only mode first: collect browser violation reports in DevTools
+// without blocking existing inline scripts, styles, or cross-origin API requests.
+app.use(helmet({
+  contentSecurityPolicy: {
+    reportOnly: true
+  }
+}));
 app.use(express.json({ limit: "25mb" }));
 app.use(cookieParser());
 
