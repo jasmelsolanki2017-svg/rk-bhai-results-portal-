@@ -256,7 +256,8 @@ async function renderAdminTopResults(){
    const date=now?new Date(now.resultDate).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric",timeZone:"UTC"}):"";
    const message=["❤️ "+city.toUpperCase()+" ❤️","👇 LIVE RESULT 👇","","*✅   (( "+(isGali&&now?now.resultText:value)+" ))   ✅*","","Date : "+date,"","Website: https://jasmelsolanki2017-svg.github.io/rk-bhai-results-portal-/"].join("\n");
    const shareAttrs=now?'href="https://wa.me/?text='+encodeURIComponent(message)+'" target="_blank" rel="noopener" data-share-city="'+esc(city)+'" data-share-value="'+esc(isGali?now.resultText:value)+'" data-share-date="'+esc(now.resultDate)+'"':'aria-disabled="true"';
-   return '<article class="top-result-card"><h3>'+esc(city)+'</h3><p class="top-result-time">'+(time?'( '+esc(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous'+(blinkLeft?' result-blink':'')+'">'+(blinkLeft?'<span class="new-result-badge">NEW</span>':'')+(previousDisplay?esc(previousDisplay.resultText):"XX")+'</span><span class="top-result-arrow">➡️</span><span class="top-current-wrap">'+(blinkRight?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(blinkRight?' result-blink':'')+'">'+esc(value)+'</span></span></div><div class="dashboard-share-options"><a class="dashboard-whatsapp-share" '+shareAttrs+' data-share-mode="both">कार्ड + मैसेज</a><a class="dashboard-whatsapp-share" '+shareAttrs+' data-share-mode="card">केवल कार्ड</a><a class="dashboard-whatsapp-share" '+shareAttrs+' data-share-mode="message">केवल मैसेज</a></div></article>';
+   const telegramButton=now&&now.published===true?'<button type="button" class="dashboard-whatsapp-share telegram-manual-send" data-telegram-result-id="'+esc(now._id)+'">📨 Telegram भेजें</button>':'';
+   return '<article class="top-result-card"><h3>'+esc(city)+'</h3><p class="top-result-time">'+(time?'( '+esc(time)+' )':'&nbsp;')+'</p><div class="top-result-values"><span class="top-previous'+(blinkLeft?' result-blink':'')+'">'+(blinkLeft?'<span class="new-result-badge">NEW</span>':'')+(previousDisplay?esc(previousDisplay.resultText):"XX")+'</span><span class="top-result-arrow">➡️</span><span class="top-current-wrap">'+(blinkRight?'<span class="new-result-badge">NEW</span>':'')+'<span class="top-current'+(blinkRight?' result-blink':'')+'">'+esc(value)+'</span></span></div><div class="dashboard-share-options"><a class="dashboard-whatsapp-share" '+shareAttrs+' data-share-mode="both">कार्ड + मैसेज</a><a class="dashboard-whatsapp-share" '+shareAttrs+' data-share-mode="card">केवल कार्ड</a><a class="dashboard-whatsapp-share" '+shareAttrs+' data-share-mode="message">केवल मैसेज</a>'+telegramButton+'</div></article>';
   }).join("");
  }catch(error){box.innerHTML='<p class="muted">रिजल्ट लोड नहीं हो पाए: '+esc(error.message)+'</p>';}
 }
@@ -297,6 +298,14 @@ function downloadAdminResultCard(file){
  setTimeout(()=>URL.revokeObjectURL(url),1500);
 }
 const adminResultBox=$("#adminTopResultCards");
+if(adminResultBox)adminResultBox.addEventListener("click",async event=>{
+ const telegramButton=event.target.closest(".telegram-manual-send[data-telegram-result-id]");
+ if(!telegramButton)return;
+ if(!confirm("इस प्रकाशित रिजल्ट को Telegram चैनल पर भेजना है?"))return;
+ telegramButton.disabled=true;const oldText=telegramButton.textContent;telegramButton.textContent="भेजा जा रहा है…";
+ try{await api("/api/admin/results/"+encodeURIComponent(telegramButton.dataset.telegramResultId)+"/telegram",{method:"POST",body:JSON.stringify({})});telegramButton.textContent="✓ Telegram पर भेज दिया";telegramButton.classList.add("is-sent");}
+ catch(error){telegramButton.disabled=false;telegramButton.textContent=oldText;msg.textContent="Telegram भेजने में समस्या: "+error.message;}
+});
 if(adminResultBox)adminResultBox.addEventListener("click",event=>{
  const link=event.target.closest(".dashboard-whatsapp-share[data-share-city]");
  if(!link)return;
