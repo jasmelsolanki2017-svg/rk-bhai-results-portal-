@@ -518,11 +518,9 @@ async function parseUnresolvedMarketsWithDeepSeek(html, sourceUrl, markets, targ
   if (!AI_ALLOWED_HOSTS.has(host)) return {values:{},reason:"ai_site_not_enabled"};
   const key=process.env.COARENA_API_KEY;
   const fullText=aiChartText(html);
-  const fullCompact=aiCompact(fullText);
-  const relevantMarkets=markets.filter(m=>(m.source||[]).some(alias=>{
-    const a=aiCompact(alias); return a.length>=3 && fullCompact.includes(a);
-  }));
-  if(!relevantMarkets.length)return {values:{},reason:"no_requested_market_label_on_page"};
+  // Ask AI to inspect every configured market on each eligible homepage run.
+  // Evidence validation below remains mandatory, so absent/unclear markets stay unverified.
+  const relevantMarkets=markets.filter(m=>m.title!=="Chandigarh City");
   // Send complete relevant HTML chart tables instead of a tiny excerpt.
   // Preserve every row and cell so date, market and result columns remain visible.
   const tableBlocks=[...String(html||"").matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)].map((match,index)=>{
