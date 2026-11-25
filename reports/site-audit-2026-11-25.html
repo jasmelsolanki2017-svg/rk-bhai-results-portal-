@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#090909">
+<title>Website Technical Audit | Admin</title>
+<style>
+:root{color-scheme:dark;--gold:#d7ad55;--bg:#090909;--panel:#171717;--line:#4a3a20;--muted:#aaa;--text:#f5f1e8}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#292012 0,#090909 42%);color:var(--text);font:15px system-ui,Arial,sans-serif}
+header{padding:18px max(16px,calc((100% - 1080px)/2));border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-weight:900;color:var(--gold);letter-spacing:1px}a{color:#f0cf82}main{width:min(1080px,94%);margin:24px auto 50px}
+h1,h2,h3{color:var(--gold)}h1{font-size:clamp(24px,5vw,36px);margin:6px 0}h2{font-size:20px;margin:0 0 12px}p{line-height:1.6}.muted{color:var(--muted)}
+.panel{background:linear-gradient(145deg,#191919,#101010);border:1px solid var(--line);border-radius:14px;padding:18px;margin:14px 0}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.stat{padding:14px;border:1px solid #393027;border-radius:10px;background:#111}.stat strong{display:block;font-size:25px;color:var(--gold)}
+.tag{display:inline-block;padding:4px 9px;border:1px solid #6a5128;border-radius:99px;color:#f1d18a;font-size:12px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;vertical-align:top;padding:11px;border-bottom:1px solid #393027}th{color:#f1d18a}td{line-height:1.5}
+.table-wrap{overflow-x:auto}.priority{white-space:nowrap;font-weight:700}.high{color:#ffb3a7}.medium{color:#f3d18a}.low{color:#b7d5a7}
+ol{padding-left:22px;line-height:1.8}.notice{border-left:4px solid #c99b45;background:#211b10;padding:12px 14px;border-radius:8px}
+button{border:1px solid #80632d;border-radius:8px;background:#302515;color:#f5d78e;padding:9px 12px;font:inherit;cursor:pointer}
+@media(max-width:640px){.panel{padding:13px}th,td{padding:9px;font-size:13px}header{align-items:flex-start}}
+</style>
+</head>
+<body>
+<header><div><div class="brand">SATTA KING · ADMIN</div><small class="muted">Technical Audit Register</small></div><nav><a href="/admin">← Admin Dashboard</a></nav></header>
+<main>
+<section class="panel">
+<span class="tag">BASELINE AUDIT · 25 NOV 2026</span>
+<h1>पूरी वेबसाइट का Technical Audit</h1>
+<p class="muted">Audit ID: SITE-AUDIT-2026-11-25-01 · Repository source review · कोई production data बदला नहीं गया।</p>
+<div class="stats">
+<div class="stat"><strong>10</strong><span>कुल findings</span></div>
+<div class="stat"><strong>1</strong><span>High priority</span></div>
+<div class="stat"><strong>6</strong><span>Medium priority</span></div>
+<div class="stat"><strong>3</strong><span>Low priority</span></div>
+</div>
+</section>
+<section class="panel">
+<h2>महत्वपूर्ण सीमा</h2>
+<div class="notice">इस वातावरण से GitHub Pages और Render के live endpoints नहीं खुल पाए। इसलिए यह रिपोर्ट code inspection पर आधारित है; live HTTP, browser, mobile, database restore और end-to-end tests अभी pending हैं। इसे penetration test या live production certification न मानें।</div>
+</section>
+<section class="panel">
+<h2>Audit Findings</h2>
+<p class="muted">अगली बार इसी सूची के Finding ID से स्थिति मिलाएँ। किसी item को Fixed तभी मानें जब code change के साथ संबंधित live test भी पास हो।</p>
+<div class="table-wrap"><table>
+<thead><tr><th>ID / Priority</th><th>क्षेत्र</th><th>मिली कमी</th><th>सुधार / अगला कदम</th></tr></thead>
+<tbody>
+<tr><td>A-01<br><span class="priority high">HIGH</span></td><td>Admin Session</td><td>Admin JWT 365 दिन तक valid है। Logout browser cookie हटाता है, copied token revoke नहीं होता।</td><td>8–24 घंटे की session अवधि, server-side revocation/session version और token rotation लागू करें।</td></tr>
+<tr><td>A-02<br><span class="priority medium">MEDIUM</span></td><td>CSRF</td><td>Cookie-authenticated write APIs पर explicit CSRF token या Origin validation नहीं मिला। SameSite=Strict mitigation है, पर अतिरिक्त सुरक्षा नहीं है।</td><td>State-changing routes पर CSRF token या strict Origin validation जोड़ें।</td></tr>
+<tr><tr><td>A-03<br><span class="priority medium">MEDIUM</span></td><td>Login Protection</td><td>Admin login की 10 attempts / 15 मिनट वाली सीमा memory में है; User login पर वैसी limit नहीं मिली। Restart पर counter reset हो जाता है।</td><td>Admin और User दोनों login पर durable/shared rate limiting और monitoring जोड़ें।</td></tr>
+<tr><td>A-04<br><span class="priority medium">MEDIUM</span></td><td>Browser Security</td><td>Helmet चालू है, लेकिन Content Security Policy explicitly disabled है।</td><td>पहले report-only CSP, फिर inline scripts/resources जाँचकर enforce करें।</td></tr>
+<tr><td>A-05<br><span class="priority medium">MEDIUM</span></td><td>API Limits</td><td>Global JSON limit 25 MB है; image data URL भी स्वीकार होते हैं। General API rate limit नहीं मिली।</td><td>Route-specific body limits, API throttling और image storage सुधारें।</td></tr>
+<tr><td>A-06<br><span class="priority medium">MEDIUM</span></td><td>Health Monitoring</td><td><code>/api/health</code> केवल <code>{ok:true}</code> देता है; MongoDB disconnected होने पर भी OK दिख सकता है।</td><td>अलग readiness endpoint बनाकर MongoDB state और हल्की DB query जाँचें।</td></tr>
+<tr><td>A-07<br><span class="priority medium">MEDIUM</span></td><td>Backup / Restore</td><td>Admin backup में users और password hashes शामिल हैं। Backup file बहुत संवेदनशील है।</td><td>Encrypted backup, restricted storage और non-production restore test रखें।</td></tr>
+<tr><td>A-08<br><span class="priority medium">MEDIUM</span></td><td>Automated Tests</td><td>Package scripts में test command नहीं है। CI मुख्यतः दो sync scripts की syntax जाँचता है; backend/frontend integration tests नहीं दिखे।</td><td>Parser unit tests, API auth tests, server/frontend syntax checks और deploy smoke tests जोड़ें।</td></tr>
+<tr><td>A-09<br><span class="priority low">LOW</span></td><td>SEO</td><td>Title/description मौजूद हैं; inspected files में canonical, Open Graph/Twitter tags, sitemap.xml और robots.txt नहीं मिले।</td><td>Canonical/social metadata और sitemap/robots policy जोड़कर Search Console में verify करें।</td></tr>
+<tr><td>A-10<br><span class="priority low">LOW</span></td><td>PWA Cache</td><td>Service-worker cache version manually बदला जाता है; version bump छूटने पर पुराने assets रह सकते हैं।</td><td>Release पर cache version auto-bump करें और Android update flow जाँचें।</td></tr>
+</tbody></table></div>
+</section>
+<section class="panel">
+<h2>अच्छी सुरक्षा व्यवस्थाएँ जो मिलीं</h2>
+<ul>
+<li>Admin HTML routes static serving से पहले session check करते हैं।</li>
+<li>Passwords bcrypt से hash किए जाते हैं।</li>
+<li>Session cookies HttpOnly और SameSite=Strict हैं; production में Secure flag भी है।</li>
+<li>Helmet security headers enabled हैं (CSP को छोड़कर)।</li>
+<li>Admin login पर basic in-memory throttle है।</li>
+<li>CSV export spreadsheet formula-leading characters को neutralize करता है।</li>
+<li>Public results API published और non-deleted records को filter करती है।</li>
+<li>GitHub Pages workflow public-facing files बनाता है; Admin Panel files deploy bundle में शामिल नहीं करता।</li>
+</ul>
+</section>
+<section class="panel">
+<h2>सुधार का क्रम</h2>
+<ol><li>A-01 Admin session छोटा और revocable करना।</li><li>A-02 CSRF / Origin validation जोड़ना।</li><li>A-03 User login सहित durable rate limiting।</li><li>A-04 CSP लागू करना।</li><li>A-06 Database readiness monitoring।</li><li>A-07 Backup encryption और restore test।</li><li>A-08 Automated tests और deploy smoke checks।</li><li>A-05 API limits, A-09 SEO और A-10 PWA cache सुधार।</li></ol>
+</section>
+<section class="panel">
+<h2>अगली Audit में क्या अपडेट होगा?</h2>
+<p>हर finding का status <b>Open / Fixed / Retest needed</b>, fix commit, retest date और test result दर्ज किया जाएगा। पुरानी baseline history हटाई नहीं जाएगी।</p>
+<p><a href="https://github.com/jasmelsolanki2017-svg/rk-bhai-results-portal-/blob/main/reports/site-audit-2026-11-25.md" target="_blank" rel="noopener">पूरी Markdown रिपोर्ट GitHub पर देखें ↗</a></p>
+<button type="button" onclick="window.print()">रिपोर्ट प्रिंट / PDF</button>
+</section>
+</main>
+</body></html>
