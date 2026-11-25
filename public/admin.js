@@ -120,6 +120,11 @@ async function loadAutoSyncStatus(){
     const numbers=shownMarkets.length?shownMarkets.map(m=>{const verified=found.includes(m)&&/^\d{2}$/.test(String(values[m]||""));return '<span style="display:inline-flex;gap:5px;align-items:center;padding:5px 8px;border:1px solid var(--border,#444);border-radius:7px;font-size:12px"><strong>'+esc(m)+'</strong><strong style="font-size:16px;color:'+(verified?'#35c979':'var(--muted,#999)')+'">'+esc(verified?values[m]:"—")+'</strong><span style="color:'+(verified?'#35c979':'var(--muted,#999)')+'">'+(verified?'Evidence verified':'अभी verify नहीं हुआ')+'</span></span>';}).join(""):'<span class="muted">AI ने कोई मार्केट request नहीं की</span>';
     return '<article style="padding:11px 0;border-top:1px solid var(--border,#333)"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><strong>'+esc(host)+'</strong><span style="font-size:12px;color:'+(ok?'#35c979':'#e7b84c')+'">'+esc(status)+'</span></div><p class="muted" style="font-size:12px;margin:5px 0">Pass: '+esc(item.pass||"—")+' · Chart data: '+esc(item.chartChars??"—")+' characters · Truncated: '+(item.chartWasTruncated?"हाँ":"नहीं")+'</p><div style="display:flex;flex-wrap:wrap;gap:6px">'+numbers+'</div>'+(item.detail?'<p class="muted" style="font-size:12px;overflow-wrap:anywhere">'+esc(item.detail)+'</p>':"")+'</article>';
    }).join(""):'<p class="muted">इस Sync cycle में AI का कोई attempt दर्ज नहीं है। AI सिर्फ चुनी हुई websites पर चलता है।</p>';
+   const savedAi=Object.values(data.aiSavedResults&&typeof data.aiSavedResults==="object"?data.aiSavedResults:{}).filter(item=>item&&item.evidenceVerified&&/^\\d{2}$/.test(String(item.value||"")));
+   if(savedAi.length){
+    const savedHtml='<section style="margin:8px 0 12px;padding:10px;border:1px solid var(--border,#444);border-radius:9px"><h3 style="font-size:14px;margin:0 0 8px">सेव किए गए AI रिजल्ट</h3>'+savedAi.sort((a,b)=>String(b.savedAt||"").localeCompare(String(a.savedAt||""))).map(item=>'<div style="display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid var(--border,#333)"><strong>'+esc(item.market||"Market")+'</strong><strong style="color:#35c979;font-size:18px">'+esc(item.value)+'</strong><span class="muted" style="font-size:11px">'+esc(item.resultDate||"")+' · Saved</span></div>').join("")+'</section>';
+    aiBox.innerHTML=savedHtml+aiBox.innerHTML;
+   }
   }
   box.innerHTML='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0"><strong style="color:'+color+'">'+esc(labels[data.status]||data.status||"Unknown")+'</strong><span class="muted">Last check: '+esc(when)+'</span></div><p style="margin:6px 0;white-space:pre-wrap">'+esc(data.message||"कोई विवरण नहीं")+'</p><p class="muted" style="margin:4px 0">कुल Source Requests: '+esc(data.attempts??diagnostics.length)+' · हर वेबसाइट की स्थिति नीचे</p>'+buildSourceCityChart(diagnostics)+'<div style="margin-top:8px"><h3 style="font-size:15px;margin:0 0 6px">वेबसाइट की जाँच का विवरण</h3>'+(sourceRows||'<p class="muted">अभी Source-wise विवरण उपलब्ध नहीं है। अगली Sync के बाद दिखेगा।</p>')+'</div>';
  }catch(error){
@@ -235,7 +240,7 @@ async function renderAdminTopResults(){
    .filter(n=>n&&!hiddenCityNames.has(n))
    .sort((a,b)=>(latestEntryByCity.get(b)||0)-(latestEntryByCity.get(a)||0)||a.localeCompare(b,"hi"));
   if(!visible.length){box.innerHTML='<p class="muted">अभी कोई प्रकाशित रिजल्ट नहीं है।</p>';return;}
-  const fixed={"disawar":"05:00 AM","desawar":"05:00 AM","faridabad":"06:20 PM","ghaziabad":"10:05 PM","gali":"12:05 AM","delhi bazar":"03:15 PM","shri ganesh":"04:45 PM","shree ganesh":"04:45 PM"};
+  const fixed={"disawar":"05:00–06:30 AM","desawar":"05:00–06:30 AM","faridabad":"06:00–06:30 PM","ghaziabad":"10:00–10:45 PM","gali":"11:30 PM–12:30 AM","delhi bazar":"03:15–04:00 PM","shri ganesh":"04:40–05:20 PM","shree ganesh":"04:40–05:20 PM"};
   const indiaHour=Number(new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Kolkata",hour:"2-digit",hourCycle:"h23"}).format(new Date()));
   const galiBlinkWindow=indiaHour<14;
   box.innerHTML=visible.map(city=>{
