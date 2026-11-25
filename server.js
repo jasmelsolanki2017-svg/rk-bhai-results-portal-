@@ -76,9 +76,6 @@ app.use((req, res, next) => {
     next();
   }).catch(() => res.sendFile(path.join(__dirname, "public", "admin-login.html")));
   return;
-  if (req.path === "/admin.html") return res.sendFile(path.join(__dirname, "public", "admin.html"));
-  if (req.path === "/admin-users.html") return res.sendFile(path.join(__dirname, "public", "admin-users.html"));
-  next();
 });
 
 app.use(express.static(path.join(__dirname, "public")));
