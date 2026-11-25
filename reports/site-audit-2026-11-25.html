@@ -46,8 +46,8 @@ button{border:1px solid #80632d;border-radius:8px;background:#302515;color:#f5d7
 <div class="table-wrap"><table>
 <thead><tr><th>ID / Priority</th><th>क्षेत्र</th><th>मिली कमी</th><th>सुधार / अगला कदम</th></tr></thead>
 <tbody>
-<tr><td>A-01<br><span class="priority high">HIGH</span></td><td>Admin Session</td><td>Admin JWT 365 दिन तक valid है। Logout browser cookie हटाता है, copied token revoke नहीं होता।</td><td>8–24 घंटे की session अवधि, server-side revocation/session version और token rotation लागू करें।</td></tr>
-<tr><td>A-02<br><span class="priority medium">MEDIUM</span></td><td>CSRF</td><td>Cookie-authenticated write APIs पर explicit CSRF token या Origin validation नहीं मिला। SameSite=Strict mitigation है, पर अतिरिक्त सुरक्षा नहीं है।</td><td>State-changing routes पर CSRF token या strict Origin validation जोड़ें।</td></tr>
+<tr><td>A-01<br><span class="priority high">HIGH</span><br><span class="tag">Code fixed · live retest pending</span></td><td>Admin Session</td><td>Baseline issue: JWT 365 दिन valid था और logout copied token revoke नहीं करता था। अब code में 12 घंटे की JWT/cookie अवधि, MongoDB sessionVersion validation और logout पर version increment जोड़ा गया है।</td><td>Commits <code>f39810a</code>, <code>194eb9a</code>. Live browser में login, expiry, logout revocation और protected routes test करना बाकी है। Deployment के बाद admin को दोबारा login करना होगा।</td></tr>
+<tr><td>A-02<br><span class="priority medium">MEDIUM</span><br><span class="tag">Committed · deploy/retest pending</span></td><td>CSRF</td><td>अब authenticated cookie वाले POST/PUT/PATCH/DELETE requests में Origin या Referer का service origin से match अनिवार्य है। Missing, malformed और cross-origin requests reject होंगे। SameSite=Strict भी लागू है।</td><td>Commit <code>5e15f82</code>. यह CSRF token नहीं है और session cookie के बिना requests को cover नहीं करता। Render deploy के बाद same-origin success तथा cross-origin/missing-Origin rejection test करें।</td></tr>
 <tr><tr><td>A-03<br><span class="priority medium">MEDIUM</span></td><td>Login Protection</td><td>Admin login की 10 attempts / 15 मिनट वाली सीमा memory में है; User login पर वैसी limit नहीं मिली। Restart पर counter reset हो जाता है।</td><td>Admin और User दोनों login पर durable/shared rate limiting और monitoring जोड़ें।</td></tr>
 <tr><td>A-04<br><span class="priority medium">MEDIUM</span></td><td>Browser Security</td><td>Helmet चालू है, लेकिन Content Security Policy explicitly disabled है।</td><td>पहले report-only CSP, फिर inline scripts/resources जाँचकर enforce करें।</td></tr>
 <tr><td>A-05<br><span class="priority medium">MEDIUM</span></td><td>API Limits</td><td>Global JSON limit 25 MB है; image data URL भी स्वीकार होते हैं। General API rate limit नहीं मिली।</td><td>Route-specific body limits, API throttling और image storage सुधारें।</td></tr>
@@ -70,6 +70,10 @@ button{border:1px solid #80632d;border-radius:8px;background:#302515;color:#f5d7
 <li>Public results API published और non-deleted records को filter करती है।</li>
 <li>GitHub Pages workflow public-facing files बनाता है; Admin Panel files deploy bundle में शामिल नहीं करता।</li>
 </ul>
+</section>
+<section class="panel">
+<h2>Fix Tracking · 25 Nov 2026</h2>
+<div class="notice"><b>A-01:</b> Code fix लागू; 12-hour admin session और MongoDB session revocation जोड़ी गई। Commit <code>194eb9a</code> का Render deploy live report हुआ। Live browser test बाकी।<br><br><b>A-02:</b> Authenticated write requests के लिए same-origin Origin/Referer validation commit <code>5e15f82</code> में जोड़ी गई। Render deployment build चल रही थी जब आखिरी बार status देखा गया; अभी इसे closed न मानें।</div>
 </section>
 <section class="panel">
 <h2>सुधार का क्रम</h2>
