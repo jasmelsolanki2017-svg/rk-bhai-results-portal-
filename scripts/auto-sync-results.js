@@ -753,17 +753,19 @@ async function fetchSourceHtml(passLabel) {
       // DeepSeek runs on every five-minute sync cycle only for the kingsofsatta.com
       // homepage when one or more market values remain unresolved. It receives
       // all unresolved market labels in one request; parser-confirmed values remain untouched.
-      const unresolvedMarkets = RUN_MARKETS.filter(market =>
-        !marketResults[market.title] && !aiExcludedMarkets.has(market.title)
+      // Ask DeepSeek to inspect every configured site market except Chandigarh City.
+      // Parser-confirmed values are still protected below and cannot be overwritten.
+      const aiMarkets = RUN_MARKETS.filter(market =>
+        market.title !== "Chandigarh City" && !aiExcludedMarkets.has(market.title)
       );
       const aiSourceUrl = new URL(sourceUrl);
       const aiEnabledForSource = AI_ALLOWED_HOSTS.has(aiSourceUrl.hostname.toLowerCase()) && (aiSourceUrl.pathname === "/" || aiSourceUrl.pathname === "");
-      if (unresolvedMarkets.length && aiEnabledForSource && process.env.COARENA_API_KEY) {
-        const targetDays = Object.fromEntries(unresolvedMarkets.map(market => [
+      if (aiMarkets.length && aiEnabledForSource && process.env.COARENA_API_KEY) {
+        const targetDays = Object.fromEntries(aiMarkets.map(market => [
           market.title, market.title === "Gali" ? galiDate : today
         ]));
         const aiResult = await runDeepSeekSequentially(() =>
-          parseUnresolvedMarketsWithDeepSeek(html, sourceUrl, unresolvedMarkets, targetDays)
+          parseUnresolvedMarketsWithDeepSeek(html, sourceUrl, aiMarkets, targetDays)
         );
         for (const [marketTitle, value] of Object.entries(aiResult.values || {})) {
           if (!marketResults[marketTitle]) {
@@ -774,7 +776,7 @@ async function fetchSourceHtml(passLabel) {
         sourceDiagnostics.push({
           pass: passLabel, url: sourceUrl, result: "deepseek_fallback",
           aiProvider: "coarena", aiModel: "deepseek-v4-1-flash-1017",
-          aiRequestedMarkets: unresolvedMarkets.map(market => market.title),
+          aiRequestedMarkets: aiMarkets.map(market => market.title),
           aiReason: aiResult.reason, aiMarketsFound: Object.keys(aiResult.values || {}),
           chartChars: aiResult.chartChars, chartWasTruncated: aiResult.chartWasTruncated,
           detail: aiResult.detail || undefined
