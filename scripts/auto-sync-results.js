@@ -55,29 +55,6 @@ const MARKET_SCHEDULES = {
   "Shree Ganesh": "16:45"
 };
 
-// DeepSeek AI is allowed only during the configured release window for each market.
-// The normal parser continues checking all configured sources throughout the day.
-const AI_RELEASE_WINDOW_MINUTES = 30;
-function isAiMarketWindowOpen(marketTitle, now = new Date()) {
-  const clock = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hourCycle: "h23"
-  }).format(now);
-  const [hour, minute] = clock.split(":").map(Number);
-  const currentMinutes = hour * 60 + minute;
-
-  // Faridabad AI is allowed only from 6:00 PM to 7:00 PM India time.
-  if (marketTitle === "Faridabad") {
-    return currentMinutes >= 18 * 60 && currentMinutes < 19 * 60;
-  }
-
-  const scheduled = MARKET_SCHEDULES[marketTitle];
-  if (!scheduled) return false;
-  const [scheduledHour, scheduledMinute] = scheduled.split(":").map(Number);
-  const releaseMinutes = scheduledHour * 60 + scheduledMinute;
-  const elapsed = (currentMinutes - releaseMinutes + 1440) % 1440;
-  return elapsed >= 0 && elapsed < AI_RELEASE_WINDOW_MINUTES;
-}
-
 const Result = mongoose.model("Result", new mongoose.Schema({
   title: String,
   resultText: String,
@@ -500,8 +477,6 @@ function parseMarketValues(html, marketNames, targetDay = null) {
 }
 
 
-let aiFallbackCallsThisPass = 0;
-const AI_FALLBACK_MAX_PER_PASS = 4; // Token/rate-limit guard; AI is not called for every page.
 
 function aiChartText(html) {
   return decodeHtml(String(html || "")
@@ -521,16 +496,13 @@ async function parseUnresolvedMarketsWithDeepSeek(html, sourceUrl, markets, targ
   const host = new URL(sourceUrl).hostname.toLowerCase();
   if (!AI_ALLOWED_HOSTS.has(host)) return {values:{},reason:"ai_site_not_enabled"};
   const key=process.env.COARENA_API_KEY;
-  if(!key || !markets.length || aiFallbackCallsThisPass>=AI_FALLBACK_MAX_PER_PASS)
-    return {values:{},reason:!key?"coarena_key_missing":"ai_limit"};
   const fullText=aiChartText(html);
   const fullCompact=aiCompact(fullText);
   const relevantMarkets=markets.filter(m=>(m.source||[]).some(alias=>{
     const a=aiCompact(alias); return a.length>=3 && fullCompact.includes(a);
   }));
   if(!relevantMarkets.length)return {values:{},reason:"no_requested_market_label_on_page"};
-  // For the two pilot domains, send complete relevant HTML chart tables
-  // instead of a tiny excerpt around the first market-name occurrence.
+  // Send complete relevant HTML chart tables instead of a tiny excerpt.
   // Preserve every row and cell so date, market and result columns remain visible.
   const tableBlocks=[...String(html||"").matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)].map((match,index)=>{
     const rows=[...match[1].matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)].map(row=>
@@ -559,7 +531,6 @@ async function parseUnresolvedMarketsWithDeepSeek(html, sourceUrl, markets, targ
     return m.title+" aliases ["+(m.source||[]).slice(0,8).join(", ")+"] exact date "+
       d.year+"-"+String(d.month).padStart(2,"0")+"-"+String(d.day).padStart(2,"0");
   }).join("\n");
-  aiFallbackCallsThisPass++;
   try {
     const prompt=[
       "Strict chart transcription only. The supplied text comes from a website already configured in the normal results parser. Read the supplied chart rows; do not guess, infer, calculate, or use nearby dates.",
@@ -640,7 +611,6 @@ async function publishSyncStatus(status, message) {
 }
 
 async function fetchSourceHtml(passLabel) {
-  aiFallbackCallsThisPass = 0;
   const today = getIndiaDateParts();
   const galiDate = getGaliResultDateParts();
 
@@ -770,33 +740,33 @@ async function fetchSourceHtml(passLabel) {
         }
       }
 
+      // DeepSeek runs on every five-minute sync cycle, alongside the normal
+      // parser, for every configured source where one or more market values
+      // remain unresolved. It receives all unresolved market labels in one
+      // focused request per source; parser-confirmed values remain untouched.
       const unresolvedMarkets = RUN_MARKETS.filter(market =>
-        !marketResults[market.title] && !aiExcludedMarkets.has(market.title) && isAiMarketWindowOpen(market.title)
+        !marketResults[market.title] && !aiExcludedMarkets.has(market.title)
       );
       const aiEnabledForSource = AI_ALLOWED_HOSTS.has(new URL(sourceUrl).hostname.toLowerCase());
       if (unresolvedMarkets.length && aiEnabledForSource && process.env.COARENA_API_KEY) {
-        // Ask Groq about one unresolved market per request. This keeps each
-        // prompt focused and prevents unrelated market charts from consuming tokens.
-        for (const market of unresolvedMarkets) {
-          if (aiFallbackCallsThisPass >= AI_FALLBACK_MAX_PER_PASS) break;
-          const targetDays = {
-            [market.title]: market.title === "Gali" ? galiDate : today
-          };
-          const aiResult = await parseUnresolvedMarketsWithDeepSeek(html, sourceUrl, [market], targetDays);
-          for (const [marketTitle, value] of Object.entries(aiResult.values || {})) {
-            if (!marketResults[marketTitle]) {
-              marketResults[marketTitle] = value;
-              marketParsers[marketTitle] = "deepseek_exact_source_evidence";
-            }
+        const targetDays = Object.fromEntries(unresolvedMarkets.map(market => [
+          market.title, market.title === "Gali" ? galiDate : today
+        ]));
+        const aiResult = await parseUnresolvedMarketsWithDeepSeek(html, sourceUrl, unresolvedMarkets, targetDays);
+        for (const [marketTitle, value] of Object.entries(aiResult.values || {})) {
+          if (!marketResults[marketTitle]) {
+            marketResults[marketTitle] = value;
+            marketParsers[marketTitle] = "deepseek_exact_source_evidence";
           }
-          sourceDiagnostics.push({
-            pass: passLabel, url: sourceUrl, result: "deepseek_fallback",
-            aiProvider: "coarena", aiModel: "deepseek-v4-1-flash-1017", aiRequestedMarket: market.title,
-            aiReason: aiResult.reason, aiMarketsFound: Object.keys(aiResult.values || {}),
-            chartChars: aiResult.chartChars, chartWasTruncated: aiResult.chartWasTruncated,
-            detail: aiResult.detail || undefined
-          });
         }
+        sourceDiagnostics.push({
+          pass: passLabel, url: sourceUrl, result: "deepseek_fallback",
+          aiProvider: "coarena", aiModel: "deepseek-v4-1-flash-1017",
+          aiRequestedMarkets: unresolvedMarkets.map(market => market.title),
+          aiReason: aiResult.reason, aiMarketsFound: Object.keys(aiResult.values || {}),
+          chartChars: aiResult.chartChars, chartWasTruncated: aiResult.chartWasTruncated,
+          detail: aiResult.detail || undefined
+        });
       }
 
       // Equal two-digit values may legitimately occur in different markets.
