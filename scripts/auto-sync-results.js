@@ -95,11 +95,16 @@ function decodeHtml(value) {
 }
 
 function isDeepSeekActiveNow(date = new Date()) {
-  const hour = Number(new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Kolkata", hour: "2-digit", hourCycle: "h23"
-  }).format(date));
-  // AI window: 2:00 PM through 1:59 AM IST. Disabled from 2:00 AM to 1:59 PM.
-  return hour >= 14 || hour < 2;
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hourCycle: "h23"
+  }).formatToParts(date);
+  const hour = Number(parts.find(part => part.type === "hour")?.value);
+  const minute = Number(parts.find(part => part.type === "minute")?.value);
+  const now = hour * 60 + minute;
+  // IST windows: 05:00-07:00, 15:00-20:00, and 21:30-00:45 (crosses midnight).
+  return (now >= 5 * 60 && now < 7 * 60) ||
+    (now >= 15 * 60 && now < 20 * 60) ||
+    (now >= 21 * 60 + 30 || now < 45);
 }
 
 function getIndiaDateParts(date = new Date()) {
