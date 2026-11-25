@@ -30,9 +30,9 @@ button{border:1px solid #80632d;border-radius:8px;background:#302515;color:#f5d7
 <h1>पूरी वेबसाइट का Technical Audit</h1>
 <p class="muted">Audit ID: SITE-AUDIT-2026-11-25-01 · Repository source review · कोई production data बदला नहीं गया।</p>
 <div class="stats">
-<div class="stat"><strong>10</strong><span>कुल findings</span></div>
-<div class="stat"><strong>1</strong><span>High priority</span></div>
-<div class="stat"><strong>7</strong><span>Medium priority</span></div>
+<div class="stat"><strong>8</strong><span>Active findings</span></div>
+<div class="stat"><strong>0</strong><span>High priority</span></div>
+<div class="stat"><strong>6</strong><span>Medium priority</span></div>
 <div class="stat"><strong>2</strong><span>Low priority</span></div>
 </div>
 </section>
@@ -46,8 +46,6 @@ button{border:1px solid #80632d;border-radius:8px;background:#302515;color:#f5d7
 <div class="table-wrap"><table>
 <thead><tr><th>ID / Priority</th><th>क्षेत्र</th><th>मिली कमी</th><th>सुधार / अगला कदम</th></tr></thead>
 <tbody>
-<tr><td>A-01<br><span class="priority high">HIGH</span><br><span class="tag">Code fixed · live retest pending</span></td><td>Admin Session</td><td>Baseline issue: JWT 365 दिन valid था और logout copied token revoke नहीं करता था। अब code में 12 घंटे की JWT/cookie अवधि, MongoDB sessionVersion validation और logout पर version increment जोड़ा गया है।</td><td>Commits <code>f39810a</code>, <code>194eb9a</code>. Live browser में login, expiry, logout revocation और protected routes test करना बाकी है। Deployment के बाद admin को दोबारा login करना होगा।</td></tr>
-<tr><td>A-02<br><span class="priority medium">MEDIUM</span><br><span class="tag">Committed · deploy/retest pending</span></td><td>CSRF</td><td>अब authenticated cookie वाले POST/PUT/PATCH/DELETE requests में Origin या Referer का service origin से match अनिवार्य है। Missing, malformed और cross-origin requests reject होंगे। SameSite=Strict भी लागू है।</td><td>Commit <code>5e15f82</code>. यह CSRF token नहीं है और session cookie के बिना requests को cover नहीं करता। Render deploy के बाद same-origin success तथा cross-origin/missing-Origin rejection test करें।</td></tr>
 <tr><td>A-03<br><span class="priority medium">MEDIUM</span></td><td>Login Protection</td><td>Admin login की 10 attempts / 15 मिनट वाली सीमा memory में है; User login पर वैसी limit नहीं मिली। Restart पर counter reset हो जाता है।</td><td>Admin और User दोनों login पर durable/shared rate limiting और monitoring जोड़ें।</td></tr>
 <tr><td>A-04<br><span class="priority medium">MEDIUM</span></td><td>Browser Security</td><td>Helmet चालू है, लेकिन Content Security Policy explicitly disabled है।</td><td>पहले report-only CSP, फिर inline scripts/resources जाँचकर enforce करें।</td></tr>
 <tr><td>A-05<br><span class="priority medium">MEDIUM</span></td><td>API Limits</td><td>Global JSON limit 25 MB है; image data URL भी स्वीकार होते हैं। General API rate limit नहीं मिली।</td><td>Route-specific body limits, API throttling और image storage सुधारें।</td></tr>
@@ -57,6 +55,10 @@ button{border:1px solid #80632d;border-radius:8px;background:#302515;color:#f5d7
 <tr><td>A-09<br><span class="priority low">LOW</span></td><td>SEO</td><td>Title/description मौजूद हैं; inspected files में canonical, Open Graph/Twitter tags, sitemap.xml और robots.txt नहीं मिले।</td><td>Canonical/social metadata और sitemap/robots policy जोड़कर Search Console में verify करें।</td></tr>
 <tr><td>A-10<br><span class="priority low">LOW</span></td><td>PWA Cache</td><td>Service-worker cache version manually बदला जाता है; version bump छूटने पर पुराने assets रह सकते हैं।</td><td>Release पर cache version auto-bump करें और Android update flow जाँचें।</td></tr>
 </tbody></table></div>
+</section>
+<section class="panel">
+<h2>लागू किए गए सुधार (Active Findings से हटाए गए)</h2>
+<div class="notice"><b>A-01 — Admin Session:</b> 12-hour JWT/cookie, MongoDB sessionVersion validation और logout revocation लागू; commits <code>f39810a</code>, <code>194eb9a</code> Render पर live हैं। Browser expiry/revocation test अभी बाकी है।<br><br><b>A-02 — CSRF:</b> Authenticated cookie-based write requests पर same-origin Origin/Referer validation लागू; commit <code>5e15f82</code> Render पर live है। Same-origin success और cross-origin rejection का browser test बाकी है। इन्हें active findings में नहीं गिना गया है; यह browser verification पास होने का दावा नहीं है।</div>
 </section>
 <section class="panel">
 <h2>अच्छी सुरक्षा व्यवस्थाएँ जो मिलीं</h2>
@@ -72,12 +74,8 @@ button{border:1px solid #80632d;border-radius:8px;background:#302515;color:#f5d7
 </ul>
 </section>
 <section class="panel">
-<h2>Fix Tracking · 25 Nov 2026</h2>
-<div class="notice"><b>A-01:</b> Code fix लागू; 12-hour admin session और MongoDB session revocation जोड़ी गई। Commit <code>194eb9a</code> का Render deploy live report हुआ। Live browser test बाकी।<br><br><b>A-02:</b> Authenticated write requests के लिए same-origin Origin/Referer validation commit <code>5e15f82</code> में जोड़ी गई। Render deployment build चल रही थी जब आखिरी बार status देखा गया; अभी इसे closed न मानें।</div>
-</section>
-<section class="panel">
 <h2>सुधार का क्रम</h2>
-<ol><li>A-01 Admin session छोटा और revocable करना।</li><li>A-02 CSRF / Origin validation जोड़ना।</li><li>A-03 User login सहित durable rate limiting।</li><li>A-04 CSP लागू करना।</li><li>A-06 Database readiness monitoring।</li><li>A-07 Backup encryption और restore test।</li><li>A-08 Automated tests और deploy smoke checks।</li><li>A-05 API limits, A-09 SEO और A-10 PWA cache सुधार।</li></ol>
+<ol><li>A-03 User login सहित durable rate limiting।</li><li>A-04 CSP लागू करना।</li><li>A-06 Database readiness monitoring।</li><li>A-07 Backup encryption और restore test।</li><li>A-08 Automated tests और deploy smoke checks।</li><li>A-05 API limits, A-09 SEO और A-10 PWA cache सुधार।</li></ol>
 </section>
 <section class="panel">
 <h2>अगली Audit में क्या अपडेट होगा?</h2>
