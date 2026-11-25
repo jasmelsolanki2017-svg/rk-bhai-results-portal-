@@ -55,13 +55,14 @@ let RUN_MARKETS = SOURCE_MARKETS;
 let cycleResolvedMarkets = new Set();
 let cycleHadFirstConsensus = false;
 const MARKET_SCHEDULES = {
-  "Disawar": "05:00",
-  "Faridabad": "18:20",
-  "Ghaziabad": "22:05",
-  "Gali": "00:05",
-  "Delhi Bazar": "15:15",
-  "Shree Ganesh": "16:45"
+  "Disawar": { start: "05:00", end: "06:30" },
+  "Delhi Bazar": { start: "15:15", end: "16:00" },
+  "Shree Ganesh": { start: "16:40", end: "17:20" },
+  "Faridabad": { start: "18:00", end: "18:30" },
+  "Ghaziabad": { start: "22:00", end: "22:45" },
+  "Gali": { start: "23:30", end: "00:30" }
 };
+let savedAiMarketResults = {};
 
 const Result = mongoose.model("Result", new mongoose.Schema({
   title: String,
@@ -94,19 +95,40 @@ function decodeHtml(value) {
     .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16)));
 }
 
-function isDeepSeekActiveNow(date = new Date()) {
+function getActiveAiMarket(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hourCycle: "h23"
   }).formatToParts(date);
   const hour = Number(parts.find(part => part.type === "hour")?.value);
   const minute = Number(parts.find(part => part.type === "minute")?.value);
   const now = hour * 60 + minute;
-  // IST windows: 05:00-07:00, 15:00-20:00, and 21:30-00:45 (crosses midnight).
-  return (now >= 5 * 60 && now < 7 * 60) ||
-    (now >= 15 * 60 && now < 20 * 60) ||
-    (now >= 21 * 60 + 30 || now < 45);
+  for (const [title, window] of Object.entries(MARKET_SCHEDULES)) {
+    const [sh, sm] = window.start.split(":").map(Number);
+    const [eh, em] = window.end.split(":").map(Number);
+    const start = sh * 60 + sm, end = eh * 60 + em;
+    if (end <= start ? (now >= start || now < end) : (now >= start && now < end)) return title;
+  }
+  return null;
 }
-
+function getAiMarketDateKey(marketTitle, date = new Date()) {
+  const day = marketTitle === "Gali" ? getGaliResultDateParts(date) : getIndiaDateParts(date);
+  return marketTitle + ":" + day.year + "-" + String(day.month).padStart(2, "0") + "-" + String(day.day).padStart(2, "0");
+}
+async function loadSavedAiMarketResults() {
+  try {
+    const url = "https://raw.githubusercontent.com/" + REPO + "/" + SNAPSHOT_BRANCH + "/" + STATUS_FILE + "?ts=" + Date.now();
+    const response = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(10000) });
+    if (!response.ok) return;
+    const data = await response.json();
+    const saved = data.aiSavedResults && typeof data.aiSavedResults === "object" ? data.aiSavedResults : {};
+    const cutoff = Date.now() - 14 * 86400000;
+    savedAiMarketResults = Object.fromEntries(Object.entries(saved).filter(([, item]) =>
+      item && Date.parse(item.savedAt || item.checkedAt || "") >= cutoff
+    ));
+  } catch (error) {
+    console.warn("Previous AI market results could not be loaded:", error.message);
+  }
+}
 function getIndiaDateParts(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit"
@@ -608,6 +630,7 @@ async function publishSyncStatus(status, message) {
     message: String(message || "").slice(0, 500),
     sourceUrl: activeSourceUrl,
     sourceDiagnostics,
+    aiSavedResults: savedAiMarketResults,
     attempts: sourceFetchAttempts,
     httpStatus: sourceHttpStatus,
     checkedAt: new Date().toISOString()
@@ -761,17 +784,17 @@ async function fetchSourceHtml(passLabel) {
         }
       }
 
-      // DeepSeek runs on every five-minute sync cycle only for the kingsofsatta.com
-      // homepage when one or more market values remain unresolved. It receives
-      // all unresolved market labels in one request; parser-confirmed values remain untouched.
-      // Ask DeepSeek to inspect every configured site market except Chandigarh City.
-      // Parser-confirmed values are still protected below and cannot be overwritten.
+      // DeepSeek checks only the market whose own result window is live.
+      // Once an evidence-verified result is saved, further AI calls for that
+      // market/date are skipped until the next scheduled result day.
+      const activeAiMarket = getActiveAiMarket();
       const aiMarkets = RUN_MARKETS.filter(market =>
-        market.title !== "Chandigarh City" && !aiExcludedMarkets.has(market.title)
+        market.title === activeAiMarket && market.title !== "Chandigarh City" &&
+        !aiExcludedMarkets.has(market.title) && !savedAiMarketResults[getAiMarketDateKey(market.title)]
       );
       const aiSourceUrl = new URL(sourceUrl);
       const aiEnabledForSource = AI_ALLOWED_HOSTS.has(aiSourceUrl.hostname.toLowerCase()) && (aiSourceUrl.pathname === "/" || aiSourceUrl.pathname === "");
-      if (aiMarkets.length && aiEnabledForSource && process.env.COARENA_API_KEY && isDeepSeekActiveNow()) {
+      if (aiMarkets.length && aiEnabledForSource && process.env.COARENA_API_KEY) {
         const targetDays = Object.fromEntries(aiMarkets.map(market => [
           market.title, market.title === "Gali" ? galiDate : today
         ]));
@@ -779,6 +802,12 @@ async function fetchSourceHtml(passLabel) {
           parseUnresolvedMarketsWithDeepSeek(html, sourceUrl, aiMarkets, targetDays)
         );
         for (const [marketTitle, value] of Object.entries(aiResult.values || {})) {
+          const key = getAiMarketDateKey(marketTitle);
+          savedAiMarketResults[key] = {
+            market: marketTitle, value, resultDate: key.split(":")[1],
+            sourceUrl, evidenceVerified: true, savedAt: new Date().toISOString(),
+            aiProvider: "DeepSeek", aiModel: "deepseek-v4-1-flash-1017"
+          };
           if (!marketResults[marketTitle]) {
             marketResults[marketTitle] = value;
             marketParsers[marketTitle] = "deepseek_exact_source_evidence";
@@ -1217,7 +1246,8 @@ async function runOnce() {
   RUN_MARKETS = SOURCE_MARKETS;
   cycleResolvedMarkets = new Set();
   cycleHadFirstConsensus = false;
-  await publishSyncStatus("running", "सामान्य Automatic Result Sync जाँच चालू है। सभी स्वचालित मार्केट जाँचे जा रहे हैं; अगली जाँच cron-job.org से हर 5 मिनट में होगी। Chandigarh City मैनुअल है।");
+  await loadSavedAiMarketResults();
+  await publishSyncStatus("running", "सामान्य Parser सभी स्रोत जाँच रहा है। DeepSeek केवल चालू रिजल्ट-समय वाले एक मार्केट को हर 5 मिनट में जाँचेगा; verified AI रिजल्ट सेव होने पर उस मार्केट की AI जाँच अगले रिजल्ट-दिन तक बंद रहेगी। Chandigarh City शामिल नहीं है।");
   try {
     await main();
     await publishSyncStatus("success", "इस चक्र की सामान्य Automatic Result Sync जाँच पूरी हुई। तीन स्वतंत्र वेबसाइटों पर समान Parser रिजल्ट मिलने पर तुरंत publish किया गया; लगातार समान नंबर पर अतिरिक्त recheck लागू है।");
