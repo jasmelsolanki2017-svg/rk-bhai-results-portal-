@@ -1,44 +1,44 @@
 {
   "app": "rk-bhai-results-portal",
   "reportType": "ai-parser-independent-comparison",
-  "generatedAt": "2026-11-25T10:36:23.313Z",
-  "syncCheckedAt": "2026-11-25T10:36:21.368Z",
+  "generatedAt": "2026-11-25T10:41:34.281Z",
+  "syncCheckedAt": "2026-11-25T10:41:32.433Z",
   "syncStatus": "success",
   "note": "Comparison only. AI observations are not counted as independent parser domains and do not change the three-domain publication rule.",
   "summary": {
     "marketsCompared": 4,
-    "matches": 3,
+    "matches": 1,
     "conflicts": 0,
     "aiOnly": 0,
-    "parserOnly": 1,
+    "parserOnly": 3,
     "noData": 0
   },
   "markets": [
     {
       "market": "Delhi Bazar",
-      "verdict": "MATCH",
+      "verdict": "PARSER_ONLY",
       "parserValues": [
         "35"
       ],
       "parserDomains": [
-        "satta-king-gali.com",
         "sattafree.com",
+        "satta-king-gali.com",
         "galidisawer.com",
         "kingsofsatta.com"
       ],
       "parserObservations": [
         {
           "value": "35",
-          "host": "satta-king-gali.com",
-          "url": "https://satta-king-gali.com/",
-          "parser": "same_row_explicit_today_yesterday_table",
+          "host": "sattafree.com",
+          "url": "https://sattafree.com/",
+          "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
         {
           "value": "35",
-          "host": "sattafree.com",
-          "url": "https://sattafree.com/",
-          "parser": "exact_date_monthly_chart",
+          "host": "satta-king-gali.com",
+          "url": "https://satta-king-gali.com/",
+          "parser": "same_row_explicit_today_yesterday_table",
           "pass": "first_check"
         },
         {
@@ -56,19 +56,8 @@
           "pass": "first_check"
         }
       ],
-      "aiValues": [
-        "35"
-      ],
-      "aiObservations": [
-        {
-          "value": "35",
-          "host": "kingsofsatta.com",
-          "url": "https://kingsofsatta.com/",
-          "provider": "coarena",
-          "model": "deepseek-v4-1-flash-1017",
-          "pass": "first_check"
-        }
-      ]
+      "aiValues": [],
+      "aiObservations": []
     },
     {
       "market": "Disawar",
@@ -77,8 +66,8 @@
         "15"
       ],
       "parserDomains": [
-        "satta-king-gali.com",
         "sattafree.com",
+        "satta-king-gali.com",
         "galidisawer.com",
         "kingsofsatta.com",
         "satta-king-fast.com",
@@ -92,16 +81,16 @@
       "parserObservations": [
         {
           "value": "15",
-          "host": "satta-king-gali.com",
-          "url": "https://satta-king-gali.com/",
-          "parser": "same_row_explicit_today_yesterday_table",
+          "host": "sattafree.com",
+          "url": "https://sattafree.com/",
+          "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
         {
           "value": "15",
-          "host": "sattafree.com",
-          "url": "https://sattafree.com/",
-          "parser": "exact_date_monthly_chart",
+          "host": "satta-king-gali.com",
+          "url": "https://satta-king-gali.com/",
+          "parser": "same_row_explicit_today_yesterday_table",
           "pass": "first_check"
         },
         {
@@ -205,22 +194,22 @@
     },
     {
       "market": "Gali",
-      "verdict": "MATCH",
+      "verdict": "PARSER_ONLY",
       "parserValues": [
         "81",
         "90"
       ],
       "parserDomains": [
-        "satta-king-gali.com",
         "sattafree.com",
+        "satta-king-gali.com",
         "galidisawer.com",
         "kingsofsatta.com",
         "satta-king-fast.com",
         "satta.live",
+        "satta-superfast.com",
         "sattaking.live",
         "www.realsattaking.com",
         "www.faridabadlucky.com",
-        "satta-superfast.com",
         "www.delhilucky.com",
         "satta-fast.com",
         "1xsatta.today"
@@ -228,16 +217,16 @@
       "parserObservations": [
         {
           "value": "90",
-          "host": "satta-king-gali.com",
-          "url": "https://satta-king-gali.com/",
-          "parser": "same_row_explicit_today_yesterday_table",
+          "host": "sattafree.com",
+          "url": "https://sattafree.com/",
+          "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
         {
           "value": "90",
-          "host": "sattafree.com",
-          "url": "https://sattafree.com/",
-          "parser": "exact_date_monthly_chart",
+          "host": "satta-king-gali.com",
+          "url": "https://satta-king-gali.com/",
+          "parser": "same_row_explicit_today_yesterday_table",
           "pass": "first_check"
         },
         {
@@ -269,6 +258,13 @@
           "pass": "first_check"
         },
         {
+          "value": "81",
+          "host": "satta-superfast.com",
+          "url": "https://satta-superfast.com/",
+          "parser": "satta_superfast_exact_market_today_yesterday_table",
+          "pass": "first_check"
+        },
+        {
           "value": "90",
           "host": "sattaking.live",
           "url": "https://sattaking.live/",
@@ -287,13 +283,6 @@
           "host": "www.faridabadlucky.com",
           "url": "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
           "parser": "exact_date_monthly_chart",
-          "pass": "first_check"
-        },
-        {
-          "value": "81",
-          "host": "satta-superfast.com",
-          "url": "https://satta-superfast.com/",
-          "parser": "satta_superfast_exact_market_today_yesterday_table",
           "pass": "first_check"
         },
         {
@@ -325,19 +314,8 @@
           "pass": "first_check"
         }
       ],
-      "aiValues": [
-        "90"
-      ],
-      "aiObservations": [
-        {
-          "value": "90",
-          "host": "kingsofsatta.com",
-          "url": "https://kingsofsatta.com/",
-          "provider": "coarena",
-          "model": "deepseek-v4-1-flash-1017",
-          "pass": "first_check"
-        }
-      ]
+      "aiValues": [],
+      "aiObservations": []
     }
   ]
 }
