@@ -49,11 +49,14 @@ app.use((req, res, next) => {
   }
   next();
 });
-function hasAdminSession(req) {
+async function hasAdminSession(req) {
   try {
     const token = req.cookies.admin_session;
     if (!token) return false;
-    return jwt.verify(token, process.env.JWT_SECRET).role === "admin";
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    if (payload.role !== "admin" || !Number.isInteger(payload.sessionVersion)) return false;
+    const state = await AdminAuthState.findOne({ key: "admin" }).select("sessionVersion").lean();
+    return !!state && payload.sessionVersion === state.sessionVersion;
   } catch {
     return false;
   }
@@ -66,9 +69,13 @@ app.use((req, res, next) => {
   if (!adminPages.has(req.path)) return next();
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
   res.setHeader("Pragma", "no-cache");
-  if (!hasAdminSession(req)) {
-    return res.sendFile(path.join(__dirname, "public", "admin-login.html"));
-  }
+  hasAdminSession(req).then(valid => {
+    if (!valid) return res.sendFile(path.join(__dirname, "public", "admin-login.html"));
+    if (req.path === "/admin.html") return res.sendFile(path.join(__dirname, "public", "admin.html"));
+    if (req.path === "/admin-users.html") return res.sendFile(path.join(__dirname, "public", "admin-users.html"));
+    next();
+  }).catch(() => res.sendFile(path.join(__dirname, "public", "admin-login.html")));
+  return;
   if (req.path === "/admin.html") return res.sendFile(path.join(__dirname, "public", "admin.html"));
   if (req.path === "/admin-users.html") return res.sendFile(path.join(__dirname, "public", "admin-users.html"));
   next();
@@ -92,6 +99,11 @@ const User = mongoose.model("PortalUser", new mongoose.Schema({
   expiresAt: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now }
 }));
+
+const AdminAuthState = mongoose.model("AdminAuthState", new mongoose.Schema({
+  key: { type: String, required: true, unique: true },
+  sessionVersion: { type: Number, default: 1 }
+}, { versionKey: false }));
 
 const HistoricalImport = mongoose.model("HistoricalImport", new mongoose.Schema({
   key: { type: String, required: true, unique: true },
@@ -166,12 +178,14 @@ async function userOnly(req, res, next) {
   } catch { return res.status(401).json({ error: "Session expired. Login again." }); }
 }
 
-function adminOnly(req, res, next) {
+async function adminOnly(req, res, next) {
   try {
     const token = req.cookies.admin_session;
     if (!token) return res.status(401).json({ error: "Login required" });
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    if (payload.role !== "admin") return res.status(403).json({ error: "Forbidden" });
+    if (payload.role !== "admin" || !Number.isInteger(payload.sessionVersion)) return res.status(401).json({ error: "Session expired. Login again." });
+    const state = await AdminAuthState.findOne({ key: "admin" }).select("sessionVersion").lean();
+    if (!state || payload.sessionVersion !== state.sessionVersion) return res.status(401).json({ error: "Session expired. Login again." });
     next();
   } catch {
     return res.status(401).json({ error: "Session expired. Login again." });
@@ -236,10 +250,15 @@ app.post("/api/admin/login", adminLoginRateLimit, async (req, res) => {
   const validPass = await bcrypt.compare(password, adminPasswordHash);
   if (!validUser || !validPass) return res.status(401).json({ error: "Incorrect login" });
   adminLoginAttempts.delete(req.ip || req.socket.remoteAddress || "unknown");
-  const token = jwt.sign({ role: "admin" }, process.env.JWT_SECRET, { expiresIn: "365d" });
+  const authState = await AdminAuthState.findOneAndUpdate(
+    { key: "admin" },
+    { $setOnInsert: { sessionVersion: 1 } },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  ).lean();
+  const token = jwt.sign({ role: "admin", sessionVersion: authState.sessionVersion }, process.env.JWT_SECRET, { expiresIn: "12h" });
   res.cookie("admin_session", token, {
     httpOnly: true, sameSite: "strict", secure: process.env.NODE_ENV === "production",
-    maxAge: 365 * 24 * 60 * 60 * 1000, path: "/"
+    maxAge: 12 * 60 * 60 * 1000, path: "/"
   });
   res.json({ ok: true });
 });
@@ -730,9 +749,10 @@ app.post("/api/user/logout", (req, res) => {
 });
 
 
-app.post("/api/admin/logout", adminOnly, (req, res) => {
+app.post("/api/admin/logout", adminOnly, async (req, res) => {
+  await AdminAuthState.findOneAndUpdate({ key: "admin" }, { $inc: { sessionVersion: 1 } }, { upsert: true, setDefaultsOnInsert: true });
   res.clearCookie("admin_session", { path: "/", sameSite: "strict", secure: process.env.NODE_ENV === "production" });
-  res.json({ ok: true });
+  res.json({ ok: true, message: "Admin session revoked. Login again." });
 });
 
 app.get("/api/public/cities", async (req, res) => {
