@@ -526,14 +526,16 @@ async function parseUnresolvedMarketsWithDeepSeek(html, sourceUrl, markets, targ
       const a=aiCompact(alias); return a.length>=3 && compact.includes(a);
     }));
   });
-  const fullPageText=fullText.slice(0,5000);
+  // Homepage-only DeepSeek fallback: preserve the complete extracted page text; do not truncate at 5,000 characters.
+  const fullPageText=fullText;
   const chartParts=[
     ...relevantTables,
     "FULL PAGE TEXT (beginning):\n"+fullPageText
   ];
-  const chart=[...new Set(chartParts)].join("\n\n--- COMPLETE CHART SECTION ---\n\n").slice(0,24000);
+  // Send all relevant chart tables and the complete homepage text to DeepSeek.
+  const chart=[...new Set(chartParts)].join("\n\n--- COMPLETE CHART SECTION ---\n\n");
   if(chart.length<80)return {values:{},reason:"chart_context_too_short"};
-  const chartWasTruncated=relevantTables.join("\n").length>19000 || fullText.length>5000;
+  const chartWasTruncated=false;
   const requested=relevantMarkets.map(m=>{
     const d=targetDays[m.title];
     return m.title+" aliases ["+(m.source||[]).slice(0,8).join(", ")+"] exact date "+
