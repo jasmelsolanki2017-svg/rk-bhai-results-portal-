@@ -1,7 +1,36 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-25T23:43:16.008Z",
+  "updatedAt": "2026-11-25T23:44:14.168Z",
   "results": [
+    {
+      "_id": "6b0772c828a5f35075a1a6a6",
+      "title": "Disawar",
+      "resultText": "80",
+      "resultDate": "2026-11-26T12:00:00.000Z",
+      "sourceUrl": "https://sattafree.com/, https://galidisawer.com/, https://satta-king-fast.com/",
+      "verificationMeta": {
+        "value": "80",
+        "sources": [
+          "https://sattafree.com/",
+          "https://galidisawer.com/",
+          "https://satta-king-fast.com/"
+        ],
+        "domains": [
+          "sattafree.com",
+          "galidisawer.com",
+          "satta-king-fast.com"
+        ],
+        "checkedAt": "2026-11-25T23:44:03.616Z",
+        "firstPassDomains": [
+          "sattafree.com",
+          "galidisawer.com",
+          "satta-king-fast.com"
+        ],
+        "recheckDomains": [],
+        "rule": "same_value_on_three_independent_domains_single_check"
+      },
+      "createdAt": "2026-11-25T23:44:08.624Z"
+    },
     {
       "_id": "6b06af9b28a5f35075a1998f",
       "title": "Delhi Bazar",
@@ -167,7 +196,7 @@
           "satta-fast.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-25T23:43:06.238Z",
+        "checkedAt": "2026-11-25T23:44:03.616Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
