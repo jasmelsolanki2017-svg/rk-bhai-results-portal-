@@ -815,7 +815,7 @@ async function fetchSourceHtml(passLabel) {
       };
       const activeAiSlug = aiChartSlugByMarket[activeAiMarket];
       const aiIsMatchingMarketChart = Boolean(activeAiSlug) &&
-        aiSourceUrl.pathname.replace(/\\/+$/, "") === "/record-chart/" + activeAiSlug;
+        (aiSourceUrl.pathname.endsWith("/") ? aiSourceUrl.pathname.slice(0, -1) : aiSourceUrl.pathname) === "/record-chart/" + activeAiSlug;
       const aiEnabledForSource = aiHostAllowed && (aiIsHomepage || aiIsMatchingMarketChart);
       if (aiMarkets.length && aiEnabledForSource && process.env.COARENA_API_KEY) {
         const targetDays = Object.fromEntries(aiMarkets.map(market => [
