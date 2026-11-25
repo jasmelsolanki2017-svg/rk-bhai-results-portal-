@@ -1032,6 +1032,9 @@ async function main() {
   const [clockHour, clockMinute] = indiaClock.split(":").map(Number);
   const nowMinutes = clockHour * 60 + clockMinute;
   const notYetReleased = RUN_MARKETS.filter(market => {
+    // Gali's result window crosses midnight and its result date is attributed
+    // to the previous day after 00:00; do not block it during the daytime.
+    if (market.title === "Gali") return false;
     const scheduled = MARKET_SCHEDULES[market.title];
     if (!scheduled || !scheduled.start) return false;
     const [scheduledHour, scheduledMinute] = scheduled.start.split(":").map(Number);
