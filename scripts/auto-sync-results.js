@@ -756,7 +756,7 @@ async function fetchSourceHtml(passLabel) {
         !marketResults[market.title] && !aiExcludedMarkets.has(market.title)
       );
       const aiSourceUrl = new URL(sourceUrl);
-      const aiEnabledForSource = AI_ALLOWED_HOSTS.has(aiSourceUrl.hostname.toLowerCase()) && aiSourceUrl.pathname.replace(/\\/+$/, "") === "";
+      const aiEnabledForSource = AI_ALLOWED_HOSTS.has(aiSourceUrl.hostname.toLowerCase()) && (aiSourceUrl.pathname === "/" || aiSourceUrl.pathname === "");
       if (unresolvedMarkets.length && aiEnabledForSource && process.env.COARENA_API_KEY) {
         const targetDays = Object.fromEntries(unresolvedMarkets.map(market => [
           market.title, market.title === "Gali" ? galiDate : today
