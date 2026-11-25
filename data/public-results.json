@@ -1,20 +1,19 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-25T07:56:11.991Z",
+  "updatedAt": "2026-11-25T08:02:11.192Z",
   "results": [
     {
       "_id": "6b0621c828a5f35075a18694",
       "title": "Disawar",
       "resultText": "15",
       "resultDate": "2026-11-25T12:00:00.000Z",
-      "sourceUrl": "https://kingsofsatta.com/, https://satta-king-gali.com/, https://sattafree.com/, https://galidisawer.com/, https://satta-king-fast.com/, https://sattaking.live/, https://satta.live/record_chart/disawar_record_chart.php, https://www.realsattaking.com/, https://www.faridabadlucky.com/chart/new-disawar/2026-11, https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi, https://1xsatta.today/record-chart/disawar/",
+      "sourceUrl": "https://kingsofsatta.com/, https://satta-king-gali.com/, https://sattafree.com/, https://satta-king-fast.com/, https://sattaking.live/, https://satta.live/record_chart/disawar_record_chart.php, https://www.realsattaking.com/, https://www.faridabadlucky.com/chart/new-disawar/2026-11, https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi, https://1xsatta.today/record-chart/disawar/",
       "verificationMeta": {
         "value": "15",
         "sources": [
           "https://kingsofsatta.com/",
           "https://satta-king-gali.com/",
           "https://sattafree.com/",
-          "https://galidisawer.com/",
           "https://satta-king-fast.com/",
           "https://sattaking.live/",
           "https://satta.live/record_chart/disawar_record_chart.php",
@@ -27,7 +26,6 @@
           "kingsofsatta.com",
           "satta-king-gali.com",
           "sattafree.com",
-          "galidisawer.com",
           "satta-king-fast.com",
           "sattaking.live",
           "satta.live",
@@ -36,12 +34,11 @@
           "www.delhilucky.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-25T07:56:01.325Z",
+        "checkedAt": "2026-11-25T08:02:00.414Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
           "sattafree.com",
-          "galidisawer.com",
           "satta-king-fast.com",
           "sattaking.live",
           "satta.live",
@@ -104,14 +101,13 @@
       "title": "Gali",
       "resultText": "90",
       "resultDate": "2026-11-24T12:00:00.000Z",
-      "sourceUrl": "https://kingsofsatta.com/, https://satta-king-gali.com/, https://sattafree.com/, https://galidisawer.com/, https://1xsatta.today/, https://satta-king-fast.com/, https://sattaking.live/, https://satta.live/record_chart/disawar_record_chart.php, https://www.realsattaking.com/, https://www.faridabadlucky.com/chart/new-disawar/2026-11, https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi, https://satta-fast.com/satta-king-chart-november-2026",
+      "sourceUrl": "https://kingsofsatta.com/, https://satta-king-gali.com/, https://sattafree.com/, https://1xsatta.today/, https://satta-king-fast.com/, https://sattaking.live/, https://satta.live/record_chart/disawar_record_chart.php, https://www.realsattaking.com/, https://www.faridabadlucky.com/chart/new-disawar/2026-11, https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi, https://satta-fast.com/satta-king-chart-november-2026",
       "verificationMeta": {
         "value": "90",
         "sources": [
           "https://kingsofsatta.com/",
           "https://satta-king-gali.com/",
           "https://sattafree.com/",
-          "https://galidisawer.com/",
           "https://1xsatta.today/",
           "https://satta-king-fast.com/",
           "https://sattaking.live/",
@@ -125,7 +121,6 @@
           "kingsofsatta.com",
           "satta-king-gali.com",
           "sattafree.com",
-          "galidisawer.com",
           "1xsatta.today",
           "satta-king-fast.com",
           "sattaking.live",
@@ -135,12 +130,11 @@
           "www.delhilucky.com",
           "satta-fast.com"
         ],
-        "checkedAt": "2026-11-25T07:56:01.326Z",
+        "checkedAt": "2026-11-25T08:02:00.414Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
           "sattafree.com",
-          "galidisawer.com",
           "1xsatta.today",
           "satta-king-fast.com",
           "sattaking.live",
