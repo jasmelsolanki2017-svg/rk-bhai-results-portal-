@@ -26,8 +26,8 @@ const SOURCE_URLS = [
   "https://sattafree.com/game-history.php?game=shree-ganesh"
 ];
 let activeSourceUrl = SOURCE_URLS[0];
-// DeepSeek AI fallback is restricted to 1xsatta.today to control token usage.
-// The normal parser continues checking every configured source URL as before.
+// DeepSeek AI fallback is restricted to the 1xsatta.today homepage only.
+// Its dedicated chart pages and every other source remain parser-only.
 const AI_ALLOWED_HOSTS = new Set(["1xsatta.today", "www.1xsatta.today"]);
 // Coarena allows only two in-flight requests per account. Serialize DeepSeek calls
 // across concurrently fetched 1xsatta.today pages to avoid HTTP 429 concurrency errors.
@@ -755,7 +755,8 @@ async function fetchSourceHtml(passLabel) {
       const unresolvedMarkets = RUN_MARKETS.filter(market =>
         !marketResults[market.title] && !aiExcludedMarkets.has(market.title)
       );
-      const aiEnabledForSource = AI_ALLOWED_HOSTS.has(new URL(sourceUrl).hostname.toLowerCase());
+      const aiSourceUrl = new URL(sourceUrl);
+      const aiEnabledForSource = AI_ALLOWED_HOSTS.has(aiSourceUrl.hostname.toLowerCase()) && aiSourceUrl.pathname.replace(/\\/+$/, "") === "";
       if (unresolvedMarkets.length && aiEnabledForSource && process.env.COARENA_API_KEY) {
         const targetDays = Object.fromEntries(unresolvedMarkets.map(market => [
           market.title, market.title === "Gali" ? galiDate : today
