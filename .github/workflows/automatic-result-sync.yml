@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/auto-sync-results.js'
+      - 'scripts/build-ai-parser-report.js'
       - '.github/workflows/automatic-result-sync.yml'
   workflow_dispatch:
   schedule:
@@ -29,7 +30,9 @@ jobs:
         with:
           node-version: 20
       - name: Validate sync script syntax
-        run: node --check scripts/auto-sync-results.js
+        run: |
+          node --check scripts/auto-sync-results.js
+          node --check scripts/build-ai-parser-report.js
 
   sync:
     needs: validate
@@ -53,3 +56,9 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           COARENA_API_KEY: ${{ secrets.COARENA_API_KEY }}
         run: node scripts/auto-sync-results.js
+      - name: Publish separate AI and Parser comparison report
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/build-ai-parser-report.js
