@@ -26,9 +26,12 @@ const SOURCE_URLS = [
   "https://sattafree.com/game-history.php?game=shree-ganesh"
 ];
 let activeSourceUrl = SOURCE_URLS[0];
-// DeepSeek AI fallback is restricted to the kingsofsatta.com homepage only.
-// Every other source, including 1xsatta.today, remains normal-parser-only.
-const AI_ALLOWED_HOSTS = new Set(["1xsatta.today", "www.1xsatta.today"]);
+// DeepSeek AI checks both configured homepages (kingsofsatta.com first,
+// then 1xsatta.today). The 1xsatta market-chart fallback remains enabled.
+const AI_ALLOWED_HOSTS = new Set([
+  "kingsofsatta.com", "www.kingsofsatta.com",
+  "1xsatta.today", "www.1xsatta.today"
+]);
 // Coarena allows only two in-flight requests per account. Serialize DeepSeek calls
 // to avoid HTTP 429 concurrency errors.
 let deepSeekRequestQueue = Promise.resolve();
@@ -568,15 +571,15 @@ async function parseUnresolvedMarketsWithDeepSeek(html, sourceUrl, markets, targ
       const a=aiCompact(alias); return a.length>=3 && compact.includes(a);
     }));
   });
-  // DeepSeek first checks the 1XSatta homepage. If it cannot verify the
-  // active market there, fetchSourceHtml will retry only that market's own
-  // record-chart page later in the same cycle.
+  // DeepSeek checks each enabled homepage in SOURCE_URLS order. If neither
+  // homepage verifies the active market, fetchSourceHtml may retry only the
+  // matching 1xsatta record-chart page later in the same cycle.
   const fullPageText=fullText;
   const chartParts=[
     ...relevantTables,
     "FULL PAGE TEXT (beginning):\n"+fullPageText
   ];
-  // Send all relevant chart tables and the complete homepage text to DeepSeek.
+  // Send all relevant chart tables and the complete page text to DeepSeek.
   const chart=[...new Set(chartParts)].join("\n\n--- COMPLETE CHART SECTION ---\n\n");
   if(chart.length<80)return {values:{},reason:"chart_context_too_short"};
   const chartWasTruncated=false;
