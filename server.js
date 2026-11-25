@@ -172,24 +172,31 @@ ResultSchema.index({ resultDate: -1, title: 1 });
 const Result = mongoose.model("Result", ResultSchema);
 
 // Notify Telegram only for explicitly published, non-deleted results.
-async function notifyTelegramPublishedResult(row) {
+async function sendTelegramResultNow(row) {
   const endpoint = process.env.TELEGRAM_WORKER_URL;
   const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
-  if (!endpoint || !secret || !row || row.published !== true || row.deleted === true) return;
+  if (!endpoint || !secret) throw new Error("Telegram Worker की environment settings उपलब्ध नहीं हैं।");
+  if (!row || row.published !== true || row.deleted === true) throw new Error("केवल प्रकाशित और सक्रिय रिजल्ट भेज सकते हैं।");
+  const card = await createResultCardPng(row.title, row.resultText, row.resultDate);
+  const response = await fetch(endpoint.replace(/\/$/, "") + "/publish", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-webhook-secret": secret },
+    body: JSON.stringify({
+      id: String(row._id), title: row.title, resultText: row.resultText,
+      resultDate: row.resultDate, published: true, deleted: false,
+      cardImageBase64: card.toString("base64")
+    }),
+    signal: AbortSignal.timeout(15000)
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok || !result.ok) throw new Error(result.error || "Telegram Worker HTTP " + response.status);
+  return result;
+}
+
+async function notifyTelegramPublishedResult(row) {
+  if (!row || row.published !== true || row.deleted === true) return;
   try {
-    const card = await createResultCardPng(row.title, row.resultText, row.resultDate);
-    const response = await fetch(endpoint.replace(/\/$/, "") + "/publish", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-webhook-secret": secret },
-      body: JSON.stringify({
-        id: String(row._id), title: row.title, resultText: row.resultText,
-        resultDate: row.resultDate, published: true, deleted: false,
-        cardImageBase64: card.toString("base64")
-      }),
-      signal: AbortSignal.timeout(15000)
-    });
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok || !result.ok) throw new Error(result.error || "Telegram Worker HTTP " + response.status);
+    await sendTelegramResultNow(row);
     console.log("Telegram photo publish notification accepted:", String(row._id));
   } catch (error) {
     console.error("Telegram photo publish notification failed:", error.message);
@@ -1007,6 +1014,18 @@ app.post("/api/admin/results", adminOnly, async (req, res) => {
   });
   if (row.published === true) await notifyTelegramPublishedResult(row);
   res.status(201).json(row);
+});
+app.post("/api/admin/results/:id/telegram", adminOnly, async (req, res) => {
+  try {
+    const row = await Result.findById(req.params.id);
+    if (!row || row.deleted === true) return res.status(404).json({ error: "रिजल्ट नहीं मिला।" });
+    if (row.published !== true) return res.status(409).json({ error: "पहले रिजल्ट प्रकाशित करें।" });
+    await sendTelegramResultNow(row);
+    res.json({ ok: true, message: "Telegram पर रिजल्ट भेज दिया गया।" });
+  } catch (error) {
+    console.error("Manual Telegram publish failed:", error.message);
+    res.status(502).json({ error: error.message || "Telegram पर रिजल्ट नहीं भेजा जा सका।" });
+  }
 });
 app.patch("/api/admin/results/:id", adminOnly, async (req, res) => {
   const allowed = {};
