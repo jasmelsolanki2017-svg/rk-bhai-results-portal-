@@ -55,6 +55,8 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           COARENA_API_KEY: ${{ secrets.COARENA_API_KEY }}
+          TELEGRAM_WORKER_URL: ${{ secrets.TELEGRAM_WORKER_URL }}
+          TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
         run: node scripts/auto-sync-results.js
       - name: Publish separate AI and Parser comparison report
         if: always()
