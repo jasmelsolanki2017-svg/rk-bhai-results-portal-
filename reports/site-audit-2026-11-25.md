@@ -22,8 +22,6 @@ The live GitHub Pages and Render endpoints could not be reached from the audit e
 
 | ID | Priority | Area | Finding | Evidence / impact | Recommended action |
 |---|---|---|---|---|---|
-| A-01 | High | Admin session | **Code fix applied; live retest pending.** Admin JWT/cookie lifetime is now 12 hours; MongoDB-backed sessionVersion is checked on admin requests and incremented at logout to revoke prior admin tokens. | Commits `f39810a` and `194eb9a` in `server.js`. Existing admins must log in again after deployment; logout revokes all admin sessions sharing the global version. | Verify login, 12-hour expiry, logout revocation and protected-page/API behavior in a live browser. |
-| A-02 | Medium | CSRF | **Origin validation code added; deployment and live retest pending.** Authenticated cookie-based POST/PUT/PATCH/DELETE requests now require Origin or Referer to match the service's own origin; missing, malformed or cross-origin values are rejected. SameSite=Strict remains enabled. | Commit `5e15f82`, `server.js` middleware after cookie parsing. Requests without an admin/user session cookie are not covered by this middleware; this is not a CSRF-token implementation. | Render deployment is live (commit `5e15f82`). Browser verification is still pending: test valid same-origin admin/user writes and rejection of cross-origin/missing-Origin writes for relevant routes. Check any legitimate cross-origin admin workflow before closing. |
 | A-03 | Medium | Login protection | Admin login has an in-memory limit of 10 attempts per 15 minutes; user login has no matching throttle. In-memory limits reset on restart and are not shared across multiple instances. | `server.js`: `adminLoginRateLimit` is attached to `/api/admin/login`; `/api/user/login` has no limiter. | Add shared rate limiting for both login routes (MongoDB/Redis-backed if multiple instances), plus progressive delay and monitoring. |
 | A-04 | Medium | Browser security | Helmet is enabled, but Content Security Policy is explicitly disabled. | `app.use(helmet({ contentSecurityPolicy: false }))`. | Introduce a tested CSP in report-only mode first; then enforce it after checking inline scripts/styles and required external resources. |
 | A-05 | Medium | API resource limits | Global JSON body limit is 25 MB. Some image endpoints accept base64 payloads. No general API request-rate limit was found in the reviewed server setup. | `express.json({ limit: "25mb" })`; popup image validation allows large data URLs. | Set route-specific body limits, compress/store images outside MongoDB where practical, and add API rate limits. |
@@ -67,12 +65,17 @@ The live GitHub Pages and Render endpoints could not be reached from the audit e
 7. A-08: add automated tests and deployment smoke checks.
 8. A-05, A-09, A-10: API resource controls, SEO metadata, and PWA cache versioning.
 
+## Implemented code fixes (removed from active findings)
+
+The following two items have been removed from the active findings list because their code changes are deployed on Render. This is a code-deployment status, not a claim that browser-level verification has passed:
+
+- **A-01 — Admin session:** 12-hour JWT/cookie lifetime, MongoDB sessionVersion validation and logout revocation. Commits `f39810a`, `194eb9a`. Existing admins may need to sign in again. Browser verification of expiry and revocation is still outstanding.
+- **A-02 — CSRF Origin validation:** authenticated cookie-based write requests require same-origin Origin/Referer. Commit `5e15f82`. Same-origin success and cross-origin rejection still need browser verification; requests without session cookies are outside this middleware.
+
 ## Fix tracking (updated 25 Nov 2026)
 
 | Finding | Code change | Deployment / verification status |
 |---|---|---|
-| A-01 | 12-hour admin JWT/cookie; MongoDB session-version validation and logout revocation. Commits `f39810a`, `194eb9a`. | Render deployment for `194eb9a` is live. Live browser expiry/revocation tests remain pending. |
-| A-02 | Same-origin Origin/Referer validation for authenticated cookie-based write requests. Commit `5e15f82`. | Render deployment for `5e15f82` is live. Do not mark closed until positive/negative browser tests pass. |
 
 ## Re-audit log
 
