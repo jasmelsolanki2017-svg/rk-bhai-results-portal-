@@ -28,7 +28,7 @@ const SOURCE_URLS = [
 let activeSourceUrl = SOURCE_URLS[0];
 // DeepSeek AI fallback is restricted to the kingsofsatta.com homepage only.
 // Every other source, including 1xsatta.today, remains normal-parser-only.
-const AI_ALLOWED_HOSTS = new Set(["kingsofsatta.com", "www.kingsofsatta.com"]);
+const AI_ALLOWED_HOSTS = new Set(["1xsatta.today", "www.1xsatta.today"]);
 // Coarena allows only two in-flight requests per account. Serialize DeepSeek calls
 // to avoid HTTP 429 concurrency errors.
 let deepSeekRequestQueue = Promise.resolve();
