@@ -1,8 +1,8 @@
 {
   "app": "rk-bhai-results-portal",
   "reportType": "ai-parser-independent-comparison",
-  "generatedAt": "2026-11-25T21:53:13.752Z",
-  "syncCheckedAt": "2026-11-25T21:53:11.990Z",
+  "generatedAt": "2026-11-25T21:54:11.582Z",
+  "syncCheckedAt": "2026-11-25T21:54:09.062Z",
   "syncStatus": "success",
   "note": "Comparison only. AI observations are not counted as independent parser domains and do not change the three-domain publication rule.",
   "summary": {
@@ -22,25 +22,25 @@
         "81"
       ],
       "parserDomains": [
-        "satta-king-gali.com",
-        "sattafree.com",
         "kingsofsatta.com",
+        "sattafree.com",
+        "satta-king-gali.com",
         "galidisawer.com",
         "satta-king-fast.com",
         "satta-superfast.com",
-        "www.realsattaking.com",
         "satta.live",
         "sattaking.live",
         "www.faridabadlucky.com",
         "www.delhilucky.com",
+        "www.realsattaking.com",
         "satta-fast.com",
         "1xsatta.today"
       ],
       "parserObservations": [
         {
           "value": "79",
-          "host": "satta-king-gali.com",
-          "url": "https://satta-king-gali.com/",
+          "host": "kingsofsatta.com",
+          "url": "https://kingsofsatta.com/",
           "parser": "same_row_explicit_today_yesterday_table",
           "pass": "first_check"
         },
@@ -53,8 +53,8 @@
         },
         {
           "value": "79",
-          "host": "kingsofsatta.com",
-          "url": "https://kingsofsatta.com/",
+          "host": "satta-king-gali.com",
+          "url": "https://satta-king-gali.com/",
           "parser": "same_row_explicit_today_yesterday_table",
           "pass": "first_check"
         },
@@ -77,13 +77,6 @@
           "host": "satta-superfast.com",
           "url": "https://satta-superfast.com/",
           "parser": "satta_superfast_exact_market_today_yesterday_table",
-          "pass": "first_check"
-        },
-        {
-          "value": "79",
-          "host": "www.realsattaking.com",
-          "url": "https://www.realsattaking.com/",
-          "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
         {
@@ -111,6 +104,13 @@
           "value": "79",
           "host": "www.delhilucky.com",
           "url": "https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi",
+          "parser": "exact_date_monthly_chart",
+          "pass": "first_check"
+        },
+        {
+          "value": "79",
+          "host": "www.realsattaking.com",
+          "url": "https://www.realsattaking.com/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
