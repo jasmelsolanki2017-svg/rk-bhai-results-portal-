@@ -15,6 +15,29 @@ app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json({ limit: "25mb" }));
 app.use(cookieParser());
 
+// CSRF defense for cookie-authenticated write requests.
+// SameSite=Strict is retained as defense-in-depth; Origin/Referer must also
+// match this exact service origin for every authenticated state-changing request.
+app.use((req, res, next) => {
+  const isWrite = ["POST", "PUT", "PATCH", "DELETE"].includes(req.method);
+  const hasSessionCookie = !!(req.cookies.admin_session || req.cookies.user_session);
+  if (!isWrite || !hasSessionCookie) return next();
+
+  const expectedOrigin = `${req.secure || req.get("x-forwarded-proto") === "https" ? "https" : req.protocol}://${req.get("host")}`;
+  const supplied = req.get("Origin") || req.get("Referer");
+  if (!supplied) return res.status(403).json({ error: "Request blocked: missing CSRF origin." });
+
+  try {
+    const actualOrigin = new URL(supplied).origin;
+    if (actualOrigin !== expectedOrigin) {
+      return res.status(403).json({ error: "Request blocked: cross-origin request." });
+    }
+  } catch {
+    return res.status(403).json({ error: "Request blocked: invalid request origin." });
+  }
+  next();
+});
+
 // Allow the GitHub Pages public frontend (and the earlier Firebase preview) to read only public GET APIs.
 const publicFrontendOrigins = new Set([
   "https://jasmelsolanki2017-svg.github.io",
