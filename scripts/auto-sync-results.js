@@ -26,11 +26,11 @@ const SOURCE_URLS = [
   "https://sattafree.com/game-history.php?game=shree-ganesh"
 ];
 let activeSourceUrl = SOURCE_URLS[0];
-// DeepSeek AI fallback is restricted to the 1xsatta.today homepage only.
-// Its dedicated chart pages and every other source remain parser-only.
-const AI_ALLOWED_HOSTS = new Set(["1xsatta.today", "www.1xsatta.today"]);
+// DeepSeek AI fallback is restricted to the kingsofsatta.com homepage only.
+// Every other source, including 1xsatta.today, remains normal-parser-only.
+const AI_ALLOWED_HOSTS = new Set(["kingsofsatta.com", "www.kingsofsatta.com"]);
 // Coarena allows only two in-flight requests per account. Serialize DeepSeek calls
-// across concurrently fetched 1xsatta.today pages to avoid HTTP 429 concurrency errors.
+// to avoid HTTP 429 concurrency errors.
 let deepSeekRequestQueue = Promise.resolve();
 function runDeepSeekSequentially(task) {
   const current = deepSeekRequestQueue.then(task, task);
@@ -526,7 +526,7 @@ async function parseUnresolvedMarketsWithDeepSeek(html, sourceUrl, markets, targ
       const a=aiCompact(alias); return a.length>=3 && compact.includes(a);
     }));
   });
-  // Homepage-only DeepSeek fallback: preserve the complete extracted page text; do not truncate at 5,000 characters.
+  // Homepage-only DeepSeek fallback: preserve the complete extracted page text; do not truncate.
   const fullPageText=fullText;
   const chartParts=[
     ...relevantTables,
@@ -750,10 +750,9 @@ async function fetchSourceHtml(passLabel) {
         }
       }
 
-      // DeepSeek runs on every five-minute sync cycle, alongside the normal
-      // parser, for every configured source where one or more market values
-      // remain unresolved. It receives all unresolved market labels in one
-      // focused request per source; parser-confirmed values remain untouched.
+      // DeepSeek runs on every five-minute sync cycle only for the kingsofsatta.com
+      // homepage when one or more market values remain unresolved. It receives
+      // all unresolved market labels in one request; parser-confirmed values remain untouched.
       const unresolvedMarkets = RUN_MARKETS.filter(market =>
         !marketResults[market.title] && !aiExcludedMarkets.has(market.title)
       );
