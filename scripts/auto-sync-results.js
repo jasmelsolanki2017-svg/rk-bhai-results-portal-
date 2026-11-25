@@ -94,6 +94,14 @@ function decodeHtml(value) {
     .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16)));
 }
 
+function isDeepSeekActiveNow(date = new Date()) {
+  const hour = Number(new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Kolkata", hour: "2-digit", hourCycle: "h23"
+  }).format(date));
+  // AI window: 2:00 PM through 1:59 AM IST. Disabled from 2:00 AM to 1:59 PM.
+  return hour >= 14 || hour < 2;
+}
+
 function getIndiaDateParts(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit"
@@ -760,7 +768,7 @@ async function fetchSourceHtml(passLabel) {
       );
       const aiSourceUrl = new URL(sourceUrl);
       const aiEnabledForSource = AI_ALLOWED_HOSTS.has(aiSourceUrl.hostname.toLowerCase()) && (aiSourceUrl.pathname === "/" || aiSourceUrl.pathname === "");
-      if (aiMarkets.length && aiEnabledForSource && process.env.COARENA_API_KEY) {
+      if (aiMarkets.length && aiEnabledForSource && process.env.COARENA_API_KEY && isDeepSeekActiveNow()) {
         const targetDays = Object.fromEntries(aiMarkets.map(market => [
           market.title, market.title === "Gali" ? galiDate : today
         ]));
