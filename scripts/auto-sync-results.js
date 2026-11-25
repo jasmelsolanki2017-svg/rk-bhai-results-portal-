@@ -1,5 +1,6 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
+const { createResultCardPng } = require("./scripts/telegram-result-card");
 
 const SOURCE_URLS = [
   // Priority sources: checked first; they still need independent-site consensus.
@@ -85,16 +86,22 @@ async function notifyTelegramPublishedResult(row) {
   const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
   if (!endpoint || !secret || !row || row.published !== true || row.deleted === true) return;
   try {
+    const card = await createResultCardPng(row.title, row.resultText, row.resultDate);
     const response = await fetch(endpoint.replace(/\/$/, "") + "/publish", {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-webhook-secret": secret },
-      body: JSON.stringify({ id: String(row._id), title: row.title, resultText: row.resultText, resultDate: row.resultDate, published: true, deleted: false }),
-      signal: AbortSignal.timeout(10000)
+      body: JSON.stringify({
+        id: String(row._id), title: row.title, resultText: row.resultText,
+        resultDate: row.resultDate, published: true, deleted: false,
+        cardImageBase64: card.toString("base64")
+      }),
+      signal: AbortSignal.timeout(15000)
     });
-    if (!response.ok) throw new Error("Telegram Worker HTTP " + response.status);
-    console.log("Telegram publish notification accepted:", String(row._id));
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) throw new Error(result.error || "Telegram Worker HTTP " + response.status);
+    console.log("Telegram photo publish notification accepted:", String(row._id));
   } catch (error) {
-    console.error("Telegram publish notification failed:", error.message);
+    console.error("Telegram photo publish notification failed:", error.message);
   }
 }
 
