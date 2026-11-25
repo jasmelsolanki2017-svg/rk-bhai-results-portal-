@@ -26,19 +26,19 @@ button{border:1px solid #80632d;border-radius:8px;background:#302515;color:#f5d7
 <header><div><div class="brand">SATTA KING · ADMIN</div><small class="muted">Technical Audit Register</small></div><nav><a href="/admin">← Admin Dashboard</a></nav></header>
 <main>
 <section class="panel">
-<span class="tag">BASELINE AUDIT · 25 NOV 2026</span>
+<span class="tag">RE-AUDIT · 25 NOV 2026 · 21:00 IST</span>
 <h1>पूरी वेबसाइट का Technical Audit</h1>
-<p class="muted">Audit ID: SITE-AUDIT-2026-11-25-01 · Repository source review · कोई production data बदला नहीं गया।</p>
+<p class="muted">Audit ID: SITE-AUDIT-2026-11-25-02 · Current source + Render deploy/log review · कोई production data बदला नहीं गया।</p>
 <div class="stats">
-<div class="stat"><strong>8</strong><span>Active findings</span></div>
+<div class="stat"><strong>10</strong><span>Active findings</span></div>
 <div class="stat"><strong>0</strong><span>High priority</span></div>
-<div class="stat"><strong>6</strong><span>Medium priority</span></div>
-<div class="stat"><strong>2</strong><span>Low priority</span></div>
+<div class="stat"><strong>7</strong><span>Medium priority</span></div>
+<div class="stat"><strong>3</strong><span>Low priority</span></div>
 </div>
 </section>
 <section class="panel">
 <h2>महत्वपूर्ण सीमा</h2>
-<div class="notice">इस वातावरण से GitHub Pages और Render के live endpoints नहीं खुल पाए। इसलिए यह रिपोर्ट code inspection पर आधारित है; live HTTP, browser, mobile, database restore और end-to-end tests अभी pending हैं। इसे penetration test या live production certification न मानें।</div>
+<div class="notice">GitHub Pages और Render के live HTTP endpoints इस वातावरण से नहीं खुले। Render deployment metadata/logs जाँचे गए: latest deployment Live है और logs में MongoDB connected दिखा। Browser, mobile, database restore और end-to-end tests अभी pending हैं। इसे penetration test या live production certification न मानें।</div>
 </section>
 <section class="panel">
 <h2>Audit Findings</h2>
@@ -54,11 +54,18 @@ button{border:1px solid #80632d;border-radius:8px;background:#302515;color:#f5d7
 <tr><td>A-08<br><span class="priority medium">MEDIUM</span></td><td>Automated Tests</td><td>Package scripts में test command नहीं है। CI मुख्यतः दो sync scripts की syntax जाँचता है; backend/frontend integration tests नहीं दिखे।</td><td>Parser unit tests, API auth tests, server/frontend syntax checks और deploy smoke tests जोड़ें।</td></tr>
 <tr><td>A-09<br><span class="priority low">LOW</span></td><td>SEO</td><td>Title/description मौजूद हैं; inspected files में canonical, Open Graph/Twitter tags, sitemap.xml और robots.txt नहीं मिले।</td><td>Canonical/social metadata और sitemap/robots policy जोड़कर Search Console में verify करें।</td></tr>
 <tr><td>A-10<br><span class="priority low">LOW</span></td><td>PWA Cache</td><td>Service-worker cache version manually बदला जाता है; version bump छूटने पर पुराने assets रह सकते हैं।</td><td>Release पर cache version auto-bump करें और Android update flow जाँचें।</td></tr>
+<tr><td>A-11<br><span class="priority medium">MEDIUM</span></td><td>Public Snapshot / GitHub Load</td><td><code>data/public-results.json</code> का GitHub Contents API read खाली content देता है। Sync को JSON parse error मिलता है और वह हर बार snapshot rewrite कर सकता है। Pages workflow हर push पर चलता है, इसलिए अनावश्यक commits/deployments हो सकते हैं। Render logs में 13,615 और 13,616 records के साथ दो rewrite दर्ज हुए।</td><td>Large file को Git blob/raw download से पढ़ें या stable hash/metadata compare करें; unchanged snapshot पर write skip करें।</td></tr>
+<tr><td>A-12<br><span class="priority low">LOW</span></td><td>Result Sync Diagnostics</td><td>कुछ comments/log messages दो independent domains कहते हैं, जबकि वास्तविक parser consensus तीन domains माँगता है। AI allowlist <code>1xsatta.today</code> है, लेकिन comment <code>kingsofsatta.com</code> कहता है।</td><td>Comments और status messages को वास्तविक नियम से मिलाएँ; AI source allowlist बदलने से पहले इच्छित source की पुष्टि करें।</td></tr>
 </tbody></table></div>
 </section>
 <section class="panel">
 <h2>लागू किए गए सुधार (Active Findings से हटाए गए)</h2>
 <div class="notice"><b>A-01 — Admin Session:</b> 12-hour JWT/cookie, MongoDB sessionVersion validation और logout revocation लागू; commits <code>f39810a</code>, <code>194eb9a</code> Render पर live हैं। Browser expiry/revocation test अभी बाकी है।<br><br><b>A-02 — CSRF:</b> Authenticated cookie-based write requests पर same-origin Origin/Referer validation लागू; commit <code>5e15f82</code> Render पर live है। Same-origin success और cross-origin rejection का browser test बाकी है। इन्हें active findings में नहीं गिना गया है; यह browser verification पास होने का दावा नहीं है।</div>
+</section>
+<section class="panel">
+<h2>Re-audit Update · 25 Nov 2026, 21:00 IST</h2>
+<div class="notice"><b>Render:</b> Latest commit <code>f323119</code> का deployment Live है। Startup logs में server port 10000 और MongoDB connected मिला।<br><br><b>Result Share:</b> Admin WhatsApp message में publication time हटाने वाला बदलाव Live commit में शामिल है; text में केवल date रहती है।<br><br><b>नई समस्या A-11:</b> बड़े public snapshot की तुलना fail हो रही है; दो बार JSON parse error के बाद snapshot rewrite हुआ। इससे GitHub commits और Pages deployments अनावश्यक रूप से बढ़ सकते हैं।<br><br><b>A-12:</b> Parser threshold और AI source के comments वास्तविक code से मेल नहीं खाते।</div>
+<p class="muted">सीमा: इस environment से live HTTP/browser request नहीं हो पाई। Logs deployment और MongoDB startup की पुष्टि करते हैं, end-to-end functionality की नहीं।</p>
 </section>
 <section class="panel">
 <h2>अच्छी सुरक्षा व्यवस्थाएँ जो मिलीं</h2>
