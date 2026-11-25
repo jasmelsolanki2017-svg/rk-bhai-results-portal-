@@ -170,6 +170,25 @@ const ResultSchema = new mongoose.Schema({
 ResultSchema.index({ resultDate: -1, title: 1 });
 const Result = mongoose.model("Result", ResultSchema);
 
+// Notify Telegram only for explicitly published, non-deleted results.
+async function notifyTelegramPublishedResult(row) {
+  const endpoint = process.env.TELEGRAM_WORKER_URL;
+  const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
+  if (!endpoint || !secret || !row || row.published !== true || row.deleted === true) return;
+  try {
+    const response = await fetch(endpoint.replace(/\/$/, "") + "/publish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-webhook-secret": secret },
+      body: JSON.stringify({ id: String(row._id), title: row.title, resultText: row.resultText, resultDate: row.resultDate, published: true, deleted: false }),
+      signal: AbortSignal.timeout(10000)
+    });
+    if (!response.ok) throw new Error("Telegram Worker HTTP " + response.status);
+    console.log("Telegram publish notification accepted:", String(row._id));
+  } catch (error) {
+    console.error("Telegram publish notification failed:", error.message);
+  }
+}
+
 // Store one record for every public page load from either frontend.
 const VisitorVisit = mongoose.model("VisitorVisit", new mongoose.Schema({
   site: { type: String, enum: ["github_pages", "render"], required: true },
@@ -979,6 +998,7 @@ app.post("/api/admin/results", adminOnly, async (req, res) => {
     published: published === true, sourceUrl: sourceUrl || "", resultSource: "manual",
     ...(ownerCity ? { ownerUserId: ownerCity.userId, cityId: ownerCity._id } : {})
   });
+  if (row.published === true) await notifyTelegramPublishedResult(row);
   res.status(201).json(row);
 });
 app.patch("/api/admin/results/:id", adminOnly, async (req, res) => {
@@ -1005,6 +1025,7 @@ app.patch("/api/admin/results/:id", adminOnly, async (req, res) => {
   }
   const row = await Result.findByIdAndUpdate(req.params.id, allowed, { new: true, runValidators: true });
   if (!row) return res.status(404).json({ error: "Record not found" });
+  if (row.published === true && row.deleted !== true) await notifyTelegramPublishedResult(row);
   res.json(row);
 });
 app.post("/api/admin/results/resolve-conflict", adminOnly, async (req, res) => {
