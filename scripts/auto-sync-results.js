@@ -964,16 +964,40 @@ async function updatePublicSnapshot() {
   if (currentResponse.ok) {
     const current = await currentResponse.json();
     sha = current.sha;
-    try {
-      const oldText = Buffer.from(String(current.content || "").replace(/\n/g, ""), "base64").toString("utf8");
-      const old = JSON.parse(oldText);
-      if (JSON.stringify({ app: old.app, results: old.results, cities: old.cities }) ===
-          JSON.stringify({ app: snapshot.app, results: snapshot.results, cities: snapshot.cities })) {
-        console.log("Public snapshot unchanged.");
-        return;
+
+    // GitHub Contents API omits the file body for larger files. Read the exact
+    // blob by SHA instead of treating a missing body as an empty snapshot.
+    let oldText = "";
+    if (current.encoding === "base64" && current.content) {
+      oldText = Buffer.from(String(current.content).replace(/\\n/g, ""), "base64").toString("utf8");
+    } else if (current.git_url) {
+      const blobResponse = await fetch(current.git_url, { headers });
+      if (!blobResponse.ok) {
+        throw new Error("GitHub snapshot blob read failed: HTTP " + blobResponse.status);
       }
+      const blob = await blobResponse.json();
+      if (blob.encoding === "base64" && blob.content) {
+        oldText = Buffer.from(String(blob.content).replace(/\\n/g, ""), "base64").toString("utf8");
+      }
+    }
+
+    // Fail closed: never replace an existing snapshot unless its current
+    // contents were successfully read and parsed.
+    if (!oldText.trim()) {
+      throw new Error("Existing public snapshot body unavailable; refusing unsafe overwrite.");
+    }
+    let old;
+    try {
+      old = JSON.parse(oldText);
     } catch (error) {
-      console.warn("Existing snapshot comparison skipped:", error.message);
+      throw new Error("Existing public snapshot is unreadable; refusing overwrite: " + error.message);
+    }
+    const stableSnapshot = value => JSON.stringify({
+      app: value.app, results: value.results, cities: value.cities
+    });
+    if (stableSnapshot(old) === stableSnapshot(snapshot)) {
+      console.log("Public snapshot unchanged; GitHub write skipped.");
+      return;
     }
   } else if (currentResponse.status !== 404) {
     throw new Error("GitHub snapshot lookup failed: HTTP " + currentResponse.status);
