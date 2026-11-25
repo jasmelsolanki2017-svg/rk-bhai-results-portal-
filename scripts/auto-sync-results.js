@@ -1,6 +1,6 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
-const { createResultCardPng } = require("./scripts/telegram-result-card");
+const { createResultCardPng } = require("./telegram-result-card");
 
 const SOURCE_URLS = [
   // Priority sources: checked first; they still need independent-site consensus.
