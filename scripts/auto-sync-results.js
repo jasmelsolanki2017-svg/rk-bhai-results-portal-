@@ -568,7 +568,9 @@ async function parseUnresolvedMarketsWithDeepSeek(html, sourceUrl, markets, targ
       const a=aiCompact(alias); return a.length>=3 && compact.includes(a);
     }));
   });
-  // Homepage-only DeepSeek fallback: preserve the complete extracted page text; do not truncate.
+  // DeepSeek first checks the 1XSatta homepage. If it cannot verify the
+  // active market there, fetchSourceHtml will retry only that market's own
+  // record-chart page later in the same cycle.
   const fullPageText=fullText;
   const chartParts=[
     ...relevantTables,
@@ -802,7 +804,19 @@ async function fetchSourceHtml(passLabel) {
         !aiExcludedMarkets.has(market.title) && !savedAiMarketResults[getAiMarketDateKey(market.title)]
       );
       const aiSourceUrl = new URL(sourceUrl);
-      const aiEnabledForSource = AI_ALLOWED_HOSTS.has(aiSourceUrl.hostname.toLowerCase()) && (aiSourceUrl.pathname === "/" || aiSourceUrl.pathname === "");
+      const aiHostAllowed = AI_ALLOWED_HOSTS.has(aiSourceUrl.hostname.toLowerCase());
+      const aiIsHomepage = aiSourceUrl.pathname === "/" || aiSourceUrl.pathname === "";
+      const aiChartSlugByMarket = {
+        "Disawar": "disawar",
+        "Shree Ganesh": "shri-ganesh",
+        "Faridabad": "faridabad",
+        "Ghaziabad": "ghaziabad",
+        "Gali": "gali"
+      };
+      const activeAiSlug = aiChartSlugByMarket[activeAiMarket];
+      const aiIsMatchingMarketChart = Boolean(activeAiSlug) &&
+        aiSourceUrl.pathname.replace(/\\/+$/, "") === "/record-chart/" + activeAiSlug;
+      const aiEnabledForSource = aiHostAllowed && (aiIsHomepage || aiIsMatchingMarketChart);
       if (aiMarkets.length && aiEnabledForSource && process.env.COARENA_API_KEY) {
         const targetDays = Object.fromEntries(aiMarkets.map(market => [
           market.title, market.title === "Gali" ? galiDate : today
@@ -865,8 +879,32 @@ async function fetchSourceHtml(passLabel) {
   const priorityUrls = SOURCE_URLS.filter(url => priorityHosts.has(new URL(url).hostname.toLowerCase()));
   const otherUrls = SOURCE_URLS.filter(url => !priorityHosts.has(new URL(url).hostname.toLowerCase()));
   const priorityObservations = await Promise.all(priorityUrls.map(fetchOneSource));
-  const otherObservations = await Promise.all(otherUrls.map(fetchOneSource));
-  return [...priorityObservations, ...otherObservations].filter(Boolean);
+
+  // Preserve the required AI fallback order for 1XSatta:
+  // 1) homepage first; 2) only if still unresolved, the active market's
+  // matching record-chart page. Other source parsing remains concurrent.
+  const oneXHomepageUrls = otherUrls.filter(url => {
+    const parsed = new URL(url);
+    return AI_ALLOWED_HOSTS.has(parsed.hostname.toLowerCase()) &&
+      (parsed.pathname === "/" || parsed.pathname === "");
+  });
+  const oneXChartUrls = otherUrls.filter(url => {
+    const parsed = new URL(url);
+    return AI_ALLOWED_HOSTS.has(parsed.hostname.toLowerCase()) &&
+      parsed.pathname.startsWith("/record-chart/");
+  });
+  const remainingOtherUrls = otherUrls.filter(url =>
+    !oneXHomepageUrls.includes(url) && !oneXChartUrls.includes(url)
+  );
+  const remainingObservations = await Promise.all(remainingOtherUrls.map(fetchOneSource));
+  const homepageObservations = await Promise.all(oneXHomepageUrls.map(fetchOneSource));
+  const marketChartObservations = await Promise.all(oneXChartUrls.map(fetchOneSource));
+  return [
+    ...priorityObservations,
+    ...remainingObservations,
+    ...homepageObservations,
+    ...marketChartObservations
+  ].filter(Boolean);
 }
 
 function buildConsensus(observations) {
