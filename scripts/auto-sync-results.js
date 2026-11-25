@@ -29,6 +29,14 @@ let activeSourceUrl = SOURCE_URLS[0];
 // DeepSeek AI fallback is restricted to 1xsatta.today to control token usage.
 // The normal parser continues checking every configured source URL as before.
 const AI_ALLOWED_HOSTS = new Set(["1xsatta.today", "www.1xsatta.today"]);
+// Coarena allows only two in-flight requests per account. Serialize DeepSeek calls
+// across concurrently fetched 1xsatta.today pages to avoid HTTP 429 concurrency errors.
+let deepSeekRequestQueue = Promise.resolve();
+function runDeepSeekSequentially(task) {
+  const current = deepSeekRequestQueue.then(task, task);
+  deepSeekRequestQueue = current.catch(() => {});
+  return current;
+}
 const sourceDiagnostics = [];
 const REPO = process.env.GITHUB_REPOSITORY || "jasmelsolanki2017-svg/rk-bhai-results-portal-";
 const SNAPSHOT_BRANCH = "public-data";
@@ -752,7 +760,9 @@ async function fetchSourceHtml(passLabel) {
         const targetDays = Object.fromEntries(unresolvedMarkets.map(market => [
           market.title, market.title === "Gali" ? galiDate : today
         ]));
-        const aiResult = await parseUnresolvedMarketsWithDeepSeek(html, sourceUrl, unresolvedMarkets, targetDays);
+        const aiResult = await runDeepSeekSequentially(() =>
+          parseUnresolvedMarketsWithDeepSeek(html, sourceUrl, unresolvedMarkets, targetDays)
+        );
         for (const [marketTitle, value] of Object.entries(aiResult.values || {})) {
           if (!marketResults[marketTitle]) {
             marketResults[marketTitle] = value;
