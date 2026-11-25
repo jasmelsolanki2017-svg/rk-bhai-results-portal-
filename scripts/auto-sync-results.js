@@ -97,18 +97,27 @@ function decodeHtml(value) {
 
 function getActiveAiMarket(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hourCycle: "h23"
+    timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23"
   }).formatToParts(date);
-  const hour = Number(parts.find(part => part.type === "hour")?.value);
-  const minute = Number(parts.find(part => part.type === "minute")?.value);
-  const now = hour * 60 + minute;
+  const part = type => parts.find(item => item.type === type)?.value;
+  const year = Number(part("year")), month = Number(part("month")), day = Number(part("day"));
+  const hour = Number(part("hour")), minute = Number(part("minute"));
+  const nowMinutes = hour * 60 + minute;
+  const candidates = [];
   for (const [title, window] of Object.entries(MARKET_SCHEDULES)) {
     const [sh, sm] = window.start.split(":").map(Number);
-    const [eh, em] = window.end.split(":").map(Number);
-    const start = sh * 60 + sm, end = eh * 60 + em;
-    if (end <= start ? (now >= start || now < end) : (now >= start && now < end)) return title;
+    const startMinutes = sh * 60 + sm;
+    if (startMinutes <= nowMinutes) {
+      candidates.push({ title, at: new Date(Date.UTC(year, month - 1, day, sh, sm)) });
+    } else if (title === "Gali") {
+      // Gali's 23:30 slot remains the active market after midnight until
+      // its result is found or the next day's 05:00 Disawar slot begins.
+      candidates.push({ title, at: new Date(Date.UTC(year, month - 1, day - 1, sh, sm)) });
+    }
   }
-  return null;
+  candidates.sort((a, b) => b.at - a.at);
+  return candidates[0]?.title || null;
 }
 function getAiMarketDateKey(marketTitle, date = new Date()) {
   const day = marketTitle === "Gali" ? getGaliResultDateParts(date) : getIndiaDateParts(date);
