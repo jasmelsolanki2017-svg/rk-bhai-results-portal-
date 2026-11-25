@@ -779,10 +779,6 @@ async function fetchSourceHtml(passLabel) {
         const isSattaSuperfast = new URL(sourceUrl).hostname.toLowerCase() === "satta-superfast.com";
         if (isSattaSuperfast) {
           aiExcludedMarkets.add(market.title);
-          // Gali has repeatedly disagreed with the independent-source majority
-          // on this site (81 vs 79). Do not let this uncorroborated value appear
-          // in the admin source chart or participate in Gali consensus.
-          if (market.title === "Gali") continue;
           const value = parseSattaSuperfastTodayTable(html, market, targetDay);
           if (value) {
             marketResults[market.title] = value;
