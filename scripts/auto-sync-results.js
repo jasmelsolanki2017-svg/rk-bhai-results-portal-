@@ -26,9 +26,9 @@ const SOURCE_URLS = [
   "https://sattafree.com/game-history.php?game=shree-ganesh"
 ];
 let activeSourceUrl = SOURCE_URLS[0];
-// DeepSeek AI fallback can inspect every source URL already configured in the normal parser.
-// A source still contributes only one independent-domain vote to consensus.
-const AI_ALLOWED_HOSTS = new Set(SOURCE_URLS.map(url => new URL(url).hostname.toLowerCase()));
+// DeepSeek AI fallback is restricted to 1xsatta.today to control token usage.
+// The normal parser continues checking every configured source URL as before.
+const AI_ALLOWED_HOSTS = new Set(["1xsatta.today", "www.1xsatta.today"]);
 const sourceDiagnostics = [];
 const REPO = process.env.GITHUB_REPOSITORY || "jasmelsolanki2017-svg/rk-bhai-results-portal-";
 const SNAPSHOT_BRANCH = "public-data";
