@@ -1033,8 +1033,8 @@ async function main() {
   const nowMinutes = clockHour * 60 + clockMinute;
   const notYetReleased = RUN_MARKETS.filter(market => {
     const scheduled = MARKET_SCHEDULES[market.title];
-    if (!scheduled) return false;
-    const [scheduledHour, scheduledMinute] = scheduled.split(":").map(Number);
+    if (!scheduled || !scheduled.start) return false;
+    const [scheduledHour, scheduledMinute] = scheduled.start.split(":").map(Number);
     return nowMinutes < scheduledHour * 60 + scheduledMinute;
   });
   for (const market of notYetReleased) {
