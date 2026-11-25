@@ -1,8 +1,8 @@
 {
   "app": "rk-bhai-results-portal",
   "reportType": "ai-parser-independent-comparison",
-  "generatedAt": "2026-11-25T23:18:19.478Z",
-  "syncCheckedAt": "2026-11-25T23:18:18.188Z",
+  "generatedAt": "2026-11-25T23:19:12.318Z",
+  "syncCheckedAt": "2026-11-25T23:19:11.039Z",
   "syncStatus": "success",
   "note": "Comparison only. AI observations are not counted as independent parser domains and do not change the three-domain publication rule.",
   "summary": {
@@ -28,12 +28,12 @@
         "galidisawer.com",
         "satta-king-fast.com",
         "satta-superfast.com",
-        "satta.live",
+        "www.realsattaking.com",
         "www.faridabadlucky.com",
         "sattaking.live",
         "www.delhilucky.com",
-        "www.realsattaking.com",
         "satta-fast.com",
+        "satta.live",
         "1xsatta.today"
       ],
       "parserObservations": [
@@ -81,8 +81,8 @@
         },
         {
           "value": "79",
-          "host": "satta.live",
-          "url": "https://satta.live/record_chart/disawar_record_chart.php",
+          "host": "www.realsattaking.com",
+          "url": "https://www.realsattaking.com/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
@@ -109,15 +109,15 @@
         },
         {
           "value": "79",
-          "host": "www.realsattaking.com",
-          "url": "https://www.realsattaking.com/",
+          "host": "satta-fast.com",
+          "url": "https://satta-fast.com/satta-king-chart-november-2026",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
         {
           "value": "79",
-          "host": "satta-fast.com",
-          "url": "https://satta-fast.com/satta-king-chart-november-2026",
+          "host": "satta.live",
+          "url": "https://satta.live/record_chart/disawar_record_chart.php",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
