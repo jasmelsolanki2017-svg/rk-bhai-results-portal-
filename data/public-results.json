@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-26T20:34:18.623Z",
+  "updatedAt": "2026-11-26T20:35:10.430Z",
   "results": [
     {
       "_id": "6b08008228a5f35075a1b874",
@@ -115,7 +115,7 @@
       "title": "Gali",
       "resultText": "52",
       "resultDate": "2026-11-26T12:00:00.000Z",
-      "sourceUrl": "https://kingsofsatta.com/, https://satta-king-gali.com/, https://sattafree.com/, https://galidisawer.com/, https://satta-king-fast.com/, https://www.realsattaking.com/, https://www.faridabadlucky.com/chart/new-disawar/2026-11, https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi, https://satta-fast.com/satta-king-chart-november-2026",
+      "sourceUrl": "https://kingsofsatta.com/, https://satta-king-gali.com/, https://sattafree.com/, https://galidisawer.com/, https://www.realsattaking.com/, https://www.faridabadlucky.com/chart/new-disawar/2026-11, https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi, https://satta-fast.com/satta-king-chart-november-2026",
       "verificationMeta": {
         "value": "52",
         "sources": [
@@ -123,7 +123,6 @@
           "https://satta-king-gali.com/",
           "https://sattafree.com/",
           "https://galidisawer.com/",
-          "https://satta-king-fast.com/",
           "https://www.realsattaking.com/",
           "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
           "https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi",
@@ -134,19 +133,17 @@
           "satta-king-gali.com",
           "sattafree.com",
           "galidisawer.com",
-          "satta-king-fast.com",
           "www.realsattaking.com",
           "www.faridabadlucky.com",
           "www.delhilucky.com",
           "satta-fast.com"
         ],
-        "checkedAt": "2026-11-26T20:34:10.999Z",
+        "checkedAt": "2026-11-26T20:35:01.045Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
           "sattafree.com",
           "galidisawer.com",
-          "satta-king-fast.com",
           "www.realsattaking.com",
           "www.faridabadlucky.com",
           "www.delhilucky.com",
