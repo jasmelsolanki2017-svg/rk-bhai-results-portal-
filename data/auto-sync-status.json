@@ -1,9 +1,600 @@
 {
   "app": "rk-bhai-results-portal",
-  "status": "running",
-  "message": "सामान्य Parser सभी स्रोत जाँच रहा है। DeepSeek केवल चालू रिजल्ट-समय वाले एक मार्केट को हर 5 मिनट में जाँचेगा; verified AI रिजल्ट सेव होने पर उस मार्केट की AI जाँच अगले रिजल्ट-दिन तक बंद रहेगी। Chandigarh City शामिल नहीं है।",
+  "status": "success",
+  "message": "इस चक्र की सामान्य Automatic Result Sync जाँच पूरी हुई। तीन स्वतंत्र वेबसाइटों पर समान Parser रिजल्ट मिलने पर तुरंत publish किया गया; लगातार समान नंबर पर अतिरिक्त recheck लागू है।",
   "sourceUrl": "https://kingsofsatta.com/",
-  "sourceDiagnostics": [],
+  "sourceDiagnostics": [
+    {
+      "pass": "first_check",
+      "url": "https://sattafree.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Disawar",
+        "Gali",
+        "Delhi Bazar",
+        "Shree Ganesh"
+      ],
+      "marketValues": {
+        "Disawar": "80",
+        "Gali": "79",
+        "Delhi Bazar": "22",
+        "Shree Ganesh": "56"
+      },
+      "marketParsers": {
+        "Disawar": "exact_date_monthly_chart",
+        "Gali": "exact_date_monthly_chart",
+        "Delhi Bazar": "exact_date_monthly_chart",
+        "Shree Ganesh": "exact_date_monthly_chart"
+      },
+      "ambiguousValues": [],
+      "parser": "exact_date_monthly_chart_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://sattafree.com/game-history.php?game=shree-ganesh",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Shree Ganesh"
+      ],
+      "marketValues": {
+        "Shree Ganesh": "56"
+      },
+      "marketParsers": {
+        "Shree Ganesh": "date_result_history_table"
+      },
+      "ambiguousValues": [],
+      "parser": "exact_date_monthly_chart_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://kingsofsatta.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Disawar",
+        "Gali",
+        "Delhi Bazar",
+        "Shree Ganesh"
+      ],
+      "marketValues": {
+        "Disawar": "80",
+        "Gali": "79",
+        "Delhi Bazar": "22",
+        "Shree Ganesh": "56"
+      },
+      "marketParsers": {
+        "Disawar": "same_row_explicit_today_yesterday_table",
+        "Gali": "same_row_explicit_today_yesterday_table",
+        "Delhi Bazar": "same_row_explicit_today_yesterday_table",
+        "Shree Ganesh": "same_row_explicit_today_yesterday_table"
+      },
+      "ambiguousValues": [],
+      "parser": "exact_date_monthly_chart_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://satta-king-gali.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Disawar",
+        "Gali",
+        "Delhi Bazar",
+        "Shree Ganesh"
+      ],
+      "marketValues": {
+        "Disawar": "80",
+        "Gali": "79",
+        "Delhi Bazar": "22",
+        "Shree Ganesh": "56"
+      },
+      "marketParsers": {
+        "Disawar": "same_row_explicit_today_yesterday_table",
+        "Gali": "same_row_explicit_today_yesterday_table",
+        "Delhi Bazar": "same_row_explicit_today_yesterday_table",
+        "Shree Ganesh": "same_row_explicit_today_yesterday_table"
+      },
+      "ambiguousValues": [],
+      "parser": "exact_date_monthly_chart_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://galidisawer.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Disawar",
+        "Gali",
+        "Delhi Bazar",
+        "Shree Ganesh"
+      ],
+      "marketValues": {
+        "Disawar": "80",
+        "Gali": "79",
+        "Delhi Bazar": "22",
+        "Shree Ganesh": "56"
+      },
+      "marketParsers": {
+        "Disawar": "exact_date_monthly_chart",
+        "Gali": "exact_date_monthly_chart",
+        "Delhi Bazar": "exact_date_monthly_chart",
+        "Shree Ganesh": "exact_date_monthly_chart"
+      },
+      "ambiguousValues": [],
+      "parser": "exact_date_monthly_chart_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://satta-king-fast.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Disawar",
+        "Gali"
+      ],
+      "marketValues": {
+        "Disawar": "80",
+        "Gali": "79"
+      },
+      "marketParsers": {
+        "Disawar": "exact_date_monthly_chart",
+        "Gali": "exact_date_monthly_chart"
+      },
+      "ambiguousValues": [],
+      "parser": "exact_date_monthly_chart_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://sattaking.live/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Disawar",
+        "Faridabad",
+        "Gali",
+        "Shree Ganesh"
+      ],
+      "marketValues": {
+        "Disawar": "80",
+        "Faridabad": "80",
+        "Gali": "79",
+        "Shree Ganesh": "56"
+      },
+      "marketParsers": {
+        "Disawar": "exact_date_monthly_chart",
+        "Faridabad": "exact_date_monthly_chart",
+        "Gali": "exact_date_monthly_chart",
+        "Shree Ganesh": "exact_date_monthly_chart"
+      },
+      "ambiguousValues": [],
+      "parser": "exact_date_monthly_chart_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://satta.live/record_chart/disawar_record_chart.php",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Disawar",
+        "Gali",
+        "Shree Ganesh"
+      ],
+      "marketValues": {
+        "Disawar": "80",
+        "Gali": "79",
+        "Shree Ganesh": "56"
+      },
+      "marketParsers": {
+        "Disawar": "exact_date_monthly_chart",
+        "Gali": "exact_date_monthly_chart",
+        "Shree Ganesh": "exact_date_monthly_chart"
+      },
+      "ambiguousValues": [],
+      "parser": "exact_date_monthly_chart_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://satta-superfast.com/",
+      "result": "satta_superfast_parser_trace",
+      "market": "Disawar",
+      "targetDate": "2026-11-26",
+      "parsedValue": null,
+      "trace": [
+        {
+          "market": "DISAWAR",
+          "targetDate": "2026-11-26",
+          "selectedColumn": "TODAY",
+          "selectedValue": null,
+          "rowCells": [
+            "DISAWAR",
+            "05 05 AM",
+            "RECORD CHART",
+            "97",
+            ""
+          ]
+        }
+      ]
+    },
+    {
+      "pass": "first_check",
+      "url": "https://satta-superfast.com/",
+      "result": "satta_superfast_parser_trace",
+      "market": "Faridabad",
+      "targetDate": "2026-11-26",
+      "parsedValue": null,
+      "trace": [
+        {
+          "market": "FARIDABAD",
+          "targetDate": "2026-11-26",
+          "selectedColumn": "TODAY",
+          "selectedValue": null,
+          "rowCells": [
+            "FARIDABAD",
+            "06 00 PM",
+            "RECORD CHART",
+            "11",
+            ""
+          ]
+        }
+      ]
+    },
+    {
+      "pass": "first_check",
+      "url": "https://satta-superfast.com/",
+      "result": "satta_superfast_parser_trace",
+      "market": "Ghaziabad",
+      "targetDate": "2026-11-26",
+      "parsedValue": null,
+      "trace": [
+        {
+          "market": "GHAZIABAD",
+          "targetDate": "2026-11-26",
+          "selectedColumn": "TODAY",
+          "selectedValue": null,
+          "rowCells": [
+            "GHAZIABAD",
+            "08 30 PM",
+            "RECORD CHART",
+            "80",
+            ""
+          ]
+        }
+      ]
+    },
+    {
+      "pass": "first_check",
+      "url": "https://satta-superfast.com/",
+      "result": "satta_superfast_parser_trace",
+      "market": "Gali",
+      "targetDate": "2026-11-25",
+      "parsedValue": "81",
+      "trace": [
+        {
+          "market": "GALI",
+          "targetDate": "2026-11-25",
+          "selectedColumn": "YESTERDAY",
+          "selectedValue": "81",
+          "rowCells": [
+            "GALI",
+            "11 30 PM",
+            "RECORD CHART",
+            "81",
+            ""
+          ]
+        }
+      ]
+    },
+    {
+      "pass": "first_check",
+      "url": "https://satta-superfast.com/",
+      "result": "satta_superfast_parser_trace",
+      "market": "Delhi Bazar",
+      "targetDate": "2026-11-26",
+      "parsedValue": null,
+      "trace": [
+        {
+          "market": "DELHI BAZAR",
+          "targetDate": "2026-11-26",
+          "selectedColumn": "TODAY",
+          "selectedValue": null,
+          "rowCells": [
+            "DELHI BAZAR",
+            "03 00 PM",
+            "RECORD CHART",
+            "12",
+            ""
+          ]
+        }
+      ]
+    },
+    {
+      "pass": "first_check",
+      "url": "https://satta-superfast.com/",
+      "result": "satta_superfast_parser_trace",
+      "market": "Shree Ganesh",
+      "targetDate": "2026-11-26",
+      "parsedValue": null,
+      "trace": [
+        {
+          "market": "SHRI GANESH",
+          "targetDate": "2026-11-26",
+          "selectedColumn": "TODAY",
+          "selectedValue": null,
+          "rowCells": [
+            "SHRI GANESH",
+            "04 30 PM",
+            "RECORD CHART",
+            "80",
+            ""
+          ]
+        }
+      ]
+    },
+    {
+      "pass": "first_check",
+      "url": "https://satta-superfast.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Gali"
+      ],
+      "marketValues": {
+        "Gali": "81"
+      },
+      "marketParsers": {
+        "Gali": "satta_superfast_exact_market_today_yesterday_table"
+      },
+      "ambiguousValues": [],
+      "parser": "exact_date_monthly_chart_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://www.realsattaking.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Disawar",
+        "Gali"
+      ],
+      "marketValues": {
+        "Disawar": "80",
+        "Gali": "79"
+      },
+      "marketParsers": {
+        "Disawar": "exact_date_monthly_chart",
+        "Gali": "exact_date_monthly_chart"
+      },
+      "ambiguousValues": [],
+      "parser": "exact_date_monthly_chart_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Disawar",
+        "Gali",
+        "Shree Ganesh"
+      ],
+      "marketValues": {
+        "Disawar": "80",
+        "Gali": "79",
+        "Shree Ganesh": "56"
+      },
+      "marketParsers": {
+        "Disawar": "exact_date_monthly_chart",
+        "Gali": "exact_date_monthly_chart",
+        "Shree Ganesh": "exact_date_monthly_chart"
+      },
+      "ambiguousValues": [],
+      "parser": "exact_date_monthly_chart_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://satta-fast.com/satta-king-chart-november-2026",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Gali"
+      ],
+      "marketValues": {
+        "Gali": "79"
+      },
+      "marketParsers": {
+        "Gali": "exact_date_monthly_chart"
+      },
+      "ambiguousValues": [],
+      "parser": "exact_date_monthly_chart_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Disawar",
+        "Gali",
+        "Shree Ganesh"
+      ],
+      "marketValues": {
+        "Disawar": "80",
+        "Gali": "79",
+        "Shree Ganesh": "56"
+      },
+      "marketParsers": {
+        "Disawar": "exact_date_monthly_chart",
+        "Gali": "exact_date_monthly_chart",
+        "Shree Ganesh": "exact_date_monthly_chart"
+      },
+      "ambiguousValues": [],
+      "parser": "exact_date_monthly_chart_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://1xsatta.today/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Gali"
+      ],
+      "marketValues": {
+        "Gali": "79"
+      },
+      "marketParsers": {
+        "Gali": "same_row_explicit_today_yesterday_table"
+      },
+      "ambiguousValues": [],
+      "parser": "exact_date_monthly_chart_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://1xsatta.today/record-chart/disawar/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Disawar"
+      ],
+      "marketValues": {
+        "Disawar": "80"
+      },
+      "marketParsers": {
+        "Disawar": "dedicated_yearly_month_grid"
+      },
+      "ambiguousValues": [],
+      "parser": "exact_date_monthly_chart_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://1xsatta.today/record-chart/shri-ganesh/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Shree Ganesh"
+      ],
+      "marketValues": {
+        "Shree Ganesh": "56"
+      },
+      "marketParsers": {
+        "Shree Ganesh": "dedicated_yearly_month_grid"
+      },
+      "ambiguousValues": [],
+      "parser": "exact_date_monthly_chart_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://1xsatta.today/record-chart/ghaziabad/",
+      "status": 200,
+      "result": "no_values",
+      "marketsFound": [],
+      "marketValues": {},
+      "marketParsers": {},
+      "ambiguousValues": [],
+      "parser": "no_exact_date_market_cell_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://1xsatta.today/record-chart/gali/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Gali"
+      ],
+      "marketValues": {
+        "Gali": "79"
+      },
+      "marketParsers": {
+        "Gali": "dedicated_yearly_month_grid"
+      },
+      "ambiguousValues": [],
+      "parser": "exact_date_monthly_chart_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://1xsatta.today/record-chart/faridabad/",
+      "status": 200,
+      "result": "no_values",
+      "marketsFound": [],
+      "marketValues": {},
+      "marketParsers": {},
+      "ambiguousValues": [],
+      "parser": "no_exact_date_market_cell_or_same_row_dated_table"
+    },
+    {
+      "result": "already_matches",
+      "market": "Disawar",
+      "existingValue": "80",
+      "incomingValue": "80",
+      "publicStatus": "published",
+      "candidateSources": [
+        "https://kingsofsatta.com/",
+        "https://satta-king-gali.com/",
+        "https://sattafree.com/",
+        "https://galidisawer.com/",
+        "https://satta-king-fast.com/",
+        "https://sattaking.live/",
+        "https://satta.live/record_chart/disawar_record_chart.php",
+        "https://www.realsattaking.com/",
+        "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
+        "https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi",
+        "https://1xsatta.today/record-chart/disawar/"
+      ]
+    },
+    {
+      "result": "already_matches",
+      "market": "Gali",
+      "existingValue": "79",
+      "incomingValue": "79",
+      "publicStatus": "published",
+      "candidateSources": [
+        "https://kingsofsatta.com/",
+        "https://satta-king-gali.com/",
+        "https://sattafree.com/",
+        "https://galidisawer.com/",
+        "https://satta-king-fast.com/",
+        "https://sattaking.live/",
+        "https://satta.live/record_chart/disawar_record_chart.php",
+        "https://www.realsattaking.com/",
+        "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
+        "https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi",
+        "https://satta-fast.com/satta-king-chart-november-2026",
+        "https://1xsatta.today/"
+      ]
+    },
+    {
+      "result": "already_matches",
+      "market": "Delhi Bazar",
+      "existingValue": "22",
+      "incomingValue": "22",
+      "publicStatus": "published",
+      "candidateSources": [
+        "https://kingsofsatta.com/",
+        "https://satta-king-gali.com/",
+        "https://sattafree.com/",
+        "https://galidisawer.com/"
+      ]
+    },
+    {
+      "result": "already_matches",
+      "market": "Shree Ganesh",
+      "existingValue": "56",
+      "incomingValue": "56",
+      "publicStatus": "published",
+      "candidateSources": [
+        "https://kingsofsatta.com/",
+        "https://satta-king-gali.com/",
+        "https://sattafree.com/",
+        "https://galidisawer.com/",
+        "https://sattaking.live/",
+        "https://satta.live/record_chart/disawar_record_chart.php",
+        "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
+        "https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi",
+        "https://1xsatta.today/record-chart/shri-ganesh/"
+      ]
+    }
+  ],
   "aiSavedResults": {
     "Ghaziabad:2026-11-25": {
       "market": "Ghaziabad",
@@ -56,7 +647,7 @@
       "aiModel": "deepseek-v4-1-flash-1017"
     }
   },
-  "attempts": 0,
-  "httpStatus": null,
-  "checkedAt": "2026-11-26T11:34:32.247Z"
+  "attempts": 19,
+  "httpStatus": 200,
+  "checkedAt": "2026-11-26T11:34:56.835Z"
 }
