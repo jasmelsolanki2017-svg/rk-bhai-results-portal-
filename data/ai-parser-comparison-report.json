@@ -1,8 +1,8 @@
 {
   "app": "rk-bhai-results-portal",
   "reportType": "ai-parser-independent-comparison",
-  "generatedAt": "2026-11-26T17:30:27.276Z",
-  "syncCheckedAt": "2026-11-26T17:30:25.812Z",
+  "generatedAt": "2026-11-26T17:31:49.614Z",
+  "syncCheckedAt": "2026-11-26T17:31:47.781Z",
   "syncStatus": "success",
   "note": "Comparison only. AI observations are not counted as independent parser domains and do not change the three-domain publication rule.",
   "summary": {
@@ -71,11 +71,11 @@
         "kingsofsatta.com",
         "galidisawer.com",
         "satta-king-fast.com",
-        "www.realsattaking.com",
-        "satta.live",
         "sattaking.live",
+        "satta.live",
         "www.faridabadlucky.com",
         "www.delhilucky.com",
+        "www.realsattaking.com",
         "1xsatta.today"
       ],
       "parserObservations": [
@@ -116,8 +116,8 @@
         },
         {
           "value": "80",
-          "host": "www.realsattaking.com",
-          "url": "https://www.realsattaking.com/",
+          "host": "sattaking.live",
+          "url": "https://sattaking.live/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
@@ -125,13 +125,6 @@
           "value": "80",
           "host": "satta.live",
           "url": "https://satta.live/record_chart/disawar_record_chart.php",
-          "parser": "exact_date_monthly_chart",
-          "pass": "first_check"
-        },
-        {
-          "value": "80",
-          "host": "sattaking.live",
-          "url": "https://sattaking.live/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
@@ -146,6 +139,13 @@
           "value": "80",
           "host": "www.delhilucky.com",
           "url": "https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi",
+          "parser": "exact_date_monthly_chart",
+          "pass": "first_check"
+        },
+        {
+          "value": "80",
+          "host": "www.realsattaking.com",
+          "url": "https://www.realsattaking.com/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
@@ -287,8 +287,8 @@
         "kingsofsatta.com",
         "galidisawer.com",
         "satta-king-fast.com",
-        "www.realsattaking.com",
         "satta-fast.com",
+        "www.realsattaking.com",
         "1xsatta.today"
       ],
       "parserObservations": [
@@ -329,15 +329,15 @@
         },
         {
           "value": "24",
-          "host": "www.realsattaking.com",
-          "url": "https://www.realsattaking.com/",
+          "host": "satta-fast.com",
+          "url": "https://satta-fast.com/satta-king-chart-november-2026",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
         {
           "value": "24",
-          "host": "satta-fast.com",
-          "url": "https://satta-fast.com/satta-king-chart-november-2026",
+          "host": "www.realsattaking.com",
+          "url": "https://www.realsattaking.com/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
@@ -363,8 +363,8 @@
         "satta-king-gali.com",
         "kingsofsatta.com",
         "galidisawer.com",
-        "satta.live",
         "sattaking.live",
+        "satta.live",
         "www.faridabadlucky.com",
         "www.delhilucky.com",
         "1xsatta.today"
@@ -407,15 +407,15 @@
         },
         {
           "value": "56",
-          "host": "satta.live",
-          "url": "https://satta.live/record_chart/disawar_record_chart.php",
+          "host": "sattaking.live",
+          "url": "https://sattaking.live/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
         {
           "value": "56",
-          "host": "sattaking.live",
-          "url": "https://sattaking.live/",
+          "host": "satta.live",
+          "url": "https://satta.live/record_chart/disawar_record_chart.php",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
