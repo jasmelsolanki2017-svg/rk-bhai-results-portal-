@@ -1,28 +1,31 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-26T09:48:55.246Z",
+  "updatedAt": "2026-11-26T09:49:53.743Z",
   "results": [
     {
       "_id": "6b08008228a5f35075a1b874",
       "title": "Delhi Bazar",
       "resultText": "22",
       "resultDate": "2026-11-26T12:00:00.000Z",
-      "sourceUrl": "https://kingsofsatta.com/, https://sattafree.com/, https://galidisawer.com/",
+      "sourceUrl": "https://kingsofsatta.com/, https://satta-king-gali.com/, https://sattafree.com/, https://galidisawer.com/",
       "verificationMeta": {
         "value": "22",
         "sources": [
           "https://kingsofsatta.com/",
+          "https://satta-king-gali.com/",
           "https://sattafree.com/",
           "https://galidisawer.com/"
         ],
         "domains": [
           "kingsofsatta.com",
+          "satta-king-gali.com",
           "sattafree.com",
           "galidisawer.com"
         ],
-        "checkedAt": "2026-11-26T09:48:43.933Z",
+        "checkedAt": "2026-11-26T09:49:42.587Z",
         "firstPassDomains": [
           "kingsofsatta.com",
+          "satta-king-gali.com",
           "sattafree.com",
           "galidisawer.com"
         ],
@@ -65,7 +68,7 @@
           "www.delhilucky.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-26T09:48:43.933Z",
+        "checkedAt": "2026-11-26T09:49:42.587Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
@@ -249,7 +252,7 @@
           "satta-fast.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-26T09:48:43.933Z",
+        "checkedAt": "2026-11-26T09:49:42.587Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
