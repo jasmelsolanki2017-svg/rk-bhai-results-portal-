@@ -1,8 +1,8 @@
 {
   "app": "rk-bhai-results-portal",
   "reportType": "ai-parser-independent-comparison",
-  "generatedAt": "2026-11-26T19:12:24.047Z",
-  "syncCheckedAt": "2026-11-26T19:12:22.589Z",
+  "generatedAt": "2026-11-26T19:13:19.515Z",
+  "syncCheckedAt": "2026-11-26T19:13:17.784Z",
   "syncStatus": "success",
   "note": "Comparison only. AI observations are not counted as independent parser domains and do not change the three-domain publication rule.",
   "summary": {
@@ -27,9 +27,9 @@
         "galidisawer.com",
         "satta-king-gali.com",
         "satta-king-fast.com",
-        "satta.live",
-        "satta-superfast.com",
         "sattaking.live",
+        "satta-superfast.com",
+        "satta.live",
         "www.faridabadlucky.com",
         "www.realsattaking.com",
         "www.delhilucky.com",
@@ -74,8 +74,8 @@
         },
         {
           "value": "52",
-          "host": "satta.live",
-          "url": "https://satta.live/record_chart/disawar_record_chart.php",
+          "host": "sattaking.live",
+          "url": "https://sattaking.live/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
@@ -88,8 +88,8 @@
         },
         {
           "value": "52",
-          "host": "sattaking.live",
-          "url": "https://sattaking.live/",
+          "host": "satta.live",
+          "url": "https://satta.live/record_chart/disawar_record_chart.php",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
