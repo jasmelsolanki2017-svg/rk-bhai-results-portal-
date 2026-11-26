@@ -1,8 +1,8 @@
 {
   "app": "rk-bhai-results-portal",
   "reportType": "ai-parser-independent-comparison",
-  "generatedAt": "2026-11-26T20:07:06.151Z",
-  "syncCheckedAt": "2026-11-26T20:07:04.594Z",
+  "generatedAt": "2026-11-26T20:08:12.593Z",
+  "syncCheckedAt": "2026-11-26T20:08:10.792Z",
   "syncStatus": "success",
   "note": "Comparison only. AI observations are not counted as independent parser domains and do not change the three-domain publication rule.",
   "summary": {
@@ -29,7 +29,6 @@
         "satta-king-fast.com",
         "satta-superfast.com",
         "www.realsattaking.com",
-        "sattaking.live",
         "www.faridabadlucky.com",
         "www.delhilucky.com",
         "satta-fast.com",
@@ -83,13 +82,6 @@
           "value": "52",
           "host": "www.realsattaking.com",
           "url": "https://www.realsattaking.com/",
-          "parser": "exact_date_monthly_chart",
-          "pass": "first_check"
-        },
-        {
-          "value": "52",
-          "host": "sattaking.live",
-          "url": "https://sattaking.live/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
