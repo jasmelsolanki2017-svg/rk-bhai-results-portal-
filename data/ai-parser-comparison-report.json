@@ -1,8 +1,8 @@
 {
   "app": "rk-bhai-results-portal",
   "reportType": "ai-parser-independent-comparison",
-  "generatedAt": "2026-11-26T18:28:37.600Z",
-  "syncCheckedAt": "2026-11-26T18:28:36.197Z",
+  "generatedAt": "2026-11-26T18:29:36.456Z",
+  "syncCheckedAt": "2026-11-26T18:29:34.496Z",
   "syncStatus": "success",
   "note": "Comparison only. AI observations are not counted as independent parser domains and do not change the three-domain publication rule.",
   "summary": {
@@ -22,8 +22,8 @@
       ],
       "parserDomains": [
         "sattafree.com",
-        "satta-king-gali.com",
         "galidisawer.com",
+        "satta-king-gali.com",
         "kingsofsatta.com"
       ],
       "parserObservations": [
@@ -36,16 +36,16 @@
         },
         {
           "value": "22",
-          "host": "satta-king-gali.com",
-          "url": "https://satta-king-gali.com/",
-          "parser": "same_row_explicit_today_yesterday_table",
+          "host": "galidisawer.com",
+          "url": "https://galidisawer.com/",
+          "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
         {
           "value": "22",
-          "host": "galidisawer.com",
-          "url": "https://galidisawer.com/",
-          "parser": "exact_date_monthly_chart",
+          "host": "satta-king-gali.com",
+          "url": "https://satta-king-gali.com/",
+          "parser": "same_row_explicit_today_yesterday_table",
           "pass": "first_check"
         },
         {
@@ -67,10 +67,9 @@
       ],
       "parserDomains": [
         "sattafree.com",
-        "satta-king-gali.com",
         "galidisawer.com",
+        "satta-king-gali.com",
         "kingsofsatta.com",
-        "satta-king-fast.com",
         "www.realsattaking.com",
         "www.faridabadlucky.com",
         "www.delhilucky.com"
@@ -85,13 +84,6 @@
         },
         {
           "value": "80",
-          "host": "satta-king-gali.com",
-          "url": "https://satta-king-gali.com/",
-          "parser": "same_row_explicit_today_yesterday_table",
-          "pass": "first_check"
-        },
-        {
-          "value": "80",
           "host": "galidisawer.com",
           "url": "https://galidisawer.com/",
           "parser": "exact_date_monthly_chart",
@@ -99,16 +91,16 @@
         },
         {
           "value": "80",
-          "host": "kingsofsatta.com",
-          "url": "https://kingsofsatta.com/",
+          "host": "satta-king-gali.com",
+          "url": "https://satta-king-gali.com/",
           "parser": "same_row_explicit_today_yesterday_table",
           "pass": "first_check"
         },
         {
           "value": "80",
-          "host": "satta-king-fast.com",
-          "url": "https://satta-king-fast.com/",
-          "parser": "exact_date_monthly_chart",
+          "host": "kingsofsatta.com",
+          "url": "https://kingsofsatta.com/",
+          "parser": "same_row_explicit_today_yesterday_table",
           "pass": "first_check"
         },
         {
@@ -144,10 +136,9 @@
       ],
       "parserDomains": [
         "sattafree.com",
-        "satta-king-gali.com",
         "galidisawer.com",
+        "satta-king-gali.com",
         "kingsofsatta.com",
-        "satta-king-fast.com",
         "satta-fast.com"
       ],
       "parserObservations": [
@@ -160,13 +151,6 @@
         },
         {
           "value": "56",
-          "host": "satta-king-gali.com",
-          "url": "https://satta-king-gali.com/",
-          "parser": "same_row_explicit_today_yesterday_table",
-          "pass": "first_check"
-        },
-        {
-          "value": "56",
           "host": "galidisawer.com",
           "url": "https://galidisawer.com/",
           "parser": "exact_date_monthly_chart",
@@ -174,16 +158,16 @@
         },
         {
           "value": "56",
-          "host": "kingsofsatta.com",
-          "url": "https://kingsofsatta.com/",
+          "host": "satta-king-gali.com",
+          "url": "https://satta-king-gali.com/",
           "parser": "same_row_explicit_today_yesterday_table",
           "pass": "first_check"
         },
         {
           "value": "56",
-          "host": "satta-king-fast.com",
-          "url": "https://satta-king-fast.com/",
-          "parser": "exact_date_monthly_chart",
+          "host": "kingsofsatta.com",
+          "url": "https://kingsofsatta.com/",
+          "parser": "same_row_explicit_today_yesterday_table",
           "pass": "first_check"
         },
         {
@@ -234,10 +218,9 @@
       ],
       "parserDomains": [
         "sattafree.com",
-        "satta-king-gali.com",
         "galidisawer.com",
+        "satta-king-gali.com",
         "kingsofsatta.com",
-        "satta-king-fast.com",
         "www.realsattaking.com",
         "satta-fast.com"
       ],
@@ -251,13 +234,6 @@
         },
         {
           "value": "24",
-          "host": "satta-king-gali.com",
-          "url": "https://satta-king-gali.com/",
-          "parser": "same_row_explicit_today_yesterday_table",
-          "pass": "first_check"
-        },
-        {
-          "value": "24",
           "host": "galidisawer.com",
           "url": "https://galidisawer.com/",
           "parser": "exact_date_monthly_chart",
@@ -265,16 +241,16 @@
         },
         {
           "value": "24",
-          "host": "kingsofsatta.com",
-          "url": "https://kingsofsatta.com/",
+          "host": "satta-king-gali.com",
+          "url": "https://satta-king-gali.com/",
           "parser": "same_row_explicit_today_yesterday_table",
           "pass": "first_check"
         },
         {
           "value": "24",
-          "host": "satta-king-fast.com",
-          "url": "https://satta-king-fast.com/",
-          "parser": "exact_date_monthly_chart",
+          "host": "kingsofsatta.com",
+          "url": "https://kingsofsatta.com/",
+          "parser": "same_row_explicit_today_yesterday_table",
           "pass": "first_check"
         },
         {
@@ -303,8 +279,8 @@
       ],
       "parserDomains": [
         "sattafree.com",
-        "satta-king-gali.com",
         "galidisawer.com",
+        "satta-king-gali.com",
         "kingsofsatta.com",
         "www.faridabadlucky.com",
         "www.delhilucky.com"
@@ -319,13 +295,6 @@
         },
         {
           "value": "56",
-          "host": "satta-king-gali.com",
-          "url": "https://satta-king-gali.com/",
-          "parser": "same_row_explicit_today_yesterday_table",
-          "pass": "first_check"
-        },
-        {
-          "value": "56",
           "host": "sattafree.com",
           "url": "https://sattafree.com/game-history.php?game=shree-ganesh",
           "parser": "date_result_history_table",
@@ -336,6 +305,13 @@
           "host": "galidisawer.com",
           "url": "https://galidisawer.com/",
           "parser": "exact_date_monthly_chart",
+          "pass": "first_check"
+        },
+        {
+          "value": "56",
+          "host": "satta-king-gali.com",
+          "url": "https://satta-king-gali.com/",
+          "parser": "same_row_explicit_today_yesterday_table",
           "pass": "first_check"
         },
         {
