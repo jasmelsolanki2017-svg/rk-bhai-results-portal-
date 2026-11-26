@@ -1,9 +1,187 @@
 {
   "app": "rk-bhai-results-portal",
-  "status": "running",
-  "message": "सामान्य Parser सभी स्रोत जाँच रहा है। DeepSeek केवल चालू रिजल्ट-समय वाले एक मार्केट को हर 5 मिनट में जाँचेगा; verified AI रिजल्ट सेव होने पर उस मार्केट की AI जाँच अगले रिजल्ट-दिन तक बंद रहेगी। Chandigarh City शामिल नहीं है।",
+  "status": "success",
+  "message": "इस चक्र की सामान्य Automatic Result Sync जाँच पूरी हुई। तीन स्वतंत्र वेबसाइटों पर समान Parser रिजल्ट मिलने पर तुरंत publish किया गया; लगातार समान नंबर पर अतिरिक्त recheck लागू है।",
   "sourceUrl": "https://kingsofsatta.com/",
-  "sourceDiagnostics": [],
+  "sourceDiagnostics": [
+    {
+      "pass": "first_check",
+      "url": "https://satta-king-gali.com/",
+      "status": null,
+      "result": "request_error",
+      "message": "fetch failed"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://sattafree.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Gali"
+      ],
+      "marketValues": {
+        "Gali": "52"
+      },
+      "marketParsers": {
+        "Gali": "exact_date_monthly_chart"
+      },
+      "ambiguousValues": [],
+      "parser": "exact_date_monthly_chart_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://kingsofsatta.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Gali"
+      ],
+      "marketValues": {
+        "Gali": "52"
+      },
+      "marketParsers": {
+        "Gali": "same_row_explicit_today_yesterday_table"
+      },
+      "ambiguousValues": [],
+      "parser": "exact_date_monthly_chart_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://sattafree.com/game-history.php?game=shree-ganesh",
+      "status": 200,
+      "result": "date_not_recognized"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://galidisawer.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Gali"
+      ],
+      "marketValues": {
+        "Gali": "52"
+      },
+      "marketParsers": {
+        "Gali": "exact_date_monthly_chart"
+      },
+      "ambiguousValues": [],
+      "parser": "exact_date_monthly_chart_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://satta-king-fast.com/",
+      "status": 200,
+      "result": "dated_values_found",
+      "marketsFound": [
+        "Gali"
+      ],
+      "marketValues": {
+        "Gali": "52"
+      },
+      "marketParsers": {
+        "Gali": "exact_date_monthly_chart"
+      },
+      "ambiguousValues": [],
+      "parser": "exact_date_monthly_chart_or_same_row_dated_table"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://satta.live/record_chart/disawar_record_chart.php",
+      "status": 200,
+      "result": "date_not_recognized"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://sattaking.live/",
+      "status": 200,
+      "result": "date_not_recognized"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://satta-superfast.com/",
+      "status": null,
+      "result": "request_error",
+      "message": "fetch failed"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://www.realsattaking.com/",
+      "status": null,
+      "result": "request_error",
+      "message": "fetch failed"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
+      "status": null,
+      "result": "request_error",
+      "message": "fetch failed"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi",
+      "status": null,
+      "result": "request_error",
+      "message": "fetch failed"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://satta-fast.com/satta-king-chart-november-2026",
+      "status": null,
+      "result": "request_error",
+      "message": "fetch failed"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://1xsatta.today/",
+      "status": 200,
+      "result": "date_not_recognized"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://1xsatta.today/record-chart/disawar/",
+      "status": 200,
+      "result": "date_not_recognized"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://1xsatta.today/record-chart/shri-ganesh/",
+      "status": 200,
+      "result": "date_not_recognized"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://1xsatta.today/record-chart/ghaziabad/",
+      "status": 200,
+      "result": "date_not_recognized"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://1xsatta.today/record-chart/gali/",
+      "status": 200,
+      "result": "date_not_recognized"
+    },
+    {
+      "pass": "first_check",
+      "url": "https://1xsatta.today/record-chart/faridabad/",
+      "status": 200,
+      "result": "date_not_recognized"
+    },
+    {
+      "result": "already_matches",
+      "market": "Gali",
+      "existingValue": "52",
+      "incomingValue": "52",
+      "publicStatus": "published",
+      "candidateSources": [
+        "https://kingsofsatta.com/",
+        "https://sattafree.com/",
+        "https://galidisawer.com/",
+        "https://satta-king-fast.com/"
+      ]
+    }
+  ],
   "aiSavedResults": {
     "Ghaziabad:2026-11-25": {
       "market": "Ghaziabad",
@@ -86,7 +264,7 @@
       "aiModel": "deepseek-v4-1-flash-1017"
     }
   },
-  "attempts": 0,
-  "httpStatus": null,
-  "checkedAt": "2026-11-26T22:38:45.521Z"
+  "attempts": 19,
+  "httpStatus": 200,
+  "checkedAt": "2026-11-26T22:39:06.515Z"
 }
