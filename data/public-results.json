@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-26T12:48:28.582Z",
+  "updatedAt": "2026-11-26T12:50:03.953Z",
   "results": [
     {
       "_id": "6b08008228a5f35075a1b874",
@@ -22,7 +22,7 @@
           "sattafree.com",
           "galidisawer.com"
         ],
-        "checkedAt": "2026-11-26T12:48:14.817Z",
+        "checkedAt": "2026-11-26T12:49:51.520Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
@@ -68,7 +68,7 @@
           "www.delhilucky.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-26T12:48:14.817Z",
+        "checkedAt": "2026-11-26T12:49:51.520Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
@@ -92,24 +92,30 @@
       "title": "Faridabad",
       "resultText": "56",
       "resultDate": "2026-11-26T12:00:00.000Z",
-      "sourceUrl": "https://galidisawer.com/, https://sattaking.live/, https://satta-fast.com/satta-king-chart-november-2026, https://1xsatta.today/record-chart/faridabad/",
+      "sourceUrl": "https://kingsofsatta.com/, https://galidisawer.com/, https://satta-king-fast.com/, https://sattaking.live/, https://satta-fast.com/satta-king-chart-november-2026, https://1xsatta.today/record-chart/faridabad/",
       "verificationMeta": {
         "value": "56",
         "sources": [
+          "https://kingsofsatta.com/",
           "https://galidisawer.com/",
+          "https://satta-king-fast.com/",
           "https://sattaking.live/",
           "https://satta-fast.com/satta-king-chart-november-2026",
           "https://1xsatta.today/record-chart/faridabad/"
         ],
         "domains": [
+          "kingsofsatta.com",
           "galidisawer.com",
+          "satta-king-fast.com",
           "sattaking.live",
           "satta-fast.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-26T12:48:14.817Z",
+        "checkedAt": "2026-11-26T12:49:51.520Z",
         "firstPassDomains": [
+          "kingsofsatta.com",
           "galidisawer.com",
+          "satta-king-fast.com",
           "sattaking.live",
           "satta-fast.com",
           "1xsatta.today"
@@ -149,7 +155,7 @@
           "www.delhilucky.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-26T12:48:14.817Z",
+        "checkedAt": "2026-11-26T12:49:51.520Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
@@ -331,7 +337,7 @@
           "satta-fast.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-26T12:48:14.817Z",
+        "checkedAt": "2026-11-26T12:49:51.520Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
