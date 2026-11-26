@@ -1,8 +1,8 @@
 {
   "app": "rk-bhai-results-portal",
   "reportType": "ai-parser-independent-comparison",
-  "generatedAt": "2026-11-26T09:03:08.817Z",
-  "syncCheckedAt": "2026-11-26T09:03:07.085Z",
+  "generatedAt": "2026-11-26T09:04:10.621Z",
+  "syncCheckedAt": "2026-11-26T09:04:08.958Z",
   "syncStatus": "success",
   "note": "Comparison only. AI observations are not counted as independent parser domains and do not change the three-domain publication rule.",
   "summary": {
@@ -21,7 +21,6 @@
         "80"
       ],
       "parserDomains": [
-        "kingsofsatta.com",
         "sattafree.com",
         "galidisawer.com",
         "satta-king-gali.com",
@@ -33,13 +32,6 @@
         "1xsatta.today"
       ],
       "parserObservations": [
-        {
-          "value": "80",
-          "host": "kingsofsatta.com",
-          "url": "https://kingsofsatta.com/",
-          "parser": "same_row_explicit_today_yesterday_table",
-          "pass": "first_check"
-        },
         {
           "value": "80",
           "host": "sattafree.com",
@@ -115,7 +107,6 @@
         "81"
       ],
       "parserDomains": [
-        "kingsofsatta.com",
         "sattafree.com",
         "galidisawer.com",
         "satta-king-gali.com",
@@ -129,13 +120,6 @@
         "1xsatta.today"
       ],
       "parserObservations": [
-        {
-          "value": "79",
-          "host": "kingsofsatta.com",
-          "url": "https://kingsofsatta.com/",
-          "parser": "same_row_explicit_today_yesterday_table",
-          "pass": "first_check"
-        },
         {
           "value": "79",
           "host": "sattafree.com",
