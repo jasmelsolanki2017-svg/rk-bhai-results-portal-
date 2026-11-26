@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-26T11:18:43.113Z",
+  "updatedAt": "2026-11-26T11:19:50.343Z",
   "results": [
     {
       "_id": "6b08008228a5f35075a1b874",
@@ -22,7 +22,7 @@
           "sattafree.com",
           "galidisawer.com"
         ],
-        "checkedAt": "2026-11-26T11:18:31.152Z",
+        "checkedAt": "2026-11-26T11:19:37.061Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
@@ -68,7 +68,7 @@
           "www.delhilucky.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-26T11:18:31.152Z",
+        "checkedAt": "2026-11-26T11:19:37.061Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
@@ -92,29 +92,41 @@
       "title": "Shree Ganesh",
       "resultText": "56",
       "resultDate": "2026-11-26T12:00:00.000Z",
-      "sourceUrl": "https://sattafree.com/, https://galidisawer.com/, https://sattaking.live/, https://satta.live/record_chart/disawar_record_chart.php, https://1xsatta.today/record-chart/shri-ganesh/",
+      "sourceUrl": "https://kingsofsatta.com/, https://satta-king-gali.com/, https://sattafree.com/, https://galidisawer.com/, https://sattaking.live/, https://satta.live/record_chart/disawar_record_chart.php, https://www.faridabadlucky.com/chart/new-disawar/2026-11, https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi, https://1xsatta.today/",
       "verificationMeta": {
         "value": "56",
         "sources": [
+          "https://kingsofsatta.com/",
+          "https://satta-king-gali.com/",
           "https://sattafree.com/",
           "https://galidisawer.com/",
           "https://sattaking.live/",
           "https://satta.live/record_chart/disawar_record_chart.php",
-          "https://1xsatta.today/record-chart/shri-ganesh/"
+          "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
+          "https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi",
+          "https://1xsatta.today/"
         ],
         "domains": [
+          "kingsofsatta.com",
+          "satta-king-gali.com",
           "sattafree.com",
           "galidisawer.com",
           "sattaking.live",
           "satta.live",
+          "www.faridabadlucky.com",
+          "www.delhilucky.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-26T11:18:31.152Z",
+        "checkedAt": "2026-11-26T11:19:37.061Z",
         "firstPassDomains": [
+          "kingsofsatta.com",
+          "satta-king-gali.com",
           "sattafree.com",
           "galidisawer.com",
           "sattaking.live",
           "satta.live",
+          "www.faridabadlucky.com",
+          "www.delhilucky.com",
           "1xsatta.today"
         ],
         "recheckDomains": [],
@@ -287,7 +299,7 @@
           "satta-fast.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-26T11:18:31.152Z",
+        "checkedAt": "2026-11-26T11:19:37.061Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
