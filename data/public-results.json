@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-26T23:46:26.631Z",
+  "updatedAt": "2026-11-26T23:47:19.145Z",
   "results": [
     {
       "_id": "6b08c44928a5f35075a2b2bc",
@@ -26,7 +26,7 @@
           "www.faridabadlucky.com",
           "www.delhilucky.com"
         ],
-        "checkedAt": "2026-11-26T23:46:16.714Z",
+        "checkedAt": "2026-11-26T23:47:09.397Z",
         "firstPassDomains": [
           "sattafree.com",
           "galidisawer.com",
@@ -153,7 +153,7 @@
       "title": "Gali",
       "resultText": "52",
       "resultDate": "2026-11-26T12:00:00.000Z",
-      "sourceUrl": "https://kingsofsatta.com/, https://satta-king-gali.com/, https://sattafree.com/, https://galidisawer.com/, https://satta-king-fast.com/, https://www.realsattaking.com/, https://www.faridabadlucky.com/chart/new-disawar/2026-11, https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi, https://satta-fast.com/satta-king-chart-november-2026",
+      "sourceUrl": "https://kingsofsatta.com/, https://satta-king-gali.com/, https://sattafree.com/, https://galidisawer.com/, https://satta-king-fast.com/, https://sattaking.live/, https://satta.live/record_chart/disawar_record_chart.php, https://www.realsattaking.com/, https://www.faridabadlucky.com/chart/new-disawar/2026-11, https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi, https://satta-fast.com/satta-king-chart-november-2026, https://1xsatta.today/",
       "verificationMeta": {
         "value": "52",
         "sources": [
@@ -162,10 +162,13 @@
           "https://sattafree.com/",
           "https://galidisawer.com/",
           "https://satta-king-fast.com/",
+          "https://sattaking.live/",
+          "https://satta.live/record_chart/disawar_record_chart.php",
           "https://www.realsattaking.com/",
           "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
           "https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi",
-          "https://satta-fast.com/satta-king-chart-november-2026"
+          "https://satta-fast.com/satta-king-chart-november-2026",
+          "https://1xsatta.today/"
         ],
         "domains": [
           "kingsofsatta.com",
@@ -173,22 +176,28 @@
           "sattafree.com",
           "galidisawer.com",
           "satta-king-fast.com",
+          "sattaking.live",
+          "satta.live",
           "www.realsattaking.com",
           "www.faridabadlucky.com",
           "www.delhilucky.com",
-          "satta-fast.com"
+          "satta-fast.com",
+          "1xsatta.today"
         ],
-        "checkedAt": "2026-11-26T23:46:16.714Z",
+        "checkedAt": "2026-11-26T23:47:09.397Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
           "sattafree.com",
           "galidisawer.com",
           "satta-king-fast.com",
+          "sattaking.live",
+          "satta.live",
           "www.realsattaking.com",
           "www.faridabadlucky.com",
           "www.delhilucky.com",
-          "satta-fast.com"
+          "satta-fast.com",
+          "1xsatta.today"
         ],
         "recheckDomains": [],
         "rule": "same_value_on_three_independent_domains_single_check"
