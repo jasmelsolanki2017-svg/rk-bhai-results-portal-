@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-26T16:36:58.076Z",
+  "updatedAt": "2026-11-26T16:38:14.964Z",
   "results": [
     {
       "_id": "6b08008228a5f35075a1b874",
@@ -22,7 +22,7 @@
           "sattafree.com",
           "galidisawer.com"
         ],
-        "checkedAt": "2026-11-26T16:36:43.628Z",
+        "checkedAt": "2026-11-26T16:37:59.797Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
@@ -68,7 +68,7 @@
           "www.delhilucky.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-26T16:36:43.628Z",
+        "checkedAt": "2026-11-26T16:37:59.797Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
@@ -115,7 +115,7 @@
           "satta-fast.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-26T16:36:43.628Z",
+        "checkedAt": "2026-11-26T16:37:59.797Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
@@ -136,22 +136,28 @@
       "title": "Ghaziabad",
       "resultText": "24",
       "resultDate": "2026-11-26T12:00:00.000Z",
-      "sourceUrl": "https://sattafree.com/, https://satta-fast.com/satta-king-chart-november-2026, https://1xsatta.today/record-chart/ghaziabad/",
+      "sourceUrl": "https://satta-king-gali.com/, https://sattafree.com/, https://satta-king-fast.com/, https://satta-fast.com/satta-king-chart-november-2026, https://1xsatta.today/",
       "verificationMeta": {
         "value": "24",
         "sources": [
+          "https://satta-king-gali.com/",
           "https://sattafree.com/",
+          "https://satta-king-fast.com/",
           "https://satta-fast.com/satta-king-chart-november-2026",
-          "https://1xsatta.today/record-chart/ghaziabad/"
+          "https://1xsatta.today/"
         ],
         "domains": [
+          "satta-king-gali.com",
           "sattafree.com",
+          "satta-king-fast.com",
           "satta-fast.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-26T16:36:43.628Z",
+        "checkedAt": "2026-11-26T16:37:59.797Z",
         "firstPassDomains": [
+          "satta-king-gali.com",
           "sattafree.com",
+          "satta-king-fast.com",
           "satta-fast.com",
           "1xsatta.today"
         ],
@@ -190,7 +196,7 @@
           "www.delhilucky.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-26T16:36:43.628Z",
+        "checkedAt": "2026-11-26T16:37:59.797Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
@@ -381,7 +387,7 @@
           "satta-fast.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-26T16:36:43.628Z",
+        "checkedAt": "2026-11-26T16:37:59.797Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
