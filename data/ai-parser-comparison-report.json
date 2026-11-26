@@ -1,8 +1,8 @@
 {
   "app": "rk-bhai-results-portal",
   "reportType": "ai-parser-independent-comparison",
-  "generatedAt": "2026-11-26T03:04:58.326Z",
-  "syncCheckedAt": "2026-11-26T03:04:56.825Z",
+  "generatedAt": "2026-11-26T03:05:58.730Z",
+  "syncCheckedAt": "2026-11-26T03:05:57.038Z",
   "syncStatus": "success",
   "note": "Comparison only. AI observations are not counted as independent parser domains and do not change the three-domain publication rule.",
   "summary": {
@@ -25,11 +25,11 @@
         "sattafree.com",
         "galidisawer.com",
         "satta-king-gali.com",
-        "satta-king-fast.com",
-        "satta.live",
-        "www.realsattaking.com",
         "sattaking.live",
+        "satta.live",
+        "satta-king-fast.com",
         "www.faridabadlucky.com",
+        "www.realsattaking.com",
         "www.delhilucky.com",
         "1xsatta.today"
       ],
@@ -64,8 +64,8 @@
         },
         {
           "value": "80",
-          "host": "satta-king-fast.com",
-          "url": "https://satta-king-fast.com/",
+          "host": "sattaking.live",
+          "url": "https://sattaking.live/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
@@ -78,15 +78,8 @@
         },
         {
           "value": "80",
-          "host": "www.realsattaking.com",
-          "url": "https://www.realsattaking.com/",
-          "parser": "exact_date_monthly_chart",
-          "pass": "first_check"
-        },
-        {
-          "value": "80",
-          "host": "sattaking.live",
-          "url": "https://sattaking.live/",
+          "host": "satta-king-fast.com",
+          "url": "https://satta-king-fast.com/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
@@ -94,6 +87,13 @@
           "value": "80",
           "host": "www.faridabadlucky.com",
           "url": "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
+          "parser": "exact_date_monthly_chart",
+          "pass": "first_check"
+        },
+        {
+          "value": "80",
+          "host": "www.realsattaking.com",
+          "url": "https://www.realsattaking.com/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
@@ -148,12 +148,12 @@
         "sattafree.com",
         "galidisawer.com",
         "satta-king-gali.com",
-        "satta-king-fast.com",
+        "sattaking.live",
         "satta.live",
         "satta-superfast.com",
-        "www.realsattaking.com",
-        "sattaking.live",
+        "satta-king-fast.com",
         "www.faridabadlucky.com",
+        "www.realsattaking.com",
         "www.delhilucky.com",
         "satta-fast.com",
         "1xsatta.today"
@@ -189,8 +189,8 @@
         },
         {
           "value": "79",
-          "host": "satta-king-fast.com",
-          "url": "https://satta-king-fast.com/",
+          "host": "sattaking.live",
+          "url": "https://sattaking.live/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
@@ -210,15 +210,8 @@
         },
         {
           "value": "79",
-          "host": "www.realsattaking.com",
-          "url": "https://www.realsattaking.com/",
-          "parser": "exact_date_monthly_chart",
-          "pass": "first_check"
-        },
-        {
-          "value": "79",
-          "host": "sattaking.live",
-          "url": "https://sattaking.live/",
+          "host": "satta-king-fast.com",
+          "url": "https://satta-king-fast.com/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
@@ -226,6 +219,13 @@
           "value": "79",
           "host": "www.faridabadlucky.com",
           "url": "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
+          "parser": "exact_date_monthly_chart",
+          "pass": "first_check"
+        },
+        {
+          "value": "79",
+          "host": "www.realsattaking.com",
+          "url": "https://www.realsattaking.com/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
