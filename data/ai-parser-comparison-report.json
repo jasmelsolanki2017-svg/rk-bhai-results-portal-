@@ -1,8 +1,8 @@
 {
   "app": "rk-bhai-results-portal",
   "reportType": "ai-parser-independent-comparison",
-  "generatedAt": "2026-11-26T01:56:21.068Z",
-  "syncCheckedAt": "2026-11-26T01:56:19.228Z",
+  "generatedAt": "2026-11-26T01:57:11.105Z",
+  "syncCheckedAt": "2026-11-26T01:57:09.570Z",
   "syncStatus": "success",
   "note": "Comparison only. AI observations are not counted as independent parser domains and do not change the three-domain publication rule.",
   "summary": {
@@ -28,8 +28,8 @@
         "satta-king-fast.com",
         "satta.live",
         "sattaking.live",
-        "www.faridabadlucky.com",
         "www.delhilucky.com",
+        "www.faridabadlucky.com",
         "1xsatta.today"
       ],
       "parserObservations": [
@@ -84,15 +84,15 @@
         },
         {
           "value": "80",
-          "host": "www.faridabadlucky.com",
-          "url": "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
+          "host": "www.delhilucky.com",
+          "url": "https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
         {
           "value": "80",
-          "host": "www.delhilucky.com",
-          "url": "https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi",
+          "host": "www.faridabadlucky.com",
+          "url": "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
@@ -143,10 +143,10 @@
         "satta-king-fast.com",
         "satta.live",
         "sattaking.live",
-        "www.faridabadlucky.com",
+        "www.realsattaking.com",
         "satta-superfast.com",
         "www.delhilucky.com",
-        "www.realsattaking.com",
+        "www.faridabadlucky.com",
         "satta-fast.com",
         "1xsatta.today"
       ],
@@ -202,8 +202,8 @@
         },
         {
           "value": "79",
-          "host": "www.faridabadlucky.com",
-          "url": "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
+          "host": "www.realsattaking.com",
+          "url": "https://www.realsattaking.com/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
@@ -223,8 +223,8 @@
         },
         {
           "value": "79",
-          "host": "www.realsattaking.com",
-          "url": "https://www.realsattaking.com/",
+          "host": "www.faridabadlucky.com",
+          "url": "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
