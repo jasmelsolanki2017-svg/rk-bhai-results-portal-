@@ -1,8 +1,8 @@
 {
   "app": "rk-bhai-results-portal",
   "reportType": "ai-parser-independent-comparison",
-  "generatedAt": "2026-11-26T17:53:24.887Z",
-  "syncCheckedAt": "2026-11-26T17:53:23.158Z",
+  "generatedAt": "2026-11-26T17:54:26.752Z",
+  "syncCheckedAt": "2026-11-26T17:54:25.241Z",
   "syncStatus": "success",
   "note": "Comparison only. AI observations are not counted as independent parser domains and do not change the three-domain publication rule.",
   "summary": {
@@ -70,10 +70,12 @@
         "kingsofsatta.com",
         "galidisawer.com",
         "satta-king-gali.com",
-        "satta-king-fast.com",
-        "www.faridabadlucky.com",
+        "satta.live",
         "www.realsattaking.com",
-        "www.delhilucky.com"
+        "www.faridabadlucky.com",
+        "www.delhilucky.com",
+        "satta-king-fast.com",
+        "1xsatta.today"
       ],
       "parserObservations": [
         {
@@ -106,15 +108,8 @@
         },
         {
           "value": "80",
-          "host": "satta-king-fast.com",
-          "url": "https://satta-king-fast.com/",
-          "parser": "exact_date_monthly_chart",
-          "pass": "first_check"
-        },
-        {
-          "value": "80",
-          "host": "www.faridabadlucky.com",
-          "url": "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
+          "host": "satta.live",
+          "url": "https://satta.live/record_chart/disawar_record_chart.php",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
@@ -127,9 +122,30 @@
         },
         {
           "value": "80",
+          "host": "www.faridabadlucky.com",
+          "url": "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
+          "parser": "exact_date_monthly_chart",
+          "pass": "first_check"
+        },
+        {
+          "value": "80",
           "host": "www.delhilucky.com",
           "url": "https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi",
           "parser": "exact_date_monthly_chart",
+          "pass": "first_check"
+        },
+        {
+          "value": "80",
+          "host": "satta-king-fast.com",
+          "url": "https://satta-king-fast.com/",
+          "parser": "exact_date_monthly_chart",
+          "pass": "first_check"
+        },
+        {
+          "value": "80",
+          "host": "1xsatta.today",
+          "url": "https://1xsatta.today/record-chart/disawar/",
+          "parser": "dedicated_yearly_month_grid",
           "pass": "first_check"
         }
       ],
@@ -147,8 +163,9 @@
         "kingsofsatta.com",
         "galidisawer.com",
         "satta-king-gali.com",
+        "satta-fast.com",
         "satta-king-fast.com",
-        "satta-fast.com"
+        "1xsatta.today"
       ],
       "parserObservations": [
         {
@@ -181,6 +198,13 @@
         },
         {
           "value": "56",
+          "host": "satta-fast.com",
+          "url": "https://satta-fast.com/satta-king-chart-november-2026",
+          "parser": "exact_date_monthly_chart",
+          "pass": "first_check"
+        },
+        {
+          "value": "56",
           "host": "satta-king-fast.com",
           "url": "https://satta-king-fast.com/",
           "parser": "exact_date_monthly_chart",
@@ -188,9 +212,9 @@
         },
         {
           "value": "56",
-          "host": "satta-fast.com",
-          "url": "https://satta-fast.com/satta-king-chart-november-2026",
-          "parser": "exact_date_monthly_chart",
+          "host": "1xsatta.today",
+          "url": "https://1xsatta.today/record-chart/faridabad/",
+          "parser": "dedicated_yearly_month_grid",
           "pass": "first_check"
         }
       ],
@@ -237,9 +261,10 @@
         "kingsofsatta.com",
         "galidisawer.com",
         "satta-king-gali.com",
-        "satta-king-fast.com",
         "www.realsattaking.com",
-        "satta-fast.com"
+        "satta-fast.com",
+        "satta-king-fast.com",
+        "1xsatta.today"
       ],
       "parserObservations": [
         {
@@ -272,13 +297,6 @@
         },
         {
           "value": "24",
-          "host": "satta-king-fast.com",
-          "url": "https://satta-king-fast.com/",
-          "parser": "exact_date_monthly_chart",
-          "pass": "first_check"
-        },
-        {
-          "value": "24",
           "host": "www.realsattaking.com",
           "url": "https://www.realsattaking.com/",
           "parser": "exact_date_monthly_chart",
@@ -289,6 +307,20 @@
           "host": "satta-fast.com",
           "url": "https://satta-fast.com/satta-king-chart-november-2026",
           "parser": "exact_date_monthly_chart",
+          "pass": "first_check"
+        },
+        {
+          "value": "24",
+          "host": "satta-king-fast.com",
+          "url": "https://satta-king-fast.com/",
+          "parser": "exact_date_monthly_chart",
+          "pass": "first_check"
+        },
+        {
+          "value": "24",
+          "host": "1xsatta.today",
+          "url": "https://1xsatta.today/record-chart/ghaziabad/",
+          "parser": "dedicated_yearly_month_grid",
           "pass": "first_check"
         }
       ],
@@ -306,10 +338,19 @@
         "kingsofsatta.com",
         "galidisawer.com",
         "satta-king-gali.com",
+        "satta.live",
         "www.faridabadlucky.com",
-        "www.delhilucky.com"
+        "www.delhilucky.com",
+        "1xsatta.today"
       ],
       "parserObservations": [
+        {
+          "value": "56",
+          "host": "sattafree.com",
+          "url": "https://sattafree.com/game-history.php?game=shree-ganesh",
+          "parser": "date_result_history_table",
+          "pass": "first_check"
+        },
         {
           "value": "56",
           "host": "sattafree.com",
@@ -322,13 +363,6 @@
           "host": "kingsofsatta.com",
           "url": "https://kingsofsatta.com/",
           "parser": "same_row_explicit_today_yesterday_table",
-          "pass": "first_check"
-        },
-        {
-          "value": "56",
-          "host": "sattafree.com",
-          "url": "https://sattafree.com/game-history.php?game=shree-ganesh",
-          "parser": "date_result_history_table",
           "pass": "first_check"
         },
         {
@@ -347,6 +381,13 @@
         },
         {
           "value": "56",
+          "host": "satta.live",
+          "url": "https://satta.live/record_chart/disawar_record_chart.php",
+          "parser": "exact_date_monthly_chart",
+          "pass": "first_check"
+        },
+        {
+          "value": "56",
           "host": "www.faridabadlucky.com",
           "url": "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
           "parser": "exact_date_monthly_chart",
@@ -357,6 +398,13 @@
           "host": "www.delhilucky.com",
           "url": "https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi",
           "parser": "exact_date_monthly_chart",
+          "pass": "first_check"
+        },
+        {
+          "value": "56",
+          "host": "1xsatta.today",
+          "url": "https://1xsatta.today/record-chart/shri-ganesh/",
+          "parser": "dedicated_yearly_month_grid",
           "pass": "first_check"
         }
       ],
