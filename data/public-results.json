@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-26T11:15:49.860Z",
+  "updatedAt": "2026-11-26T11:17:17.034Z",
   "results": [
     {
       "_id": "6b08008228a5f35075a1b874",
@@ -22,7 +22,7 @@
           "sattafree.com",
           "galidisawer.com"
         ],
-        "checkedAt": "2026-11-26T11:15:37.490Z",
+        "checkedAt": "2026-11-26T11:17:03.487Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
@@ -68,7 +68,7 @@
           "www.delhilucky.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-26T11:15:37.490Z",
+        "checkedAt": "2026-11-26T11:17:03.487Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
@@ -86,6 +86,35 @@
         "rule": "same_value_on_three_independent_domains_single_check"
       },
       "createdAt": "2026-11-25T23:44:08.624Z"
+    },
+    {
+      "_id": "6b08153828a5f35075a1ba13",
+      "title": "Shree Ganesh",
+      "resultText": "56",
+      "resultDate": "2026-11-26T12:00:00.000Z",
+      "sourceUrl": "https://sattaking.live/, https://satta.live/record_chart/disawar_record_chart.php, https://1xsatta.today/record-chart/shri-ganesh/",
+      "verificationMeta": {
+        "value": "56",
+        "sources": [
+          "https://sattaking.live/",
+          "https://satta.live/record_chart/disawar_record_chart.php",
+          "https://1xsatta.today/record-chart/shri-ganesh/"
+        ],
+        "domains": [
+          "sattaking.live",
+          "satta.live",
+          "1xsatta.today"
+        ],
+        "checkedAt": "2026-11-26T11:17:03.487Z",
+        "firstPassDomains": [
+          "sattaking.live",
+          "satta.live",
+          "1xsatta.today"
+        ],
+        "recheckDomains": [],
+        "rule": "same_value_on_three_independent_domains_single_check"
+      },
+      "createdAt": "2026-11-26T11:17:11.889Z"
     },
     {
       "_id": "6b06af9b28a5f35075a1998f",
@@ -252,7 +281,7 @@
           "satta-fast.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-26T11:15:37.490Z",
+        "checkedAt": "2026-11-26T11:17:03.487Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
