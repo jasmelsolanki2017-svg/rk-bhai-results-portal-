@@ -227,7 +227,7 @@ function renderRecent(){
   };
   const upcomingEntries=[...entries];
   if(!upcomingEntries.some(([city])=>normalizeMarketName(city)==="chandigarh")){
-    upcomingEntries.push(["Chandigarh",{today:null,yesterday:null}]);
+    upcomingEntries.push(["Chandigarh City",{today:null,yesterday:null}]);
   }
   const upcomingCandidates=upcomingEntries
     .filter(([city,result])=>{const isGali=normalizeMarketName(city)==="gali";const galiArrived=isGali&&nowParts[0]<12&&!!result.yesterday;return !result.today&&!galiArrived&&parseCityMinutes(getCityTime(city))!==null;})
