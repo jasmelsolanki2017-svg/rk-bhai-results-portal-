@@ -1418,11 +1418,12 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
 .robot-scene:before{
   content:"रिजल्ट का इंतज़ार...";
   position:absolute;z-index:7;top:7px;left:34%;
-  width:max-content;max-width:62%;
-  padding:5px 10px;border:1px solid #e8bd70;border-radius:12px;
+  width:clamp(150px,42%,190px);height:30px;box-sizing:border-box;
+  display:flex;align-items:center;justify-content:center;
+  padding:4px 10px;border:1px solid #e8bd70;border-radius:12px;
   background:linear-gradient(135deg,#fff1c9,#e5b85e);
   color:#39200f;font-size:clamp(9px,2.5vw,12px);font-weight:900;
-  line-height:1.25;text-align:center;white-space:nowrap;
+  line-height:1.25;text-align:center;white-space:nowrap;overflow:hidden;
   box-shadow:0 3px 9px #0007;
   animation:robotSpeechLoop 12s steps(1,end) infinite;
 }
