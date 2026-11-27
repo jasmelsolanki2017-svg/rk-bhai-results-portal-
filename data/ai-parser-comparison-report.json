@@ -1,8 +1,8 @@
 {
   "app": "rk-bhai-results-portal",
   "reportType": "ai-parser-independent-comparison",
-  "generatedAt": "2026-11-27T23:46:30.679Z",
-  "syncCheckedAt": "2026-11-27T23:46:29.242Z",
+  "generatedAt": "2026-11-27T23:47:26.342Z",
+  "syncCheckedAt": "2026-11-27T23:47:24.744Z",
   "syncStatus": "success",
   "note": "Comparison only. AI observations are not counted as independent parser domains and do not change the three-domain publication rule.",
   "summary": {
@@ -22,7 +22,9 @@
       ],
       "parserDomains": [
         "sattafree.com",
+        "satta-king-fast.com",
         "www.faridabadlucky.com",
+        "www.realsattaking.com",
         "www.delhilucky.com"
       ],
       "parserObservations": [
@@ -35,8 +37,22 @@
         },
         {
           "value": "54",
+          "host": "satta-king-fast.com",
+          "url": "https://satta-king-fast.com/",
+          "parser": "exact_date_monthly_chart",
+          "pass": "first_check"
+        },
+        {
+          "value": "54",
           "host": "www.faridabadlucky.com",
           "url": "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
+          "parser": "exact_date_monthly_chart",
+          "pass": "first_check"
+        },
+        {
+          "value": "54",
+          "host": "www.realsattaking.com",
+          "url": "https://www.realsattaking.com/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
@@ -63,12 +79,12 @@
         "satta-king-gali.com",
         "galidisawer.com",
         "kingsofsatta.com",
-        "satta-king-fast.com",
-        "satta-superfast.com",
-        "www.realsattaking.com",
         "satta.live",
-        "www.faridabadlucky.com",
+        "satta-superfast.com",
         "sattaking.live",
+        "satta-king-fast.com",
+        "www.faridabadlucky.com",
+        "www.realsattaking.com",
         "www.delhilucky.com",
         "satta-fast.com",
         "1xsatta.today"
@@ -104,8 +120,8 @@
         },
         {
           "value": "79",
-          "host": "satta-king-fast.com",
-          "url": "https://satta-king-fast.com/",
+          "host": "satta.live",
+          "url": "https://satta.live/record_chart/disawar_record_chart.php",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
@@ -118,15 +134,15 @@
         },
         {
           "value": "79",
-          "host": "www.realsattaking.com",
-          "url": "https://www.realsattaking.com/",
+          "host": "sattaking.live",
+          "url": "https://sattaking.live/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
         {
           "value": "79",
-          "host": "satta.live",
-          "url": "https://satta.live/record_chart/disawar_record_chart.php",
+          "host": "satta-king-fast.com",
+          "url": "https://satta-king-fast.com/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
@@ -139,8 +155,8 @@
         },
         {
           "value": "79",
-          "host": "sattaking.live",
-          "url": "https://sattaking.live/",
+          "host": "www.realsattaking.com",
+          "url": "https://www.realsattaking.com/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
