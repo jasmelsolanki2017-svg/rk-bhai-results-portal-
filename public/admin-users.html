@@ -10,6 +10,7 @@
 <section class="admin-box pro-card users-management-section"><h2>👑 Superuser / Portal Users</h2><p class="muted">हर कार्ड में User का नाम, Username और Account की स्थिति साफ दिखाई देगी।</p><p class="muted">हर User की अवधि दिनों में या किसी तय तारीख तक रख सकते हैं। अवधि पूरी होने पर अकाउंट अपने आप बंद हो जाएगा।</p><div id="usersList"></div></section>
 </div>
 <div id="demoUsersPanel" hidden>
+<section class="admin-box pro-card"><div class="section-kicker">DEMO GAME SETTINGS</div><h2>⚙️ Demo Game Controls</h2><p class="muted">ये Controls केवल Demo Game पर लागू होंगे। बाकी वेबसाइट और Superuser accounts पर कोई असर नहीं होगा।</p><label style="display:flex;gap:10px;align-items:center"><input id="demoGameEnabled" type="checkbox" style="width:auto"> Demo Game चालू रखें</label><div class="form-grid"><label for="demoMinPoints">Minimum Play Points</label><input id="demoMinPoints" type="number" min="1" max="1000000" value="1"><label for="demoMaxPoints">Maximum Play Points</label><input id="demoMaxPoints" type="number" min="1" max="1000000" value="1000000"><button id="saveDemoSettings" type="button">Settings Save करें</button></div><p id="demoSettingsMsg" class="muted" role="status"></p></section>
 <section class="admin-box pro-card"><div class="section-kicker">DEMO PLAYER APPROVAL</div><h2>🎮 केवल Demo Users</h2><p class="muted">यह अलग Demo account system है। इससे पुराने Superuser / Portal Users पर कोई असर नहीं पड़ेगा। Pending account approval के बाद ही Demo Play कर सकेगा।</p><div id="demoPlayerRequests"><p class="muted">लोड हो रहा है…</p></div></section>
 </div>
 <div id="portalCityPanel">
@@ -17,4 +18,10 @@
 <section class="admin-box pro-card"><div class="section-kicker">REVIEW QUEUE</div><h2>शहर Approval Requests</h2><div id="cityRequests"></div></section>
 </div>
 </div></main><script src="/admin-users.js"></script><script src="/refresh-button.js?v=20261117refresh1"></script>
-</body></html>
+<script>
+(()=>{const $=id=>document.getElementById(id),api=async(url,opts={})=>{const r=await fetch(url,{credentials:"same-origin",...opts,headers:{"Content-Type":"application/json",...(opts.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Request failed");return d;};
+async function load(){try{const d=await api("/api/admin/demo-game-settings");$("demoGameEnabled").checked=!!d.enabled;$("demoMinPoints").value=d.minPoints;$("demoMaxPoints").value=d.maxPoints;}catch(e){$("demoSettingsMsg").textContent=e.message;}}
+$("saveDemoSettings").addEventListener("click",async()=>{const b=$("saveDemoSettings"),msg=$("demoSettingsMsg");b.disabled=true;msg.textContent="Save हो रहा है…";try{const d=await api("/api/admin/demo-game-settings",{method:"PATCH",body:JSON.stringify({enabled:$("demoGameEnabled").checked,minPoints:Number($("demoMinPoints").value),maxPoints:Number($("demoMaxPoints").value)})});msg.textContent="Settings सेव हो गईं। Game "+(d.enabled?"चालू":"बंद")+" · Points सीमा "+d.minPoints+"–"+d.maxPoints;}catch(e){msg.textContent=e.message;}finally{b.disabled=false;}});
+if($("saveDemoSettings"))load();
+})();
+</script></body></html>
