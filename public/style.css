@@ -1351,13 +1351,13 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
   content:"";position:absolute;left:-29px;top:-25px;width:37px;height:25px;
   border:2px solid #ffe39a;border-radius:3px 8px 3px 3px;
   background:linear-gradient(135deg,#ed3434,#a80e19);
-  box-shadow:0 2px 7px #0009;transform:rotate(35deg);
+  box-shadow:0 2px 7px #0009;transform:rotate(145deg);
 }
 .published-result-highlight .happy-robot-scene .robot-arm-right .result-flag{
   position:absolute;z-index:2;left:-26px;top:-22px;width:33px;height:19px;
   display:flex;align-items:center;justify-content:center;
   color:#fff8d8;font-size:12px;font-weight:1000;line-height:1;
-  text-shadow:0 1px 2px #560000;white-space:nowrap;transform:scaleX(-1) rotate(35deg);
+  text-shadow:0 1px 2px #560000;white-space:nowrap;transform:rotate(145deg) scaleX(-1);
 }
 
 
