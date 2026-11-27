@@ -251,13 +251,30 @@ function renderRecent(){
     }
   }
   const showBrokenMatka=Date.now()<robotMatkaBreakUntil;
+  const todayPublished=[...recentRows]
+    .filter(row=>indiaDateKey(row.resultDate)===todayKey)
+    .sort((x,y)=>new Date(y.createdAt||y.updatedAt||y.resultDate||0)-new Date(x.createdAt||x.updatedAt||x.resultDate||0));
+  const latestPublished=todayPublished[0]||null;
+  let publishedSince=0;
+  if(latestPublished){
+    const storedKey="sattaking-published-seen-"+resultKey(latestPublished);
+    const sourceTime=new Date(latestPublished.createdAt||latestPublished.updatedAt||0).getTime();
+    try{
+      const saved=Number(localStorage.getItem(storedKey)||0);
+      publishedSince=sourceTime>0?sourceTime:(saved||Date.now());
+      if(!saved)localStorage.setItem(storedKey,String(publishedSince));
+    }catch(_){publishedSince=sourceTime>0?sourceTime:Date.now();}
+  }
+  const showPublishedResult=!!latestPublished&&Date.now()-publishedSince<30*60*1000;
   const sceneMarket=showBrokenMatka?{city:robotMatkaCompletedName,time:getCityTime(robotMatkaCompletedName)}:nextMarket;
   if(nextMarket&&!showBrokenMatka)lastRobotMarketName=nextMarket.city;
   if(!showBrokenMatka&&robotMatkaBreakUntil&&Date.now()>=robotMatkaBreakUntil){robotMatkaBreakUntil=0;robotMatkaCompletedName="";}
   if(nextResultHighlight){
-    nextResultHighlight.innerHTML=sceneMarket
-      ?'<div class="next-market-card"><div class="next-market-kicker"><span class="next-market-pulse"></span> '+(showBrokenMatka?'रिजल्ट आ गया':'अगला आने वाला रिजल्ट')+'</div><div class="next-market-main"><div><h3>'+escapeHtml(sceneMarket.city)+'</h3><p>'+(showBrokenMatka?'मटका फूट गया!':'आज का रिजल्ट आने वाला है')+'</p></div><div class="next-market-time">'+escapeHtml(sceneMarket.time)+'</div></div><div class="next-market-robot robot-scene '+(showBrokenMatka?'matka-result-broken':'')+'" aria-label="Robot walks to the matka and returns"><span class="robot-mascot" role="button" tabindex="0" aria-label="रोबोट को छूकर मज़ेदार हरकतें देखें"><span class="robot-antenna"></span><span class="robot-head"><i></i><b></b><em></em></span><span class="robot-neck"></span><span class="robot-body"><i></i></span><span class="robot-arm robot-arm-left"></span><span class="robot-arm robot-arm-right"></span><span class="robot-leg robot-leg-left"></span><span class="robot-leg robot-leg-right"></span></span><span class="result-matka" aria-hidden="true"><i></i><b></b><em></em></span><span class="matka-shards" aria-hidden="true"><i></i><b></b><em></em></span></div><div class="next-market-foot">'+(showBrokenMatka?'नया रिजल्ट प्रकाशित हो गया':'रिजल्ट प्रकाशित होते ही मटका टूटेगा')+'</div></div>'
-      :'<div class="next-market-empty">अभी अगला रिजल्ट समय उपलब्ध नहीं है।</div>';
+    nextResultHighlight.innerHTML=showPublishedResult
+      ?'<div class="next-market-card published-result-highlight"><div class="next-market-kicker"><span class="next-market-pulse"></span> नया रिजल्ट प्रकाशित</div><div class="next-market-main"><div><h3>'+escapeHtml(latestPublished.title||"आज का रिजल्ट")+'</h3><p>आज का रिजल्ट आ गया</p></div><div class="next-market-time published-result-number">'+escapeHtml(latestPublished.resultText||"—")+'</div></div><div class="next-market-foot">अगला आने वाला रिजल्ट 30 मिनट बाद दिखेगा</div></div>'
+      :sceneMarket
+        ?'<div class="next-market-card"><div class="next-market-kicker"><span class="next-market-pulse"></span> अगला आने वाला रिजल्ट</div><div class="next-market-main"><div><h3>'+escapeHtml(sceneMarket.city)+'</h3><p>आज का रिजल्ट आने वाला है</p></div><div class="next-market-time">'+escapeHtml(sceneMarket.time)+'</div></div><div class="next-market-robot robot-scene" aria-label="Robot walks to the matka and returns"><span class="robot-mascot" role="button" tabindex="0" aria-label="रोबोट को छूकर मज़ेदार हरकतें देखें"><span class="robot-antenna"></span><span class="robot-head"><i></i><b></b><em></em></span><span class="robot-neck"></span><span class="robot-body"><i></i></span><span class="robot-arm robot-arm-left"></span><span class="robot-arm robot-arm-right"></span><span class="robot-leg robot-leg-left"></span><span class="robot-leg robot-leg-right"></span></span><span class="result-matka" aria-hidden="true"><i></i><b></b><em></em></span><span class="matka-shards" aria-hidden="true"><i></i><b></b><em></em></span></div><div class="next-market-foot">रिजल्ट प्रकाशित होते ही मटका टूटेगा</div></div>'
+        :'<div class="next-market-empty">अभी अगला रिजल्ट समय उपलब्ध नहीं है।</div>';
   }
   if(topResultCards){
     topResultCards.innerHTML=entries.map(([city,result])=>{
