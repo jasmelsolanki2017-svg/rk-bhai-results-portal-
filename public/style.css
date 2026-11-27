@@ -1301,7 +1301,11 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
 
 
 /* Published result scene: keep the robot visible, celebrate the broken matka and reveal the result. */
-.published-result-highlight .happy-robot-scene{height:132px;min-height:132px;margin-top:10px}
+.published-result-highlight .happy-robot-scene{height:168px;min-height:168px;margin-top:10px}
+/* Keep the message bubble at the top and the result number lower, with clear separation. */
+.published-result-highlight .happy-robot-scene:before{top:6px!important;left:36%!important}
+.published-result-highlight .happy-robot-scene .result-from-matka{bottom:18px!important}
+@media(max-width:420px){.published-result-highlight .happy-robot-scene:before{left:31%!important}.published-result-highlight .happy-robot-scene .result-from-matka{bottom:16px!important}}
 .published-result-highlight .happy-robot-scene .robot-mascot{left:5%;right:auto;bottom:27px;animation:robotHappyBounce 1.1s ease-in-out infinite;transform:scaleX(-1);transform-origin:50% 100%}
 .published-result-highlight .happy-robot-scene .robot-arm{animation:robotHappyWave .65s ease-in-out infinite alternate}
 .published-result-highlight .happy-robot-scene .robot-leg{animation:robotHappyDance .45s ease-in-out infinite alternate}
