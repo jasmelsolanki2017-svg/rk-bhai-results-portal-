@@ -141,6 +141,19 @@ const DemoPlayer = mongoose.model("DemoPlayer", new mongoose.Schema({
   approvedAt: { type: Date, default: null }
 }, { versionKey: false }));
 
+const DemoPlay = mongoose.model("DemoPlay", new mongoose.Schema({
+  playerId: { type: mongoose.Schema.Types.ObjectId, ref: "DemoPlayer", required: true, index: true },
+  market: { type: String, required: true, trim: true, maxlength: 80 },
+  number: { type: String, required: true, match: /^\\d{2}$/ },
+  points: { type: Number, required: true, min: 1, max: 50 },
+  status: { type: String, enum: ["PENDING", "WIN", "NO MATCH"], default: "PENDING", index: true },
+  playDate: { type: String, required: true, index: true },
+  result: { type: String, default: "" },
+  createdAt: { type: Date, default: Date.now },
+  resolvedAt: { type: Date, default: null }
+}, { versionKey: false }));
+DemoPlay.schema.index({ playerId: 1, createdAt: -1 });
+
 const AdminAuthState = mongoose.model("AdminAuthState", new mongoose.Schema({
   key: { type: String, required: true, unique: true },
   sessionVersion: { type: Number, default: 1 }
@@ -339,6 +352,70 @@ app.post("/api/demo/login", demoRateLimit, async (req, res) => {
 app.get("/api/demo/me", demoPlayerOnly, async (req, res) => {
   const player = await DemoPlayer.findById(req.demoPlayer.id).select("name mobile walletPoints").lean();
   res.setHeader("Cache-Control", "no-store").json({ ok: true, player: { ...req.demoPlayer, walletPoints: Number(player?.walletPoints || 0) } });
+});
+
+app.get("/api/demo/plays", demoPlayerOnly, async (req, res) => {
+  const [player, plays] = await Promise.all([
+    DemoPlayer.findById(req.demoPlayer.id).select("walletPoints").lean(),
+    DemoPlay.find({ playerId: req.demoPlayer.id }).sort({ createdAt: -1 }).limit(200).lean()
+  ]);
+  res.setHeader("Cache-Control", "no-store").json({ ok: true, walletPoints: Number(player?.walletPoints || 0), plays });
+});
+
+app.post("/api/demo/plays", demoPlayerOnly, async (req, res) => {
+  const market = String(req.body?.market || "").trim();
+  const number = String(req.body?.number ?? "").trim().padStart(2, "0");
+  const points = Number(req.body?.points);
+  if (market.length < 2 || market.length > 80) return res.status(400).json({ error: "सही मार्केट चुनें।" });
+  if (!/^\\d{2}$/.test(number) || Number(number) > 99) return res.status(400).json({ error: "00 से 99 के बीच नंबर डालें।" });
+  if (![10, 25, 50].includes(points)) return res.status(400).json({ error: "Points विकल्प सही नहीं है।" });
+  const player = await DemoPlayer.findOneAndUpdate(
+    { _id: req.demoPlayer.id, status: "approved", walletPoints: { $gte: points } },
+    { $inc: { walletPoints: -points } },
+    { new: true }
+  ).select("walletPoints").lean();
+  if (!player) return res.status(400).json({ error: "आपके Demo Points कम हैं या account active नहीं है।" });
+  const playDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  try {
+    const play = await DemoPlay.create({ playerId: req.demoPlayer.id, market, number, points, playDate });
+    res.status(201).json({ ok: true, walletPoints: player.walletPoints, play });
+  } catch (error) {
+    await DemoPlayer.updateOne({ _id: req.demoPlayer.id }, { $inc: { walletPoints: points } });
+    throw error;
+  }
+});
+
+app.post("/api/demo/settle", demoPlayerOnly, async (req, res) => {
+  const pending = await DemoPlay.find({ playerId: req.demoPlayer.id, status: "PENDING" }).sort({ createdAt: 1 }).limit(200).lean();
+  if (pending.length) {
+    const markets = [...new Set(pending.map(p => p.market))];
+    const dates = [...new Set(pending.map(p => p.playDate))];
+    const startDate = dates.sort()[0];
+    const endDate = dates.sort().slice(-1)[0];
+    const start = new Date(startDate + "T00:00:00.000Z");
+    const end = new Date(new Date(endDate + "T00:00:00.000Z").getTime() + 86400000);
+    const results = await Result.find({
+      published: true, deleted: { $ne: true }, title: { $in: markets }, resultDate: { $gte: start, $lt: end }
+    }).select("title resultText resultDate").lean();
+    const dateKey = value => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(value));
+    const pairs = value => String(value ?? "").match(/\\d{2}/g) || [];
+    for (const play of pending) {
+      const result = results.find(r => String(r.title).trim().toLowerCase() === play.market.trim().toLowerCase() && dateKey(r.resultDate) === play.playDate);
+      if (!result) continue;
+      const won = pairs(result.resultText).includes(play.number);
+      const updated = await DemoPlay.findOneAndUpdate(
+        { _id: play._id, playerId: req.demoPlayer.id, status: "PENDING" },
+        { $set: { status: won ? "WIN" : "NO MATCH", result: String(result.resultText || ""), resolvedAt: new Date() } },
+        { new: true }
+      ).lean();
+      if (updated && won) await DemoPlayer.updateOne({ _id: req.demoPlayer.id }, { $inc: { walletPoints: play.points * 97 } });
+    }
+  }
+  const [player, plays] = await Promise.all([
+    DemoPlayer.findById(req.demoPlayer.id).select("walletPoints").lean(),
+    DemoPlay.find({ playerId: req.demoPlayer.id }).sort({ createdAt: -1 }).limit(200).lean()
+  ]);
+  res.setHeader("Cache-Control", "no-store").json({ ok: true, walletPoints: Number(player?.walletPoints || 0), plays });
 });
 
 app.get("/api/admin/demo-players", adminOnly, async (req, res) => {
