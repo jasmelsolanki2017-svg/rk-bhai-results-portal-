@@ -96,14 +96,7 @@ async function loadAutoSyncStatus(){
    const host=String(item.url||"").replace("https://","").replace("http://","").split("/")[0];
    const sourceValues=item.marketValues||item.marketResults||{};
    const status=item.status?"HTTP "+item.status:"HTTP —";
-   const cells=marketColumns.map(market=>{
-    const value=sourceValues&&Object.prototype.hasOwnProperty.call(sourceValues,market)?String(sourceValues[market]):"—";
-    const color=value==="—"?"var(--muted,#999)":"var(--text,#fff)";
-    return '<span style="display:inline-flex;gap:4px;align-items:center;padding:4px 7px;border:1px solid var(--border,#444);border-radius:7px;font-size:12px;color:'+color+'"><span>'+esc(market)+':</span><strong>'+esc(value)+'</strong></span>';
-   }).join("");
-   const ambiguous=Array.isArray(item.ambiguousValues)&&item.ambiguousValues.length
-    ?'<div style="margin-top:5px;color:#e7b84c;font-size:12px">संदिग्ध मिलान रोका: '+item.ambiguousValues.map(x=>esc(x.value)+" ("+(x.markets||[]).map(esc).join(", ")+")").join(" · ")+'</div>':"";
-   return '<div style="padding:9px 0;border-top:1px solid var(--border,#333);font-size:13px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div style="min-width:0;overflow-wrap:anywhere"><strong>'+esc(host||item.market||"Source")+'</strong><div class="muted">'+esc(passNames[item.pass]||item.pass||"")+' · '+esc(resultNames[item.result]||item.result||"स्थिति उपलब्ध नहीं")+'</div></div><span class="muted" style="white-space:nowrap">'+esc(status)+'</span></div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px">'+cells+'</div>'+ambiguous+'</div>';
+   return '<div style="padding:9px 0;border-top:1px solid var(--border,#333);font-size:13px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div style="min-width:0;overflow-wrap:anywhere"><strong>'+esc(host||item.market||"Source")+'</strong><div class="muted">'+esc(passNames[item.pass]||item.pass||"")+' · '+esc(resultNames[item.result]||item.result||"स्थिति उपलब्ध नहीं")+'</div></div><span class="muted" style="white-space:nowrap">'+esc(status)+'</span></div></div>';
   }).join("");
   const aiBox=$("#aiDataMonitor");
   if(aiBox){
