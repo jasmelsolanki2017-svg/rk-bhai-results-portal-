@@ -1264,3 +1264,20 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
   background:linear-gradient(135deg,#f1bd70,#b66a2c 55%,#713819);
 }
 @media(max-width:420px){.robot-scene .result-matka{width:54px;height:56px;right:6%}.robot-scene .result-matka:before{left:17px;width:18px}.robot-scene .result-matka:after{left:12px;width:28px}}
+
+/* Detailed illustrated clay matka */
+.robot-scene .result-matka{
+  width:78px;height:84px;right:5%;bottom:17px;
+  display:block;border:0;border-radius:0;background:transparent;
+  box-shadow:none;overflow:visible;
+}
+.robot-scene .result-matka:before,.robot-scene .result-matka:after{display:none}
+.robot-scene .matka-pot{display:block;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 4px 3px #0008)}
+.robot-scene .result-matka i,.robot-scene .result-matka b,.robot-scene .result-matka em{display:none}
+.robot-scene .matka-shards{right:4%;bottom:20px;width:80px;height:30px}
+.robot-scene .matka-shards i,.robot-scene .matka-shards b,.robot-scene .matka-shards em{
+  width:25px;height:17px;border:1px solid #753719;
+  background:linear-gradient(135deg,#f4c77f,#c47737 55%,#713719);
+  box-shadow:0 2px 3px #0007;
+}
+@media(max-width:420px){.robot-scene .result-matka{width:70px;height:77px;right:4%;bottom:18px}}
