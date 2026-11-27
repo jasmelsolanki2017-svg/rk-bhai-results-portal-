@@ -220,7 +220,7 @@ function renderRecent(){
   const nextMarket=upcomingCandidates[0]||null;
   if(nextResultHighlight){
     nextResultHighlight.innerHTML=nextMarket
-      ?'<div class="next-market-card"><div class="next-market-kicker"><span class="next-market-pulse"></span> अगला आने वाला रिजल्ट</div><div class="next-market-main"><div><h3>'+escapeHtml(nextMarket.city)+'</h3><p>आज का रिजल्ट आने वाला है</p></div><div class="next-market-time">'+escapeHtml(nextMarket.time)+'</div></div><div class="next-market-robot" aria-label="Animated robot"><span class="robot-bot" aria-hidden="true"><i></i><b></b><em></em></span></div><div class="next-market-foot">रिजल्ट प्रकाशित होते ही यहाँ अपडेट दिखाई देगा</div></div>'
+      ?'<div class="next-market-card"><div class="next-market-kicker"><span class="next-market-pulse"></span> अगला आने वाला रिजल्ट</div><div class="next-market-main"><div><h3>'+escapeHtml(nextMarket.city)+'</h3><p>आज का रिजल्ट आने वाला है</p></div><div class="next-market-time">'+escapeHtml(nextMarket.time)+'</div></div><div class="next-market-robot" aria-label="Animated robot"><span class="robot-mascot" aria-hidden="true"><span class="robot-antenna"></span><span class="robot-head"><i></i><b></b><em></em></span><span class="robot-neck"></span><span class="robot-body"><i></i></span><span class="robot-arm robot-arm-left"></span><span class="robot-arm robot-arm-right"></span><span class="robot-leg robot-leg-left"></span><span class="robot-leg robot-leg-right"></span></span></div><div class="next-market-foot">रिजल्ट प्रकाशित होते ही यहाँ अपडेट दिखाई देगा</div></div>'
       :'<div class="next-market-empty">अभी अगला रिजल्ट समय उपलब्ध नहीं है।</div>';
   }
   if(topResultCards){
