@@ -407,45 +407,55 @@ app.get("/api/demo/plays", demoPlayerOnly, async (req, res) => {
 
 app.post("/api/demo/plays", demoPlayerOnly, async (req, res) => {
   const market = String(req.body?.market || "").trim();
-  const number = String(req.body?.number ?? "").trim().padStart(2, "0");
+  const rawNumbers = Array.isArray(req.body?.numbers) ? req.body.numbers : [req.body?.number];
+  const numbers = [...new Set(rawNumbers.map(v => String(v ?? "").trim().padStart(2, "0")))];
   const points = Number(req.body?.points);
   const setting = await DemoGameSetting.findOne({ key: "global" }).lean() || { enabled: true, minPoints: 1, maxPoints: 1000000 };
   if (!setting.enabled) return res.status(403).json({ error: "Demo Game अभी Admin ने बंद किया है।" });
-  if (!Number.isSafeInteger(points) || points < Number(setting.minPoints || 1) || points > Number(setting.maxPoints || 1000000)) return res.status(400).json({ error: "Points सीमा " + setting.minPoints + " से " + setting.maxPoints + " के बीच रखें।" });
   if (market.length < 2 || market.length > 80) return res.status(400).json({ error: "सही मार्केट चुनें।" });
-  if (!/^\d{2}$/.test(number) || Number(number) > 99) return res.status(400).json({ error: "00 से 99 के बीच नंबर डालें।" });
-  if (!Number.isSafeInteger(points) || points < 1 || points > 1000000) return res.status(400).json({ error: "1 से 10,00,000 तक पूरे Points भरें।" });
+  if (!numbers.length || numbers.length > 100 || numbers.some(n => !/^\d{2}$/.test(n) || Number(n) > 99)) return res.status(400).json({ error: "00 से 99 के बीच अधिकतम 100 अलग नंबर चुनें।" });
+  if (!Number.isSafeInteger(points) || points < Number(setting.minPoints || 1) || points > Number(setting.maxPoints || 1000000)) return res.status(400).json({ error: "हर नंबर के Points सीमा " + setting.minPoints + " से " + setting.maxPoints + " के बीच रखें।" });
+  const totalPoints = points * numbers.length;
+  if (!Number.isSafeInteger(totalPoints) || totalPoints > 100000000) return res.status(400).json({ error: "कुल Points सीमा से अधिक हैं।" });
   const playDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
-  const matchingPendingPlay = await DemoPlay.findOne({ playerId: req.demoPlayer.id, market, number, playDate, status: "PENDING" }).sort({ createdAt: 1 }).lean();
-  if (matchingPendingPlay && Number(matchingPendingPlay.points || 0) + points > 1000000) {
-    return res.status(400).json({ error: "एक ही मार्केट और नंबर पर कुल Play Points 10,00,000 से अधिक नहीं हो सकते।" });
+  for (const number of numbers) {
+    const old = await DemoPlay.findOne({ playerId: req.demoPlayer.id, market, number, playDate, status: "PENDING" }).sort({ createdAt: 1 }).lean();
+    if (old && Number(old.points || 0) + points > 1000000) return res.status(400).json({ error: "नंबर " + number + " पर कुल Pending Play Points 10,00,000 से अधिक हो जाएंगे।" });
   }
   const player = await DemoPlayer.findOneAndUpdate(
-    { _id: req.demoPlayer.id, status: "approved", walletPoints: { $gte: points } },
-    { $inc: { walletPoints: -points } },
+    { _id: req.demoPlayer.id, status: "approved", walletPoints: { $gte: totalPoints } },
+    { $inc: { walletPoints: -totalPoints } },
     { new: true }
   ).select("walletPoints").lean();
-  if (!player) return res.status(400).json({ error: "आपके Demo Points कम हैं या account active नहीं है।" });
-  let createdPlay = null;
-  let mergedPlayId = null;
+  if (!player) return res.status(400).json({ error: "आपके Demo Wallet में कुल " + totalPoints + " Points नहीं हैं या account active नहीं है।" });
+  const changes = [];
+  const transactionIds = [];
   try {
-    if (matchingPendingPlay) {
-      createdPlay = await DemoPlay.findOneAndUpdate(
-        { _id: matchingPendingPlay._id, playerId: req.demoPlayer.id, status: "PENDING" },
-        { $inc: { points } },
-        { new: true }
-      );
-      if (!createdPlay) throw new Error("यह Play अभी अपडेट नहीं हो पाई। दोबारा कोशिश करें।");
-      mergedPlayId = createdPlay._id;
-    } else {
-      createdPlay = await DemoPlay.create({ playerId: req.demoPlayer.id, market, number, points, playDate });
+    for (const number of numbers) {
+      const matching = await DemoPlay.findOne({ playerId: req.demoPlayer.id, market, number, playDate, status: "PENDING" }).sort({ createdAt: 1 }).lean();
+      let play;
+      if (matching) {
+        play = await DemoPlay.findOneAndUpdate(
+          { _id: matching._id, playerId: req.demoPlayer.id, status: "PENDING" },
+          { $inc: { points } }, { new: true }
+        );
+        if (!play) throw new Error("नंबर " + number + " की Play अपडेट नहीं हो पाई।");
+        changes.push({ id: play._id, added: points, created: false });
+      } else {
+        play = await DemoPlay.create({ playerId: req.demoPlayer.id, market, number, points, playDate });
+        changes.push({ id: play._id, added: points, created: true });
+      }
+      const tx = await DemoWalletTransaction.create({ playerId: req.demoPlayer.id, type: "DEBIT", amount: points, reason: "Demo Play · " + market + " · " + number });
+      transactionIds.push(tx._id);
     }
-    await DemoWalletTransaction.create({ playerId: req.demoPlayer.id, type: "DEBIT", amount: points, reason: "Demo Play · " + market + " · " + number });
-    res.status(201).json({ ok: true, walletPoints: player.walletPoints, play: createdPlay, merged: !!matchingPendingPlay });
+    res.status(201).json({ ok: true, walletPoints: player.walletPoints, count: numbers.length, totalPoints, mergedCount: changes.filter(x => !x.created).length });
   } catch (error) {
-    if (mergedPlayId) await DemoPlay.updateOne({ _id: mergedPlayId, playerId: req.demoPlayer.id }, { $inc: { points: -points } });
-    else if (createdPlay) await DemoPlay.deleteOne({ _id: createdPlay._id, playerId: req.demoPlayer.id });
-    await DemoPlayer.updateOne({ _id: req.demoPlayer.id }, { $inc: { walletPoints: points } });
+    for (const item of changes.reverse()) {
+      if (item.created) await DemoPlay.deleteOne({ _id: item.id, playerId: req.demoPlayer.id });
+      else await DemoPlay.updateOne({ _id: item.id, playerId: req.demoPlayer.id }, { $inc: { points: -item.added } });
+    }
+    if (transactionIds.length) await DemoWalletTransaction.deleteMany({ _id: { $in: transactionIds }, playerId: req.demoPlayer.id });
+    await DemoPlayer.updateOne({ _id: req.demoPlayer.id }, { $inc: { walletPoints: totalPoints } });
     throw error;
   }
 });
