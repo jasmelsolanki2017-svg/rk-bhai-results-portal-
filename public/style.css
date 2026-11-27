@@ -1324,3 +1324,18 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
 .published-result-highlight .happy-robot-scene .robot-leg{animation:robotHappyDance 2.2s ease-in-out infinite alternate}
 .published-result-highlight .happy-robot-scene .robot-happy{animation:happySparkle 2.8s ease-in-out infinite alternate}
 @keyframes robotHappyBounce{0%,100%{transform:translateY(0) scaleX(-1)}50%{transform:translateY(-3px) scaleX(-1)}}
+
+
+/* Make the published result number more prominent. */
+.published-result-highlight .published-result-number{
+  font-size:clamp(32px,8vw,42px)!important;
+  line-height:1.05!important;
+  min-width:76px;
+  padding:8px 12px!important;
+  font-weight:900!important;
+}
+.published-result-highlight .happy-robot-scene .result-from-matka{
+  font-size:27px!important;
+  min-width:44px;
+  padding:5px 10px!important;
+}
