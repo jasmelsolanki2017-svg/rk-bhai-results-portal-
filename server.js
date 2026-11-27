@@ -57,6 +57,11 @@ const publicFrontendApiPaths = new Set([
   "/api/demo/me",
   "/api/demo/plays",
   "/api/demo/settle",
+  "/api/demo/transactions",
+  "/api/demo/notifications",
+  "/api/demo/leaderboard",
+  "/api/demo/results",
+  "/api/demo/config",
   "/api/results",
   "/api/public/cities",
   "/api/public/export.csv",
@@ -147,7 +152,7 @@ const DemoPlay = mongoose.model("DemoPlay", new mongoose.Schema({
   playerId: { type: mongoose.Schema.Types.ObjectId, ref: "DemoPlayer", required: true, index: true },
   market: { type: String, required: true, trim: true, maxlength: 80 },
   number: { type: String, required: true, match: /^\d{2}$/ },
-  points: { type: Number, required: true, min: 1, max: 50 },
+  points: { type: Number, required: true, min: 1, max: 1000000 },
   status: { type: String, enum: ["PENDING", "WIN", "NO MATCH"], default: "PENDING", index: true },
   playDate: { type: String, required: true, index: true },
   result: { type: String, default: "" },
@@ -155,6 +160,17 @@ const DemoPlay = mongoose.model("DemoPlay", new mongoose.Schema({
   resolvedAt: { type: Date, default: null }
 }, { versionKey: false }));
 DemoPlay.schema.index({ playerId: 1, createdAt: -1 });
+const DemoWalletTransaction = mongoose.model("DemoWalletTransaction", new mongoose.Schema({
+ playerId:{type:mongoose.Schema.Types.ObjectId,ref:"DemoPlayer",required:true,index:true},
+ type:{type:String,enum:["CREDIT","DEBIT"],required:true},amount:{type:Number,required:true,min:1},
+ reason:{type:String,required:true,maxlength:160},createdAt:{type:Date,default:Date.now}
+},{versionKey:false}));
+DemoWalletTransaction.schema.index({playerId:1,createdAt:-1});
+const DemoGameSetting = mongoose.model("DemoGameSetting",new mongoose.Schema({
+ key:{type:String,default:"global",unique:true},enabled:{type:Boolean,default:true},
+ minPoints:{type:Number,default:1,min:1,max:1000000},maxPoints:{type:Number,default:1000000,min:1,max:1000000},
+ updatedAt:{type:Date,default:Date.now}
+},{versionKey:false}));
 
 const AdminAuthState = mongoose.model("AdminAuthState", new mongoose.Schema({
   key: { type: String, required: true, unique: true },
@@ -331,7 +347,8 @@ app.post("/api/demo/register", demoRateLimit, async (req, res) => {
   if (password.length < 8 || password.length > 100) return res.status(400).json({ error: "Password कम से कम 8 अक्षर का रखें।" });
   if (await DemoPlayer.exists({ mobile })) return res.status(409).json({ error: "इस मोबाइल नंबर से Demo account पहले से बना है।" });
   try {
-    await DemoPlayer.create({ name, mobile, email, passwordHash: await bcrypt.hash(password, 12), status: "pending" });
+    const created = await DemoPlayer.create({ name, mobile, email, passwordHash: await bcrypt.hash(password, 12), status: "pending" });
+    await DemoWalletTransaction.create({ playerId: created._id, type: "CREDIT", amount: 500, reason: "नया Demo Wallet शुरू किया" });
     res.status(201).json({ ok: true, status: "pending", message: "Registration सफल। Admin approval के बाद आप login कर सकेंगे।" });
   } catch (error) {
     if (error.code === 11000) return res.status(409).json({ error: "इस मोबाइल नंबर से Demo account पहले से बना है।" });
@@ -351,6 +368,30 @@ app.post("/api/demo/login", demoRateLimit, async (req, res) => {
   res.json({ ok: true, token, player: { id: String(player._id), name: player.name, mobile: player.mobile } });
 });
 
+app.get("/api/demo/config",demoPlayerOnly,async(req,res)=>{
+ const x=await DemoGameSetting.findOne({key:"global"}).lean()||{enabled:true,minPoints:1,maxPoints:1000000};
+ res.setHeader("Cache-Control","no-store").json({enabled:x.enabled,minPoints:x.minPoints,maxPoints:x.maxPoints});
+});
+app.get("/api/demo/transactions",demoPlayerOnly,async(req,res)=>{
+ const transactions=await DemoWalletTransaction.find({playerId:req.demoPlayer.id}).sort({createdAt:-1}).limit(200).lean();
+ res.setHeader("Cache-Control","no-store").json({transactions});
+});
+app.get("/api/demo/notifications",demoPlayerOnly,async(req,res)=>{
+ const [tx,plays]=await Promise.all([
+  DemoWalletTransaction.find({playerId:req.demoPlayer.id}).sort({createdAt:-1}).limit(30).lean(),
+  DemoPlay.find({playerId:req.demoPlayer.id,status:{$in:["WIN","NO MATCH"]}}).sort({resolvedAt:-1}).limit(30).lean()
+ ]);
+ const notifications=[...tx.map(x=>({title:x.type==="CREDIT"?"Wallet में Points जुड़े":"Wallet से Points कटे",detail:x.reason+" · "+x.amount+" Points",createdAt:x.createdAt})),...plays.map(x=>({title:x.status==="WIN"?"आपकी Demo Play जीत गई":"Demo Play का Result आ गया",detail:x.market+" · "+x.number+" · "+x.status,createdAt:x.resolvedAt||x.createdAt}))].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,50);
+ res.setHeader("Cache-Control","no-store").json({notifications});
+});
+app.get("/api/demo/leaderboard",demoPlayerOnly,async(req,res)=>{
+ const rows=await DemoPlayer.find({status:"approved"}).select("name walletPoints").sort({walletPoints:-1,name:1}).limit(20).lean();
+ res.setHeader("Cache-Control","no-store").json({leaderboard:rows.map((p,i)=>({rank:i+1,name:p.name,points:Number(p.walletPoints||0)}))});
+});
+app.get("/api/demo/results",demoPlayerOnly,async(req,res)=>{
+ const results=await Result.find({published:true,deleted:{$ne:true}}).select("title resultText resultDate").sort({resultDate:-1}).limit(100).lean();
+ res.setHeader("Cache-Control","no-store").json({results});
+});
 app.get("/api/demo/me", demoPlayerOnly, async (req, res) => {
   const player = await DemoPlayer.findById(req.demoPlayer.id).select("name mobile walletPoints").lean();
   res.setHeader("Cache-Control", "no-store").json({ ok: true, player: { ...req.demoPlayer, walletPoints: Number(player?.walletPoints || 0) } });
@@ -368,6 +409,9 @@ app.post("/api/demo/plays", demoPlayerOnly, async (req, res) => {
   const market = String(req.body?.market || "").trim();
   const number = String(req.body?.number ?? "").trim().padStart(2, "0");
   const points = Number(req.body?.points);
+  const setting = await DemoGameSetting.findOne({ key: "global" }).lean() || { enabled: true, minPoints: 1, maxPoints: 1000000 };
+  if (!setting.enabled) return res.status(403).json({ error: "Demo Game अभी Admin ने बंद किया है।" });
+  if (!Number.isSafeInteger(points) || points < Number(setting.minPoints || 1) || points > Number(setting.maxPoints || 1000000)) return res.status(400).json({ error: "Points सीमा " + setting.minPoints + " से " + setting.maxPoints + " के बीच रखें।" });
   if (market.length < 2 || market.length > 80) return res.status(400).json({ error: "सही मार्केट चुनें।" });
   if (!/^\d{2}$/.test(number) || Number(number) > 99) return res.status(400).json({ error: "00 से 99 के बीच नंबर डालें।" });
   if (!Number.isSafeInteger(points) || points < 1 || points > 1000000) return res.status(400).json({ error: "1 से 10,00,000 तक पूरे Points भरें।" });
@@ -380,6 +424,7 @@ app.post("/api/demo/plays", demoPlayerOnly, async (req, res) => {
   const playDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   try {
     const play = await DemoPlay.create({ playerId: req.demoPlayer.id, market, number, points, playDate });
+    await DemoWalletTransaction.create({ playerId: req.demoPlayer.id, type: "DEBIT", amount: points, reason: "Demo Play · " + market + " · " + number });
     res.status(201).json({ ok: true, walletPoints: player.walletPoints, play });
   } catch (error) {
     await DemoPlayer.updateOne({ _id: req.demoPlayer.id }, { $inc: { walletPoints: points } });
@@ -410,7 +455,11 @@ app.post("/api/demo/settle", demoPlayerOnly, async (req, res) => {
         { $set: { status: won ? "WIN" : "NO MATCH", result: String(result.resultText || ""), resolvedAt: new Date() } },
         { new: true }
       ).lean();
-      if (updated && won) await DemoPlayer.updateOne({ _id: req.demoPlayer.id }, { $inc: { walletPoints: play.points * 97 } });
+      if (updated && won) {
+        const reward = play.points * 97;
+        await DemoPlayer.updateOne({ _id: req.demoPlayer.id }, { $inc: { walletPoints: reward } });
+        await DemoWalletTransaction.create({ playerId: req.demoPlayer.id, type: "CREDIT", amount: reward, reason: "Winning reward · " + play.market + " · " + play.number });
+      }
     }
   }
   const [player, plays] = await Promise.all([
@@ -420,6 +469,17 @@ app.post("/api/demo/settle", demoPlayerOnly, async (req, res) => {
   res.setHeader("Cache-Control", "no-store").json({ ok: true, walletPoints: Number(player?.walletPoints || 0), plays });
 });
 
+app.get("/api/admin/demo-game-settings",adminOnly,async(req,res)=>{
+ const x=await DemoGameSetting.findOneAndUpdate({key:"global"},{$setOnInsert:{enabled:true,minPoints:1,maxPoints:1000000}},{upsert:true,new:true,setDefaultsOnInsert:true}).lean();
+ res.json({enabled:x.enabled,minPoints:x.minPoints,maxPoints:x.maxPoints});
+});
+app.patch("/api/admin/demo-game-settings",adminOnly,async(req,res)=>{
+ const enabled=req.body?.enabled,minPoints=Number(req.body?.minPoints),maxPoints=Number(req.body?.maxPoints);
+ if(typeof enabled!=="boolean")return res.status(400).json({error:"Game On/Off चुनें।"});
+ if(!Number.isSafeInteger(minPoints)||!Number.isSafeInteger(maxPoints)||minPoints<1||maxPoints>1000000||maxPoints<minPoints)return res.status(400).json({error:"Points सीमा सही रखें (1 से 10,00,000)।"});
+ const x=await DemoGameSetting.findOneAndUpdate({key:"global"},{$set:{enabled,minPoints,maxPoints,updatedAt:new Date()}},{upsert:true,new:true,setDefaultsOnInsert:true}).lean();
+ res.json({ok:true,enabled:x.enabled,minPoints:x.minPoints,maxPoints:x.maxPoints});
+});
 app.get("/api/admin/demo-players", adminOnly, async (req, res) => {
   const rows = await DemoPlayer.find().select("name mobile email status walletPoints createdAt approvedAt").sort({ createdAt: -1 }).lean();
   res.json(rows);
@@ -430,6 +490,7 @@ app.post("/api/admin/demo-players/:id/points", adminOnly, async (req, res) => {
   if (!Number.isSafeInteger(points) || points < 1 || points > 1000000) return res.status(400).json({ error: "1 से 10,00,000 तक पूरे Points डालें।" });
   const player = await DemoPlayer.findByIdAndUpdate(req.params.id, { $inc: { walletPoints: points } }, { new: true }).select("name mobile status walletPoints").lean();
   if (!player) return res.status(404).json({ error: "Demo player नहीं मिला।" });
+  await DemoWalletTransaction.create({ playerId: player._id, type: "CREDIT", amount: points, reason: "Admin ने Wallet में Points जोड़े" });
   res.json({ ok: true, player });
 });
 
