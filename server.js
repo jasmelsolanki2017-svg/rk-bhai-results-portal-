@@ -152,6 +152,8 @@ const DemoPlay = mongoose.model("DemoPlay", new mongoose.Schema({
   playerId: { type: mongoose.Schema.Types.ObjectId, ref: "DemoPlayer", required: true, index: true },
   market: { type: String, required: true, trim: true, maxlength: 80 },
   number: { type: String, required: true, match: /^\d{2}$/ },
+  playType: { type: String, enum: ["NUMBER", "LINE"], default: "NUMBER" },
+  lineDigit: { type: Number, min: 0, max: 9, default: null },
   points: { type: Number, required: true, min: 1, max: 1000000 },
   status: { type: String, enum: ["PENDING", "WIN", "NO MATCH"], default: "PENDING", index: true },
   playDate: { type: String, required: true, index: true },
@@ -408,47 +410,47 @@ app.get("/api/demo/plays", demoPlayerOnly, async (req, res) => {
 app.post("/api/demo/plays", demoPlayerOnly, async (req, res) => {
   const market = String(req.body?.market || "").trim();
   const rawNumbers = Array.isArray(req.body?.numbers) ? req.body.numbers : [req.body?.number];
-  const numbers = [...new Set(rawNumbers.map(v => String(v ?? "").trim().padStart(2, "0")))];
+  const numbers = [...new Set(rawNumbers.filter(v => v !== undefined && v !== null && String(v).trim() !== "").map(v => String(v).trim().padStart(2, "0")))];
+  const rawLines = Array.isArray(req.body?.lines) ? req.body.lines : [];
+  const lines = [...new Set(rawLines.map(Number))];
   const points = Number(req.body?.points);
   const setting = await DemoGameSetting.findOne({ key: "global" }).lean() || { enabled: true, minPoints: 1, maxPoints: 1000000 };
   if (!setting.enabled) return res.status(403).json({ error: "Demo Game अभी Admin ने बंद किया है।" });
   if (market.length < 2 || market.length > 80) return res.status(400).json({ error: "सही मार्केट चुनें।" });
-  if (!numbers.length || numbers.length > 100 || numbers.some(n => !/^\d{2}$/.test(n) || Number(n) > 99)) return res.status(400).json({ error: "00 से 99 के बीच अधिकतम 100 अलग नंबर चुनें।" });
-  if (!Number.isSafeInteger(points) || points < Number(setting.minPoints || 1) || points > Number(setting.maxPoints || 1000000)) return res.status(400).json({ error: "हर नंबर के Points सीमा " + setting.minPoints + " से " + setting.maxPoints + " के बीच रखें।" });
-  const totalPoints = points * numbers.length;
+  if (numbers.length + lines.length < 1 || numbers.length + lines.length > 100 || numbers.some(n => !/^\d{2}$/.test(n) || Number(n) > 99) || lines.some(n => !Number.isInteger(n) || n < 1 || n > 9)) return res.status(400).json({ error: "00 से 99 के नंबर या 1 से 9 तक की सही लाइन चुनें।" });
+  if (!Number.isSafeInteger(points) || points < Number(setting.minPoints || 1) || points > Number(setting.maxPoints || 1000000)) return res.status(400).json({ error: "हर नंबर/लाइन के Points सीमा " + setting.minPoints + " से " + setting.maxPoints + " के बीच रखें।" });
+  const selections = [...numbers.map(number => ({ number, playType: "NUMBER", lineDigit: null })), ...lines.map(lineDigit => ({ number: String(lineDigit).padStart(2, "0"), playType: "LINE", lineDigit }))];
+  const totalPoints = points * selections.length;
   if (!Number.isSafeInteger(totalPoints) || totalPoints > 100000000) return res.status(400).json({ error: "कुल Points सीमा से अधिक हैं।" });
   const playDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
-  for (const number of numbers) {
-    const old = await DemoPlay.findOne({ playerId: req.demoPlayer.id, market, number, playDate, status: "PENDING" }).sort({ createdAt: 1 }).lean();
-    if (old && Number(old.points || 0) + points > 1000000) return res.status(400).json({ error: "नंबर " + number + " पर कुल Pending Play Points 10,00,000 से अधिक हो जाएंगे।" });
+  for (const selection of selections) {
+    const q = { playerId: req.demoPlayer.id, market, playDate, status: "PENDING", playType: selection.playType, number: selection.number };
+    if (selection.playType === "LINE") q.lineDigit = selection.lineDigit;
+    const old = await DemoPlay.findOne(q).sort({ createdAt: 1 }).lean();
+    if (old && Number(old.points || 0) + points > 1000000) return res.status(400).json({ error: "इस नंबर/लाइन पर कुल Pending Play Points 10,00,000 से अधिक हो जाएंगे।" });
   }
-  const player = await DemoPlayer.findOneAndUpdate(
-    { _id: req.demoPlayer.id, status: "approved", walletPoints: { $gte: totalPoints } },
-    { $inc: { walletPoints: -totalPoints } },
-    { new: true }
-  ).select("walletPoints").lean();
+  const player = await DemoPlayer.findOneAndUpdate({ _id: req.demoPlayer.id, status: "approved", walletPoints: { $gte: totalPoints } }, { $inc: { walletPoints: -totalPoints } }, { new: true }).select("walletPoints").lean();
   if (!player) return res.status(400).json({ error: "आपके Demo Wallet में कुल " + totalPoints + " Points नहीं हैं या account active नहीं है।" });
-  const changes = [];
-  const transactionIds = [];
+  const changes = [], transactionIds = [];
   try {
-    for (const number of numbers) {
-      const matching = await DemoPlay.findOne({ playerId: req.demoPlayer.id, market, number, playDate, status: "PENDING" }).sort({ createdAt: 1 }).lean();
+    for (const selection of selections) {
+      const q = { playerId: req.demoPlayer.id, market, playDate, status: "PENDING", playType: selection.playType, number: selection.number };
+      if (selection.playType === "LINE") q.lineDigit = selection.lineDigit;
+      const matching = await DemoPlay.findOne(q).sort({ createdAt: 1 }).lean();
       let play;
       if (matching) {
-        play = await DemoPlay.findOneAndUpdate(
-          { _id: matching._id, playerId: req.demoPlayer.id, status: "PENDING" },
-          { $inc: { points } }, { new: true }
-        );
-        if (!play) throw new Error("नंबर " + number + " की Play अपडेट नहीं हो पाई।");
+        play = await DemoPlay.findOneAndUpdate({ _id: matching._id, playerId: req.demoPlayer.id, status: "PENDING" }, { $inc: { points } }, { new: true });
+        if (!play) throw new Error("नंबर/लाइन की Play अपडेट नहीं हो पाई।");
         changes.push({ id: play._id, added: points, created: false });
       } else {
-        play = await DemoPlay.create({ playerId: req.demoPlayer.id, market, number, points, playDate });
+        play = await DemoPlay.create({ playerId: req.demoPlayer.id, market, number: selection.number, playType: selection.playType, lineDigit: selection.lineDigit, points, playDate });
         changes.push({ id: play._id, added: points, created: true });
       }
-      const tx = await DemoWalletTransaction.create({ playerId: req.demoPlayer.id, type: "DEBIT", amount: points, reason: "Demo Play · " + market + " · " + number });
+      const label = selection.playType === "LINE" ? "Line " + selection.lineDigit : selection.number;
+      const tx = await DemoWalletTransaction.create({ playerId: req.demoPlayer.id, type: "DEBIT", amount: points, reason: "Demo Play · " + market + " · " + label });
       transactionIds.push(tx._id);
     }
-    res.status(201).json({ ok: true, walletPoints: player.walletPoints, count: numbers.length, totalPoints, mergedCount: changes.filter(x => !x.created).length });
+    res.status(201).json({ ok: true, walletPoints: player.walletPoints, count: selections.length, totalPoints, mergedCount: changes.filter(x => !x.created).length });
   } catch (error) {
     for (const item of changes.reverse()) {
       if (item.created) await DemoPlay.deleteOne({ _id: item.id, playerId: req.demoPlayer.id });
@@ -477,16 +479,18 @@ app.post("/api/demo/settle", demoPlayerOnly, async (req, res) => {
     for (const play of pending) {
       const result = results.find(r => String(r.title).trim().toLowerCase() === play.market.trim().toLowerCase() && dateKey(r.resultDate) === play.playDate);
       if (!result) continue;
-      const won = pairs(result.resultText).includes(play.number);
+      const resultPairs = pairs(result.resultText);
+      const isLine = play.playType === "LINE" && Number.isInteger(Number(play.lineDigit));
+      const won = isLine ? resultPairs.some(value => value.endsWith(String(play.lineDigit))) : resultPairs.includes(play.number);
       const updated = await DemoPlay.findOneAndUpdate(
         { _id: play._id, playerId: req.demoPlayer.id, status: "PENDING" },
         { $set: { status: won ? "WIN" : "NO MATCH", result: String(result.resultText || ""), resolvedAt: new Date() } },
         { new: true }
       ).lean();
       if (updated && won) {
-        const reward = play.points * 97;
+        const reward = play.points * (isLine ? 9 : 97);
         await DemoPlayer.updateOne({ _id: req.demoPlayer.id }, { $inc: { walletPoints: reward } });
-        await DemoWalletTransaction.create({ playerId: req.demoPlayer.id, type: "CREDIT", amount: reward, reason: "Winning reward · " + play.market + " · " + play.number });
+        await DemoWalletTransaction.create({ playerId: req.demoPlayer.id, type: "CREDIT", amount: reward, reason: "Winning reward · " + play.market + " · " + (isLine ? "Line " + play.lineDigit : play.number) });
       }
     }
   }
