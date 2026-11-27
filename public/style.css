@@ -1353,14 +1353,14 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
 }
 /* Flag faces the viewer: the mascot is mirrored, so counter-flip the flag and its number. */
 .published-result-highlight .happy-robot-scene .robot-arm-right:before{
-  content:"";position:absolute;left:-32px;top:-27px;width:40px;height:26px;
+  content:"";position:absolute;left:-32px;top:-35px;width:40px;height:26px;
   box-sizing:border-box;border:2px solid #ffe39a;border-radius:3px 5px 3px 3px;
   clip-path:polygon(0 0,100% 0,84% 50%,100% 100%,0 100%);
   background:linear-gradient(135deg,#ff4545 0%,#c91625 65%,#8e0c19 100%);
   box-shadow:0 2px 7px #0009;transform:rotate(145deg) scaleX(-1);
 }
 .published-result-highlight .happy-robot-scene .robot-arm-right .result-flag{
-  position:absolute;z-index:2;left:-29px;top:-24px;width:34px;height:20px;
+  position:absolute;z-index:2;left:-29px;top:-32px;width:34px;height:20px;
   display:flex;align-items:center;justify-content:center;
   color:#fff;font-size:11px;font-weight:1000;line-height:1;
   text-shadow:0 1px 2px #560000;white-space:nowrap;
