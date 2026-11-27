@@ -1,5 +1,8 @@
 function safeAdDesign(d={}){const c=(v,f)=>/^#[0-9a-f]{6}$/i.test(String(v||""))?v:f;return {bg:c(d.backgroundColor,"#20170d"),text:c(d.textColor,"#f4ead5"),border:c(d.borderColor,"#d6ad55"),button:c(d.buttonColor,"#18c76b"),buttonText:c(d.buttonTextColor,"#07150d"),radius:[8,14,22].includes(Number(d.radius))?Number(d.radius):14,size:[14,16,19,22].includes(Number(d.fontSize))?Number(d.fontSize):16,align:["left","center","right"].includes(d.alignment)?d.alignment:"center"};}function adDesignStyle(d){const x=safeAdDesign(d);return ` style="--ad-bg:${x.bg};--ad-text:${x.text};--ad-border:${x.border};--ad-button:${x.button};--ad-button-text:${x.buttonText};--ad-radius:${x.radius}px;--ad-size:${x.size}px;--ad-align:${x.align}"`;}
 const host=document.getElementById("results");
+let lastRobotMarketName=null;
+let robotMatkaBreakUntil=0;
+let robotMatkaCompletedName="";
 const nextRobotArea=document.getElementById("nextResultHighlight");
 if(nextRobotArea){
   let robotActionTimer=null;
@@ -240,9 +243,20 @@ function renderRecent(){
       return a.delta-b.delta;
     });
   const nextMarket=upcomingCandidates[0]||null;
+  if(lastRobotMarketName){
+    const completedEntry=[...byCity.entries()].find(([key])=>key===normalizeMarketName(lastRobotMarketName));
+    if(completedEntry&&completedEntry[1].today&&!robotMatkaBreakUntil){
+      robotMatkaCompletedName=lastRobotMarketName;
+      robotMatkaBreakUntil=Date.now()+4500;
+    }
+  }
+  const showBrokenMatka=Date.now()<robotMatkaBreakUntil;
+  const sceneMarket=showBrokenMatka?{city:robotMatkaCompletedName,time:getCityTime(robotMatkaCompletedName)}:nextMarket;
+  if(nextMarket&&!showBrokenMatka)lastRobotMarketName=nextMarket.city;
+  if(!showBrokenMatka&&robotMatkaBreakUntil&&Date.now()>=robotMatkaBreakUntil){robotMatkaBreakUntil=0;robotMatkaCompletedName="";}
   if(nextResultHighlight){
-    nextResultHighlight.innerHTML=nextMarket
-      ?'<div class="next-market-card"><div class="next-market-kicker"><span class="next-market-pulse"></span> अगला आने वाला रिजल्ट</div><div class="next-market-main"><div><h3>'+escapeHtml(nextMarket.city)+'</h3><p>आज का रिजल्ट आने वाला है</p></div><div class="next-market-time">'+escapeHtml(nextMarket.time)+'</div></div><div class="next-market-robot" aria-label="Animated robot"><span class="robot-mascot" role="button" tabindex="0" aria-label="रोबोट को छूकर मज़ेदार हरकतें देखें"><span class="robot-antenna"></span><span class="robot-head"><i></i><b></b><em></em></span><span class="robot-neck"></span><span class="robot-body"><i></i></span><span class="robot-arm robot-arm-left"></span><span class="robot-arm robot-arm-right"></span><span class="robot-leg robot-leg-left"></span><span class="robot-leg robot-leg-right"></span></span></div><div class="next-market-foot">रिजल्ट प्रकाशित होते ही यहाँ अपडेट दिखाई देगा</div></div>'
+    nextResultHighlight.innerHTML=sceneMarket
+      ?'<div class="next-market-card"><div class="next-market-kicker"><span class="next-market-pulse"></span> '+(showBrokenMatka?'रिजल्ट आ गया':'अगला आने वाला रिजल्ट')+'</div><div class="next-market-main"><div><h3>'+escapeHtml(sceneMarket.city)+'</h3><p>'+(showBrokenMatka?'मटका फूट गया!':'आज का रिजल्ट आने वाला है')+'</p></div><div class="next-market-time">'+escapeHtml(sceneMarket.time)+'</div></div><div class="next-market-robot robot-scene '+(showBrokenMatka?'matka-result-broken':'')+'" aria-label="Robot walks to the matka and returns"><span class="robot-mascot" role="button" tabindex="0" aria-label="रोबोट को छूकर मज़ेदार हरकतें देखें"><span class="robot-antenna"></span><span class="robot-head"><i></i><b></b><em></em></span><span class="robot-neck"></span><span class="robot-body"><i></i></span><span class="robot-arm robot-arm-left"></span><span class="robot-arm robot-arm-right"></span><span class="robot-leg robot-leg-left"></span><span class="robot-leg robot-leg-right"></span></span><span class="result-matka" aria-hidden="true"><i></i><b></b><em></em></span><span class="matka-shards" aria-hidden="true"><i></i><b></b><em></em></span></div><div class="next-market-foot">'+(showBrokenMatka?'नया रिजल्ट प्रकाशित हो गया':'रिजल्ट प्रकाशित होते ही मटका टूटेगा')+'</div></div>'
       :'<div class="next-market-empty">अभी अगला रिजल्ट समय उपलब्ध नहीं है।</div>';
   }
   if(topResultCards){
