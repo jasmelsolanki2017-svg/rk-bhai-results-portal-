@@ -1,8 +1,8 @@
 {
   "app": "rk-bhai-results-portal",
   "reportType": "ai-parser-independent-comparison",
-  "generatedAt": "2026-11-27T12:42:42.298Z",
-  "syncCheckedAt": "2026-11-27T12:42:40.266Z",
+  "generatedAt": "2026-11-27T12:43:40.691Z",
+  "syncCheckedAt": "2026-11-27T12:43:38.734Z",
   "syncStatus": "success",
   "note": "Comparison only. AI observations are not counted as independent parser domains and do not change the three-domain publication rule.",
   "summary": {
@@ -149,9 +149,9 @@
         "galidisawer.com",
         "kingsofsatta.com",
         "satta-king-fast.com",
-        "satta-superfast.com",
         "www.realsattaking.com",
         "www.faridabadlucky.com",
+        "satta-superfast.com",
         "www.delhilucky.com",
         "satta-fast.com"
       ],
@@ -192,13 +192,6 @@
           "pass": "first_check"
         },
         {
-          "value": "81",
-          "host": "satta-superfast.com",
-          "url": "https://satta-superfast.com/",
-          "parser": "satta_superfast_exact_market_today_yesterday_table",
-          "pass": "first_check"
-        },
-        {
           "value": "52",
           "host": "www.realsattaking.com",
           "url": "https://www.realsattaking.com/",
@@ -210,6 +203,13 @@
           "host": "www.faridabadlucky.com",
           "url": "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
           "parser": "exact_date_monthly_chart",
+          "pass": "first_check"
+        },
+        {
+          "value": "81",
+          "host": "satta-superfast.com",
+          "url": "https://satta-superfast.com/",
+          "parser": "satta_superfast_exact_market_today_yesterday_table",
           "pass": "first_check"
         },
         {
@@ -255,15 +255,15 @@
         {
           "value": "40",
           "host": "sattafree.com",
-          "url": "https://sattafree.com/",
-          "parser": "exact_date_monthly_chart",
+          "url": "https://sattafree.com/game-history.php?game=shree-ganesh",
+          "parser": "date_result_history_table",
           "pass": "first_check"
         },
         {
           "value": "40",
           "host": "sattafree.com",
-          "url": "https://sattafree.com/game-history.php?game=shree-ganesh",
-          "parser": "date_result_history_table",
+          "url": "https://sattafree.com/",
+          "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
         {
