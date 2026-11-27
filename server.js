@@ -155,7 +155,7 @@ const DemoPlay = mongoose.model("DemoPlay", new mongoose.Schema({
   playType: { type: String, enum: ["NUMBER", "LINE"], default: "NUMBER" },
   lineDigit: { type: Number, min: 0, max: 9, default: null },
   points: { type: Number, required: true, min: 1, max: 1000000 },
-  status: { type: String, enum: ["PENDING", "WIN", "NO MATCH"], default: "PENDING", index: true },
+  status: { type: String, enum: ["PENDING", "WIN", "NO MATCH", "NOT OK"], default: "PENDING", index: true },
   playDate: { type: String, required: true, index: true },
   result: { type: String, default: "" },
   createdAt: { type: Date, default: Date.now },
@@ -536,7 +536,7 @@ app.get("/api/admin/demo-players/:id/ledger", adminOnly, async (req, res) => {
     const market = marketMap.get(marketName);
     if (!market.days.has(play.playDate)) market.days.set(play.playDate, { date: play.playDate, plays: 0, staked: 0, returned: 0, wins: 0, losses: 0, pending: 0, net: 0 });
     const day = market.days.get(play.playDate);
-    const returned = play.status === "WIN" ? Number(play.points || 0) * (play.playType === "LINE" ? 9.7 : 97) : 0;
+    const returned = play.status === "WIN" ? Number(play.points || 0) * (play.playType === "LINE" ? 9.7 : 97) : play.status === "NOT OK" ? Number(play.points || 0) : 0;
     const loss = play.status === "NO MATCH";
     for (const row of [day, market.totals, totals]) {
       row.plays += 1;
@@ -555,6 +555,31 @@ app.get("/api/admin/demo-players/:id/ledger", adminOnly, async (req, res) => {
     markets: [...marketMap.values()].map(m => ({ market: m.market, totals: m.totals, days: [...m.days.values()] })),
     walletTransactions
   });
+});
+
+app.get("/api/admin/demo-plays", adminOnly, async (req, res) => {
+  const status = String(req.query.status || "PENDING").toUpperCase();
+  if (!["PENDING", "ALL"].includes(status)) return res.status(400).json({ error: "सही Play status चुनें।" });
+  const query = status === "ALL" ? {} : { status: "PENDING" };
+  const plays = await DemoPlay.find(query).sort({ createdAt: -1 }).limit(250).populate("playerId", "name mobile").lean();
+  res.setHeader("Cache-Control", "no-store").json({ ok: true, plays });
+});
+
+app.post("/api/admin/demo-plays/:id/not-ok", adminOnly, async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: "Play ID सही नहीं है।" });
+  const play = await DemoPlay.findOneAndUpdate(
+    { _id: req.params.id, status: "PENDING" },
+    { $set: { status: "NOT OK", result: "Admin ने Play Not OK किया", resolvedAt: new Date() } },
+    { new: true }
+  ).lean();
+  if (!play) return res.status(409).json({ error: "यह Play पहले ही settle या Not OK हो चुकी है। Points दोबारा वापस नहीं किए गए।" });
+  const player = await DemoPlayer.findByIdAndUpdate(play.playerId, { $inc: { walletPoints: play.points } }, { new: true }).select("name walletPoints").lean();
+  if (!player) {
+    await DemoPlay.updateOne({ _id: play._id, status: "NOT OK" }, { $set: { status: "PENDING", result: "", resolvedAt: null } });
+    return res.status(404).json({ error: "Demo User नहीं मिला; Play वापस Pending कर दी गई है।" });
+  }
+  await DemoWalletTransaction.create({ playerId: play.playerId, type: "CREDIT", amount: play.points, reason: "Admin ने Play Not OK की · Refund · " + play.market + " · " + play.number });
+  res.json({ ok: true, refunded: Number(play.points), player: { name: player.name, walletPoints: Number(player.walletPoints || 0) }, playId: String(play._id) });
 });
 
 app.post("/api/admin/demo-players/:id/points", adminOnly, async (req, res) => {
