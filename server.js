@@ -488,7 +488,7 @@ app.post("/api/demo/settle", demoPlayerOnly, async (req, res) => {
         { new: true }
       ).lean();
       if (updated && won) {
-        const reward = play.points * (isLine ? 9 : 97);
+        const reward = play.points * (isLine ? 9.7 : 97);
         await DemoPlayer.updateOne({ _id: req.demoPlayer.id }, { $inc: { walletPoints: reward } });
         await DemoWalletTransaction.create({ playerId: req.demoPlayer.id, type: "CREDIT", amount: reward, reason: "Winning reward · " + play.market + " · " + (isLine ? "Line " + play.lineDigit : play.number) });
       }
