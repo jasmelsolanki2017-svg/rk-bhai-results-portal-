@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090909"><meta name="robots" content="noindex,nofollow">
+<title>👑 SATTA KING | Demo Play</title>
+<link rel="stylesheet" href="./style.css?v=20261127-demo1">
+<style>
+.demo-wrap{max-width:760px;margin:24px auto;padding:0 14px 90px}.demo-head,.demo-panel{border:1px solid #765c2c;border-radius:16px;background:linear-gradient(145deg,#20190f,#101010 70%);padding:18px;margin:0 0 14px;box-shadow:0 8px 24px #0005}.demo-head h1{margin:0 0 7px;color:#f4d58b;font-size:25px}.demo-head p,.demo-note{color:#c8b995;font-size:13px;line-height:1.5}.demo-wallet{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:13px;border-radius:12px;background:#0a0a0a;border:1px solid #574323}.demo-wallet strong{font-size:25px;color:#f5d58c}.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.demo-field{display:grid;gap:6px}.demo-field label{color:#e8d7b3;font-size:13px;font-weight:700}.demo-field select,.demo-field input{width:100%;min-height:44px;border:1px solid #70552a;border-radius:9px;padding:10px;background:#090909;color:#fff;font:inherit}.demo-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.demo-actions button{border:1px solid #d6ad55;border-radius:10px;padding:11px 16px;background:linear-gradient(135deg,#f4d58b,#bd8b35);color:#211707;font-weight:900;cursor:pointer}.demo-actions button.secondary{background:#201a10;color:#f4d58b}.demo-message{min-height:22px;margin:12px 0 0;color:#f3d58e;font-size:13px}.demo-history{display:grid;gap:8px}.demo-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:11px;border:1px solid #42351f;border-radius:10px;background:#111}.demo-row strong{color:#f3d58e}.demo-row small{display:block;color:#aaa;margin-top:4px}.demo-status{font-size:11px;font-weight:900;padding:5px 8px;border-radius:20px;background:#3a3424;color:#ffe2a0}.demo-status.win{background:#173b27;color:#a6efbd}.demo-status.loss{background:#3a2020;color:#ffb5b5}.demo-empty{color:#aaa;text-align:center;padding:18px}.demo-disclaimer{border:1px dashed #8a6c32;border-radius:10px;padding:11px;color:#d7c59f;font-size:12px;line-height:1.5}.demo-topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.demo-topbar a{color:#f4d58b;text-decoration:none;font-size:13px}@media(max-width:520px){.demo-grid{grid-template-columns:1fr}.demo-head,.demo-panel{padding:14px}.demo-head h1{font-size:21px}}
+</style>
+</head>
+<body>
+<header class="user-dashboard-header"><div class="brand">👑 SATTA KING 👑</div><p>DEMO PLAY · PRACTICE ONLY</p></header>
+<main class="demo-wrap">
+<div class="demo-topbar"><a href="./">← मुख्य वेबसाइट</a><a href="./#top-result-section">आज के रिजल्ट देखें</a></div>
+<section class="demo-head"><h1>🎮 Demo Play Zone</h1><p>केवल अभ्यास के लिए वर्चुअल पॉइंट्स। यहाँ कोई असली पैसा, भुगतान, जमा या निकासी नहीं होती।</p>
+<div class="demo-wallet"><div><small style="color:#bdb29b">आपके Virtual Points</small><br><strong id="demoBalance">500</strong></div><span>🪙 DEMO</span></div></section>
+<section class="demo-panel"><h2 style="margin-top:0;color:#f4d58b">अपना Demo चुनें</h2>
+<div class="demo-grid">
+<div class="demo-field"><label for="demoMarket">मार्केट चुनें</label><select id="demoMarket"><option value="">मार्केट लोड हो रहे हैं…</option></select></div>
+<div class="demo-field"><label for="demoNumber">अपना नंबर (00–99)</label><input id="demoNumber" inputmode="numeric" maxlength="2" placeholder="जैसे 27" autocomplete="off"></div>
+<div class="demo-field"><label for="demoStake">Virtual Points</label><select id="demoStake"><option value="10">10 Points</option><option value="25">25 Points</option><option value="50">50 Points</option></select></div>
+<div class="demo-field"><label>नियम</label><input value="सही नंबर = 2x Demo Points" readonly></div>
+</div>
+<div class="demo-actions"><button id="demoPlayButton" type="button">🎮 Demo Play करें</button><button id="demoRefreshButton" class="secondary" type="button">↻ रिजल्ट चेक करें</button><button id="demoResetButton" class="secondary" type="button">रीसेट 500 Points</button></div>
+<p id="demoMessage" class="demo-message" role="status" aria-live="polite"></p>
+<p class="demo-note">Play करने पर चुने गए Points आपके Demo Wallet से घटेंगे। प्रकाशित रिजल्ट में वही दो अंकों का नंबर मिलने पर 2x Demo Points वापस जुड़ेंगे। यह केवल स्थानीय ब्राउज़र में सेव होता है।</p>
+</section>
+<section class="demo-panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0;color:#f4d58b">📋 मेरी Demo Plays</h2><small id="demoPlayCount" style="color:#bdb29b">0 Plays</small></div><div id="demoHistory" class="demo-history" style="margin-top:12px"><p class="demo-empty">अभी कोई Demo Play नहीं है।</p></div></section>
+<div class="demo-disclaimer">⚠️ Demo Points की कोई नकद कीमत नहीं है। इन्हें खरीदा, बेचा, ट्रांसफर या कैश में बदला नहीं जा सकता। यह पेज केवल मनोरंजन/अभ्यास के लिए है।</div>
+</main>
+<script>
+(()=>{
+"use strict";
+const API="https://rk-bhai-results-portal.onrender.com";
+const KEY="sattaking_demo_play_v1";
+const $=id=>document.getElementById(id);
+const todayIST=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+let state={balance:500,plays:[]};
+try{const saved=JSON.parse(localStorage.getItem(KEY)||"null");if(saved&&Number.isFinite(saved.balance)&&Array.isArray(saved.plays))state=saved;}catch{}
+function save(){localStorage.setItem(KEY,JSON.stringify(state));render();}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function render(){
+ $("demoBalance").textContent=state.balance.toLocaleString("en-IN");
+ $("demoPlayCount").textContent=state.plays.length+" Plays";
+ $("demoHistory").innerHTML=state.plays.length?state.plays.slice().reverse().map(p=>'<article class="demo-row"><div><strong>'+esc(p.market)+' · '+esc(p.number)+'</strong><small>'+new Date(p.createdAt).toLocaleString("en-IN")+' · '+p.points+' Demo Points</small></div><span class="demo-status '+(p.status==="WIN"?"win":p.status==="NO MATCH"?"loss":"")+'">'+(p.status==="WIN"?"जीत":p.status==="NO MATCH"?"मैच नहीं":"Pending")+'</span></article>').join(""):'<p class="demo-empty">अभी कोई Demo Play नहीं है।</p>';
+}
+async function loadMarkets(){
+ try{const r=await fetch(API+"/api/public/cities",{cache:"no-store"});if(!r.ok)throw 0;const rows=await r.json();const select=$("demoMarket");select.innerHTML='<option value="">मार्केट चुनें</option>'+rows.map(x=>'<option value="'+esc(x.cityName)+'">'+esc(x.cityName)+'</option>').join("");}
+ catch{$("demoMarket").innerHTML='<option value="">मार्केट लोड नहीं हुआ</option>';$("demoMessage").textContent="मार्केट लोड नहीं हुए। थोड़ी देर बाद दोबारा कोशिश करें।";}
+}
+function pairs(value){return (String(value??"").match(/\d{2}/g)||[]);}
+async function checkResults(){
+ $("demoMessage").textContent="प्रकाशित रिजल्ट चेक हो रहे हैं…";
+ try{
+  const r=await fetch(API+"/api/results?recent=2",{cache:"no-store"});if(!r.ok)throw new Error("रिजल्ट सर्वर अभी उपलब्ध नहीं है।");
+  const rows=await r.json();let changed=0;
+  for(const p of state.plays){
+   if(p.status!=="PENDING")continue;
+   const found=rows.find(x=>x.published!==false&&!x.deleted&&String(x.title).trim().toLowerCase()===p.market.trim().toLowerCase()&&new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata"}).format(new Date(x.resultDate))===p.playDate);
+   if(!found)continue;
+   const matched=pairs(found.resultText).includes(p.number);
+   p.status=matched?"WIN":"NO MATCH";p.result=String(found.resultText||"");p.resolvedAt=new Date().toISOString();
+   if(matched)state.balance+=p.points*2;
+   changed++;
+  }
+  save();$("demoMessage").textContent=changed?changed+" Demo Play का रिजल्ट अपडेट हुआ।":"अभी आपकी किसी Pending Play का प्रकाशित रिजल्ट नहीं आया है।";
+ }catch(e){$("demoMessage").textContent=e.message||"रिजल्ट चेक नहीं हो पाया।";}
+}
+$("demoPlayButton").addEventListener("click",()=>{
+ const market=$("demoMarket").value,number=$("demoNumber").value.trim(),points=Number($("demoStake").value);
+ if(!market)return $("demoMessage").textContent="पहले मार्केट चुनें।";
+ if(!/^\d{1,2}$/.test(number))return $("demoMessage").textContent="00 से 99 के बीच नंबर डालें।";
+ if(![10,25,50].includes(points))return $("demoMessage").textContent="Points विकल्प सही नहीं है।";
+ if(state.balance<points)return $("demoMessage").textContent="आपके Demo Points कम हैं। Reset कर सकते हैं।";
+ state.balance-=points;state.plays.push({id:Date.now()+"-"+Math.random().toString(36).slice(2,7),market,number:number.padStart(2,"0"),points,status:"PENDING",playDate:todayIST(),createdAt:new Date().toISOString()});
+ save();$("demoNumber").value="";$("demoMessage").textContent="Demo Play सेव हो गई। रिजल्ट आने पर 'रिजल्ट चेक करें' दबाएँ।";
+});
+$("demoRefreshButton").addEventListener("click",checkResults);
+$("demoResetButton").addEventListener("click",()=>{if(!confirm("Demo Wallet को 500 Points पर रीसेट करें?"))return;state={balance:500,plays:[]};save();$("demoMessage").textContent="Demo Wallet रीसेट हो गया।";});
+render();loadMarkets();checkResults();
+})();
+</script>
+</body></html>
