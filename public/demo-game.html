@@ -95,7 +95,8 @@ $("demoPlayButton").addEventListener("click",async()=>{
 });
 $("demoRefreshButton").addEventListener("click",checkResults);
 const logout=$("demoLogout");if(logout)logout.addEventListener("click",()=>{sessionStorage.removeItem(tokenKey);location.replace("./demo-play.html");});
-if(!token){location.replace("./demo-play.html?login=required");return;}\nenterGame().catch(e=>{token="";sessionStorage.removeItem(tokenKey);location.replace("./demo-play.html?expired=1");});
+if(!token){location.replace("./demo-play.html?login=required");return;}
+enterGame().catch(e=>{token="";sessionStorage.removeItem(tokenKey);location.replace("./demo-play.html?expired=1");});
 })();
 </script>
 </body></html>
