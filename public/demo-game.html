@@ -21,11 +21,11 @@
 <div class="demo-field"><label for="demoMarket">मार्केट चुनें</label><select id="demoMarket"><option value="">मार्केट लोड हो रहे हैं…</option></select></div>
 <div class="demo-field"><label for="demoNumber">नंबर / लाइन चुनें (जैसे 27, 1-12 या 111)</label><input id="demoNumber" inputmode="numeric" maxlength="400" placeholder="27, 45, 78, 1-12 या 111" autocomplete="off"></div>
 <div class="demo-field"><label for="demoStake">हर नंबर / लाइन के Virtual Points</label><input id="demoStake" type="number" inputmode="numeric" min="1" max="1000000" step="1" placeholder="हर नंबर / लाइन के Points भरें" autocomplete="off"></div>
-<div class="demo-field"><label>नियम</label><input value="नंबर: 97x · लाइन: 9x" readonly></div>
+<div class="demo-field"><label>नियम</label><input value="नंबर: 97x · लाइन: 9.7x" readonly></div>
 </div>
 <div class="demo-actions"><button id="demoPlayButton" type="button">🎮 Demo Play करें</button><button id="demoRefreshButton" class="secondary" type="button">↻ रिजल्ट चेक करें</button></div>
 <p id="demoMessage" class="demo-message" role="status" aria-live="polite"></p>
-<p class="demo-note">नंबर के लिए 27, 45, 78 या 1-12 लिखें। पूरी लाइन के लिए 111, 222, 333… लिखें। जैसे 111 = 01,11,21,31,41,51,61,71,81,91। हर नंबर या लाइन पर भरे Points एक बार ही कटेंगे। लाइन जीतने पर 1 Point का रिटर्न 9 Points होगा।</p>
+<p class="demo-note">नंबर के लिए 27, 45, 78 या 1-12 लिखें। पूरी लाइन के लिए 111, 222, 333… लिखें। जैसे 111 = 01,11,21,31,41,51,61,71,81,91। हर नंबर या लाइन पर भरे Points एक बार ही कटेंगे। लाइन जीतने पर 1 Point का रिटर्न 9.7 Points होगा।</p>
 </section>
 <section class="demo-panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0;color:#f4d58b">📋 मेरी Demo Plays</h2><small id="demoPlayCount" style="color:#bdb29b">0 Plays</small></div><div id="demoHistory" class="demo-history" style="margin-top:12px"><p class="demo-empty">अभी कोई Demo Play नहीं है।</p></div></section>
 <div class="demo-disclaimer">⚠️ Demo Points की कोई नकद कीमत नहीं है। इन्हें खरीदा, बेचा, ट्रांसफर या कैश में बदला नहीं जा सकता। यह पेज केवल मनोरंजन/अभ्यास के लिए है।</div>
@@ -52,7 +52,7 @@ function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&l
 function render(){
  $("demoBalance").textContent=Number(state.balance||0).toLocaleString("en-IN");
  $("demoPlayCount").textContent=state.plays.length+" Plays";
- $("demoHistory").innerHTML=state.plays.length?state.plays.map(p=>'<article class="demo-row"><div><strong>'+esc(p.market)+' · '+(p.playType==="LINE"?"Line "+esc(p.lineDigit):esc(p.number))+'</strong><small>'+new Date(p.createdAt).toLocaleString("en-IN")+' · '+p.points+' Demo Points</small></div><span class="demo-status '+(p.status==="WIN"?"win":p.status==="NO MATCH"?"loss":"")+'">'+(p.status==="WIN"?"जीत":p.status==="NO MATCH"?"मैच नहीं":"Pending")+(p.status==="WIN"?' · +'+(p.points*(p.playType==="LINE"?9:97)):"")+'</span></article>').join(""):'<p class="demo-empty">अभी कोई Demo Play नहीं है।</p>';
+ $("demoHistory").innerHTML=state.plays.length?state.plays.map(p=>'<article class="demo-row"><div><strong>'+esc(p.market)+' · '+(p.playType==="LINE"?"Line "+esc(p.lineDigit):esc(p.number))+'</strong><small>'+new Date(p.createdAt).toLocaleString("en-IN")+' · '+p.points+' Demo Points</small></div><span class="demo-status '+(p.status==="WIN"?"win":p.status==="NO MATCH"?"loss":"")+'">'+(p.status==="WIN"?"जीत":p.status==="NO MATCH"?"मैच नहीं":"Pending")+(p.status==="WIN"?' · +'+(p.points*(p.playType==="LINE"?9.7:97)):"")+'</span></article>').join(""):'<p class="demo-empty">अभी कोई Demo Play नहीं है।</p>';
 }
 async function loadMarkets(){
  try{const rows=await request("/api/public/cities");const select=$("demoMarket");select.innerHTML='<option value="">मार्केट चुनें</option>'+rows.map(x=>'<option value="'+esc(x.cityName)+'">'+esc(x.cityName)+'</option>').join("");}
