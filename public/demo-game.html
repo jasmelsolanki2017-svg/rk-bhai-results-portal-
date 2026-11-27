@@ -19,13 +19,13 @@
 <section class="demo-panel"><h2 style="margin-top:0;color:#f4d58b">अपना Demo चुनें</h2>
 <div class="demo-grid">
 <div class="demo-field"><label for="demoMarket">मार्केट चुनें</label><select id="demoMarket"><option value="">मार्केट लोड हो रहे हैं…</option></select></div>
-<div class="demo-field"><label for="demoNumber">अपना नंबर (00–99)</label><input id="demoNumber" inputmode="numeric" maxlength="2" placeholder="जैसे 27" autocomplete="off"></div>
-<div class="demo-field"><label for="demoStake">Virtual Points</label><input id="demoStake" type="number" inputmode="numeric" min="1" max="1000000" step="1" placeholder="Points खुद भरें" autocomplete="off"></div>
+<div class="demo-field"><label for="demoNumber">अपना नंबर चुनें (जैसे 27 या 1-12)</label><input id="demoNumber" inputmode="numeric" maxlength="5" placeholder="27 या 1-12" autocomplete="off"></div>
+<div class="demo-field"><label for="demoStake">हर नंबर के Virtual Points</label><input id="demoStake" type="number" inputmode="numeric" min="1" max="1000000" step="1" placeholder="हर नंबर के Points भरें" autocomplete="off"></div>
 <div class="demo-field"><label>नियम</label><input value="जीतने पर हर 1 Point के 97 Points" readonly></div>
 </div>
 <div class="demo-actions"><button id="demoPlayButton" type="button">🎮 Demo Play करें</button><button id="demoRefreshButton" class="secondary" type="button">↻ रिजल्ट चेक करें</button></div>
 <p id="demoMessage" class="demo-message" role="status" aria-live="polite"></p>
-<p class="demo-note">Play करने पर चुने गए Points आपके Demo Wallet से घटेंगे। प्रकाशित रिजल्ट में वही दो अंकों का नंबर मिलने पर 97x Demo Points वापस जुड़ेंगे। अब Wallet और Play History MongoDB Server पर सुरक्षित रहते हैं।</p>
+<p class="demo-note">एक नंबर लिखें या रेंज लिखें, जैसे 1-12। रेंज में 1 से 12 तक हर नंबर पर भरे गए Points अलग-अलग लगेंगे। उदाहरण: 1-12 और 10 Points = 12 अलग Plays, कुल 120 Points। प्रकाशित रिजल्ट में वही नंबर मिलने पर 97x Demo Points वापस जुड़ेंगे।</p>
 </section>
 <section class="demo-panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0;color:#f4d58b">📋 मेरी Demo Plays</h2><small id="demoPlayCount" style="color:#bdb29b">0 Plays</small></div><div id="demoHistory" class="demo-history" style="margin-top:12px"><p class="demo-empty">अभी कोई Demo Play नहीं है।</p></div></section>
 <div class="demo-disclaimer">⚠️ Demo Points की कोई नकद कीमत नहीं है। इन्हें खरीदा, बेचा, ट्रांसफर या कैश में बदला नहीं जा सकता। यह पेज केवल मनोरंजन/अभ्यास के लिए है।</div>
@@ -81,15 +81,24 @@ async function checkResults(){
 }
 $("demoPlayButton").addEventListener("click",async()=>{
  const button=$("demoPlayButton");if(button.disabled)return;
- const market=$("demoMarket").value,number=$("demoNumber").value.trim(),points=Number($("demoStake").value);
+ const market=$("demoMarket").value,rawNumber=$("demoNumber").value.trim(),points=Number($("demoStake").value);
  if(!market)return $("demoMessage").textContent="पहले मार्केट चुनें।";
- if(!/^\d{1,2}$/.test(number)||Number(number)>99)return $("demoMessage").textContent="00 से 99 के बीच नंबर डालें।";
- if(!Number.isSafeInteger(points)||points<1||points>1000000)return $("demoMessage").textContent="1 से 10,00,000 तक पूरे Points भरें।";
- button.disabled=true;$("demoMessage").textContent="Server पर Play सेव हो रही है…";
+ let numbers=[];
+ const range=rawNumber.match(/^(\d{1,2})\s*-\s*(\d{1,2})$/);
+ if(range){
+  const from=Number(range[1]),to=Number(range[2]);
+  if(from>99||to>99||from>to)return $("demoMessage").textContent="रेंज सही लिखें, जैसे 1-12 या 20-25।";
+  for(let n=from;n<=to;n++)numbers.push(String(n).padStart(2,"0"));
+ }else if(/^\d{1,2}$/.test(rawNumber)&&Number(rawNumber)<=99){numbers=[rawNumber.padStart(2,"0")];}
+ else return $("demoMessage").textContent="एक नंबर (27) या रेंज (1-12) लिखें।";
+ if(numbers.length>100)return $("demoMessage").textContent="एक बार में अधिकतम 100 नंबर चुन सकते हैं।";
+ if(!Number.isSafeInteger(points)||points<1||points>1000000)return $("demoMessage").textContent="हर नंबर के लिए 1 से 10,00,000 तक पूरे Points भरें।";
+ const total=points*numbers.length;
+ button.disabled=true;$("demoMessage").textContent=numbers.length+" नंबर × "+points+" = कुल "+total+" Points Server पर सेव हो रहे हैं…";
  try{
   await ensureApproved();
-  const saved=await request("/api/demo/plays",{method:"POST",body:JSON.stringify({market,number:number.padStart(2,"0"),points})});
-  await syncWallet();$("demoNumber").value="";$("demoMessage").textContent=saved.merged?"Same मार्केट और नंबर की Points पहले वाली Pending Play में जोड़ दिए गए।":"Play Server और MongoDB में सेव हो गई। रिजल्ट आने पर Points अपने-आप settle होंगे।";
+  const saved=await request("/api/demo/plays",{method:"POST",body:JSON.stringify({market,numbers,points})});
+  await syncWallet();$("demoNumber").value="";$("demoMessage").textContent=numbers.length+" अलग-अलग नंबर सेव हुए। कुल "+total+" Points कटे।"+(saved.mergedCount?" "+saved.mergedCount+" पुराने Pending नंबरों में Points जोड़े गए।":"");
  }catch(e){$("demoMessage").textContent=e.message;}
  finally{button.disabled=false;}
 });
