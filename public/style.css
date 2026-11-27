@@ -1379,3 +1379,36 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
   .robot-mascot .robot-head,.robot-mascot .robot-antenna,
   .robot-mascot .robot-neck,.robot-mascot .robot-body{animation:none}
 }
+
+
+/* Smooth 1XSatta-inspired robot walk: continuous travel, gentle stride, no sharp bouncing. */
+.robot-scene .robot-mascot{
+  animation-duration:12s!important;
+  animation-timing-function:cubic-bezier(.45,0,.25,1)!important;
+}
+.robot-scene .robot-arm,
+.robot-scene .robot-leg{
+  animation-duration:.62s!important;
+  animation-timing-function:ease-in-out!important;
+}
+.robot-mascot .robot-head,
+.robot-mascot .robot-antenna,
+.robot-mascot .robot-neck,
+.robot-mascot .robot-body{
+  animation-duration:.62s!important;
+  animation-timing-function:ease-in-out!important;
+}
+.robot-scene .result-matka{
+  animation-duration:12s!important;
+  animation-timing-function:ease-in-out!important;
+}
+@media(prefers-reduced-motion:reduce){
+  .robot-scene .robot-mascot,
+  .robot-scene .robot-arm,
+  .robot-scene .robot-leg,
+  .robot-mascot .robot-head,
+  .robot-mascot .robot-antenna,
+  .robot-mascot .robot-neck,
+  .robot-mascot .robot-body,
+  .robot-scene .result-matka{animation:none!important}
+}
