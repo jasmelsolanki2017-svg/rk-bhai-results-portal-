@@ -42,6 +42,35 @@ $("transactions").innerHTML=(tx.transactions||[]).length?tx.transactions.map(x=>
 $("message").textContent="Profile और Wallet Server से अपडेट हैं।";
 }catch(e){$("message").textContent=e.message;if(/approved|session|login/i.test(e.message)){sessionStorage.removeItem(key);location.replace("./demo-play.html?expired=1");}}}
 document.querySelectorAll(".profile-tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".profile-tab").forEach(x=>x.classList.toggle("active",x===btn));document.querySelectorAll(".tab-panel").forEach(x=>x.classList.toggle("active",x.id==="tab-"+btn.dataset.tab));}));
-function localDateKey(value){const d=new Date(value);if(Number.isNaN(d.getTime()))return "";return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}function renderPlayHistory(){const all=window.demoPlayRows||[],selected=$("playDate").value||localDateKey(Date.now()),filtered=all.filter(x=>localDateKey(x.createdAt)===selected);$("history").innerHTML=filtered.length?filtered.map(x=>'<article class="item"><div><strong>'+esc(x.market)+' · '+esc(x.number)+'</strong><small>'+new Date(x.createdAt).toLocaleString("en-IN")+' · '+fmt(x.points)+' Points'+(x.result?' · Result: '+esc(x.result):"") +'</small></div><span class="pill '+(x.status==="WIN"?"win":x.status==="NO MATCH"?"loss":"") +'">'+(x.status==="WIN"?"जीत · +"+fmt(x.points*97):x.status==="NO MATCH"?"मैच नहीं":"Pending")+'</span></article>').join(""):'<p class="empty">इस तारीख की कोई Demo Play नहीं मिली।</p>';}const today=localDateKey(Date.now());$("playDate").value=today;$("playDate").addEventListener("change",renderPlayHistory);$("clearPlayDate").addEventListener("click",()=>{$("playDate").value=localDateKey(Date.now());renderPlayHistory();});$("refresh").addEventListener("click",load);$("logout").addEventListener("click",()=>{sessionStorage.removeItem(key);location.replace("./demo-play.html");});load();
+function localDateKey(value){const d=new Date(value);if(Number.isNaN(d.getTime()))return "";return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function groupedPlayRows(rows){
+ const sorted=[...rows].sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
+ const batches=[];
+ sorted.forEach(row=>{
+  const num=String(row.number??"").trim(),n=/^\\d{1,2}$/.test(num)?Number(num):NaN,ts=new Date(row.createdAt).getTime();
+  const key=[row.market,row.status,row.points,row.result||"",localDateKey(row.createdAt)].join("|");
+  let batch=batches.find(b=>b.key===key&&Math.abs(ts-b.lastTime)<=5000);
+  if(!batch){batch={key,rows:[],lastTime:ts};batches.push(batch);}
+  batch.rows.push(row);batch.lastTime=ts;
+ });
+ const output=[];
+ batches.forEach(batch=>{
+  const numeric=batch.rows.filter(r=>/^\\d{1,2}$/.test(String(r.number??"").trim())).sort((a,b)=>Number(a.number)-Number(b.number));
+  const other=batch.rows.filter(r=>!/^\\d{1,2}$/.test(String(r.number??"").trim()));
+  let run=[];
+  const flush=()=>{if(!run.length)return;output.push({rows:run,first:run[0],from:Number(run[0].number),to:Number(run[run.length-1].number)});run=[];};
+  numeric.forEach(r=>{if(run.length&&Number(r.number)!==Number(run[run.length-1].number)+1)flush();run.push(r);});flush();
+  other.forEach(r=>output.push({rows:[r],first:r,from:null,to:null}));
+ });
+ return output.sort((a,b)=>new Date(b.first.createdAt)-new Date(a.first.createdAt));
+}
+function renderPlayHistory(){
+ const all=window.demoPlayRows||[],selected=$("playDate").value||localDateKey(Date.now()),filtered=all.filter(x=>localDateKey(x.createdAt)===selected),groups=groupedPlayRows(filtered);
+ $("history").innerHTML=groups.length?groups.map(g=>{
+  const x=g.first,count=g.rows.length,total=g.rows.reduce((sum,r)=>sum+Number(r.points||0),0),range=count>1&&g.from!==null?g.from+"–"+g.to:String(x.number),time=new Date(x.createdAt).toLocaleString("en-IN");
+  const amount=count>1?fmt(x.points)+" Points × "+count+" = "+fmt(total)+" Demo Points":fmt(x.points)+" Demo Points";
+  return '<article class="item"><div><strong>'+esc(x.market)+' · '+esc(range)+'</strong><small>'+time+' · '+amount+(x.result?' · Result: '+esc(x.result):"")+'</small></div><span class="pill '+(x.status==="WIN"?"win":x.status==="NO MATCH"?"loss":"") +'">'+(x.status==="WIN"?"जीत · +"+fmt(total*97):x.status==="NO MATCH"?"मैच नहीं":"Pending")+'</span></article>';
+ }).join(""):'<p class="empty">इस तारीख की कोई Demo Play नहीं मिली।</p>';
+}const today=localDateKey(Date.now());$("playDate").value=today;$("playDate").addEventListener("change",renderPlayHistory);$("clearPlayDate").addEventListener("click",()=>{$("playDate").value=localDateKey(Date.now());renderPlayHistory();});$("refresh").addEventListener("click",load);$("logout").addEventListener("click",()=>{sessionStorage.removeItem(key);location.replace("./demo-play.html");});load();
 })();
 </script></body></html>
