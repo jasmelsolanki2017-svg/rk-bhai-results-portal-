@@ -370,7 +370,7 @@ app.post("/api/demo/plays", demoPlayerOnly, async (req, res) => {
   const points = Number(req.body?.points);
   if (market.length < 2 || market.length > 80) return res.status(400).json({ error: "सही मार्केट चुनें।" });
   if (!/^\d{2}$/.test(number) || Number(number) > 99) return res.status(400).json({ error: "00 से 99 के बीच नंबर डालें।" });
-  if (![10, 25, 50].includes(points)) return res.status(400).json({ error: "Points विकल्प सही नहीं है।" });
+  if (!Number.isSafeInteger(points) || points < 1 || points > 1000000) return res.status(400).json({ error: "1 से 10,00,000 तक पूरे Points भरें।" });
   const player = await DemoPlayer.findOneAndUpdate(
     { _id: req.demoPlayer.id, status: "approved", walletPoints: { $gte: points } },
     { $inc: { walletPoints: -points } },
