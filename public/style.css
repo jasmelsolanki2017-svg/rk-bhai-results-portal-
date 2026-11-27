@@ -1359,3 +1359,23 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
   color:#fff8d8;font-size:12px;font-weight:1000;line-height:1;
   text-shadow:0 1px 2px #560000;white-space:nowrap;transform:rotate(145deg);
 }
+
+
+/* Make the robot's head and body bob in sync with its walking legs. */
+.robot-mascot .robot-head,
+.robot-mascot .robot-antenna,
+.robot-mascot .robot-neck,
+.robot-mascot .robot-body{
+  animation:robotWalkBob .72s ease-in-out infinite alternate;
+}
+.robot-mascot .robot-antenna{animation-delay:-.08s}
+.robot-mascot .robot-neck{animation-delay:-.03s}
+.robot-mascot .robot-body{animation-delay:-.06s}
+@keyframes robotWalkBob{
+  from{translate:0 0;rotate:-1deg}
+  to{translate:0 -3px;rotate:1deg}
+}
+@media(prefers-reduced-motion:reduce){
+  .robot-mascot .robot-head,.robot-mascot .robot-antenna,
+  .robot-mascot .robot-neck,.robot-mascot .robot-body{animation:none}
+}
