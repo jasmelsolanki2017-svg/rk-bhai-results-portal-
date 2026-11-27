@@ -1,8 +1,8 @@
 {
   "app": "rk-bhai-results-portal",
   "reportType": "ai-parser-independent-comparison",
-  "generatedAt": "2026-11-27T00:19:38.679Z",
-  "syncCheckedAt": "2026-11-27T00:19:36.974Z",
+  "generatedAt": "2026-11-27T00:20:42.599Z",
+  "syncCheckedAt": "2026-11-27T00:20:40.984Z",
   "syncStatus": "success",
   "note": "Comparison only. AI observations are not counted as independent parser domains and do not change the three-domain publication rule.",
   "summary": {
@@ -100,9 +100,9 @@
         "sattaking.live",
         "satta-superfast.com",
         "www.faridabadlucky.com",
+        "satta-fast.com",
         "www.realsattaking.com",
         "www.delhilucky.com",
-        "satta-fast.com",
         "1xsatta.today"
       ],
       "parserObservations": [
@@ -171,6 +171,13 @@
         },
         {
           "value": "52",
+          "host": "satta-fast.com",
+          "url": "https://satta-fast.com/satta-king-chart-november-2026",
+          "parser": "exact_date_monthly_chart",
+          "pass": "first_check"
+        },
+        {
+          "value": "52",
           "host": "www.realsattaking.com",
           "url": "https://www.realsattaking.com/",
           "parser": "exact_date_monthly_chart",
@@ -180,13 +187,6 @@
           "value": "52",
           "host": "www.delhilucky.com",
           "url": "https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi",
-          "parser": "exact_date_monthly_chart",
-          "pass": "first_check"
-        },
-        {
-          "value": "52",
-          "host": "satta-fast.com",
-          "url": "https://satta-fast.com/satta-king-chart-november-2026",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
