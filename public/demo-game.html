@@ -88,8 +88,8 @@ $("demoPlayButton").addEventListener("click",async()=>{
  button.disabled=true;$("demoMessage").textContent="Server पर Play सेव हो रही है…";
  try{
   await ensureApproved();
-  await request("/api/demo/plays",{method:"POST",body:JSON.stringify({market,number:number.padStart(2,"0"),points})});
-  await syncWallet();$("demoNumber").value="";$("demoMessage").textContent="Play Server और MongoDB में सेव हो गई। रिजल्ट आने पर Points अपने-आप settle होंगे।";
+  const saved=await request("/api/demo/plays",{method:"POST",body:JSON.stringify({market,number:number.padStart(2,"0"),points})});
+  await syncWallet();$("demoNumber").value="";$("demoMessage").textContent=saved.merged?"Same मार्केट और नंबर की Points पहले वाली Pending Play में जोड़ दिए गए।":"Play Server और MongoDB में सेव हो गई। रिजल्ट आने पर Points अपने-आप settle होंगे।";
  }catch(e){$("demoMessage").textContent=e.message;}
  finally{button.disabled=false;}
 });
