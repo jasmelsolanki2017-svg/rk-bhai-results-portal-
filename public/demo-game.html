@@ -20,7 +20,7 @@
 <div class="demo-grid">
 <div class="demo-field"><label for="demoMarket">मार्केट चुनें</label><select id="demoMarket"><option value="">मार्केट लोड हो रहे हैं…</option></select></div>
 <div class="demo-field"><label for="demoNumber">अपना नंबर (00–99)</label><input id="demoNumber" inputmode="numeric" maxlength="2" placeholder="जैसे 27" autocomplete="off"></div>
-<div class="demo-field"><label for="demoStake">Virtual Points</label><select id="demoStake"><option value="10">10 Points</option><option value="25">25 Points</option><option value="50">50 Points</option></select></div>
+<div class="demo-field"><label for="demoStake">Virtual Points</label><input id="demoStake" type="number" inputmode="numeric" min="1" max="1000000" step="1" placeholder="Points खुद भरें" autocomplete="off"></div>
 <div class="demo-field"><label>नियम</label><input value="जीतने पर हर 1 Point के 97 Points" readonly></div>
 </div>
 <div class="demo-actions"><button id="demoPlayButton" type="button">🎮 Demo Play करें</button><button id="demoRefreshButton" class="secondary" type="button">↻ रिजल्ट चेक करें</button></div>
@@ -84,7 +84,7 @@ $("demoPlayButton").addEventListener("click",async()=>{
  const market=$("demoMarket").value,number=$("demoNumber").value.trim(),points=Number($("demoStake").value);
  if(!market)return $("demoMessage").textContent="पहले मार्केट चुनें।";
  if(!/^\d{1,2}$/.test(number)||Number(number)>99)return $("demoMessage").textContent="00 से 99 के बीच नंबर डालें।";
- if(![10,25,50].includes(points))return $("demoMessage").textContent="Points विकल्प सही नहीं है।";
+ if(!Number.isSafeInteger(points)||points<1||points>1000000)return $("demoMessage").textContent="1 से 10,00,000 तक पूरे Points भरें।";
  button.disabled=true;$("demoMessage").textContent="Server पर Play सेव हो रही है…";
  try{
   await ensureApproved();
