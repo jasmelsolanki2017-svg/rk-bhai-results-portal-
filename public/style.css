@@ -1293,3 +1293,8 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
   54%{transform:translateX(calc(100% + 105px)) rotate(5deg) scaleX(-1)}
   88%,100%{transform:translateX(0) scaleX(-1)}
 }
+
+
+/* Keep both glowing eyes visible on the robot's mirrored face. */
+.robot-scene .robot-mascot .robot-head i,
+.robot-scene .robot-mascot .robot-head b{display:block!important}
