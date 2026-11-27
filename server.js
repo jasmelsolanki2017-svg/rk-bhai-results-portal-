@@ -55,6 +55,8 @@ const publicFrontendApiPaths = new Set([
   "/api/demo/register",
   "/api/demo/login",
   "/api/demo/me",
+  "/api/demo/plays",
+  "/api/demo/settle",
   "/api/results",
   "/api/public/cities",
   "/api/public/export.csv",
