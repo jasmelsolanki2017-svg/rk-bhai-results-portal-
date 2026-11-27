@@ -40,7 +40,7 @@ const $=id=>document.getElementById(id);
 const tokenKey="sattaking_demo_token";
 let token=sessionStorage.getItem(tokenKey)||"";
 let player=null;
-let state={balance:500,plays:[]};
+let state={balance:500,plays:[],serverWalletSeen:null};
 const todayIST=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
 async function request(path,opts={}) {
  const headers={"Content-Type":"application/json",...(opts.headers||{})};
@@ -69,7 +69,12 @@ async function ensureApproved(){
 async function enterGame(){
  await ensureApproved();
  const saved=JSON.parse(localStorage.getItem("sattaking_demo_play_"+player.id)||"null");
- state=saved&&Number.isFinite(saved.balance)&&Array.isArray(saved.plays)?saved:{balance:500,plays:[]};
+ state=saved&&Number.isFinite(saved.balance)&&Array.isArray(saved.plays)?saved:{balance:Number(player.walletPoints||0),plays:[],serverWalletSeen:Number(player.walletPoints||0)};
+ const serverWallet=Number(player.walletPoints||0);
+ if(state.serverWalletSeen===null||!Number.isFinite(state.serverWalletSeen)){state.balance=serverWallet;}
+ else state.balance=Math.max(0,state.balance+(serverWallet-state.serverWalletSeen));
+ state.serverWalletSeen=serverWallet;
+ localStorage.setItem("sattaking_demo_play_"+player.id,JSON.stringify(state));
  $("demoAuth").hidden=true;$("demoGame").hidden=false;
  render();await loadMarkets();await checkResults();
 }
