@@ -2,6 +2,17 @@ const $=s=>document.querySelector(s);
 async function api(url,opts={}){const r=await fetch(url,{credentials:"same-origin",...opts,headers:{...(opts.body?{"Content-Type":"application/json"}:{}),...(opts.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Request failed");return d;}
 function esc(v){return String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 function show(on){$("#loginBox").hidden=on;$("#managePanel").hidden=!on;}
+function showUserTab(tab){
+ const demo=tab==="demo";
+ $("#portalUsersPanel").hidden=demo;
+ $("#portalCityPanel").hidden=demo;
+ $("#demoUsersPanel").hidden=!demo;
+ $("#showPortalUsers").setAttribute("aria-pressed",String(!demo));
+ $("#showDemoPlayers").setAttribute("aria-pressed",String(demo));
+}
+$("#showPortalUsers").addEventListener("click",()=>showUserTab("portal"));
+$("#showDemoPlayers").addEventListener("click",()=>showUserTab("demo"));
+
 function indiaToday(){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());}
 async function refresh(){
  const users=await api("/api/admin/users");
