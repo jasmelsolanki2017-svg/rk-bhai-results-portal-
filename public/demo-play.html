@@ -13,7 +13,20 @@
 <header class="user-dashboard-header"><div class="brand">👑 SATTA KING 👑</div><p>DEMO PLAY · PRACTICE ONLY</p></header>
 <main class="demo-wrap">
 <div class="demo-topbar"><a href="./">← मुख्य वेबसाइट</a><a href="./#top-result-section">आज के रिजल्ट देखें</a></div>
-<section class="demo-panel demo-auth" id="demoAuth"><h2>🔐 Demo User Login</h2><p class="muted">अपने मोबाइल नंबर और Password से Login करें। Registration के लिए नीचे दिए गए अलग पेज को खोलें। Admin approval के बाद ही Demo Play खुलेगा।</p><form id="demoLoginForm"><h3 style="color:#f4d58b;margin:4px 0">User Login</h3><input name="mobile" type="tel" inputmode="numeric" pattern="[6-9][0-9]{9}" maxlength="10" placeholder="मोबाइल नंबर / Username" required><input name="password" type="password" placeholder="Password" required><button type="submit">Login करें</button></form><a class="demo-register-link" href="./demo-register.html">＋ Registration</a><p id="demoAuthMessage" class="demo-message" role="status" aria-live="polite"></p></section>
+<section class="demo-panel demo-auth" id="demoAuth"><h2>🔐 Demo User Login</h2><p class="muted">अपने मोबाइल नंबर और Password से Login करें। Registration के लिए नीचे दिए गए अलग पेज को खोलें। Admin approval के बाद ही Demo Play खुलेगा।</p><form id="demoLoginForm"><h3 style="color:#f4d58b;margin:4px 0">User Login</h3><input name="mobile" type="tel" inputmode="numeric" pattern="[6-9][0-9]{9}" maxlength="10" placeholder="मोबाइल नंबर / Username" required><input name="password" type="password" placeholder="Password" required><button type="submit">Login करें</button></form><a class="demo-register-link" href="./demo-play.html#register">＋ Registration</a><p id="demoAuthMessage" class="demo-message" role="status" aria-live="polite"></p></section>
+<section class="demo-panel demo-auth" id="demoRegistration" hidden>
+<h2>📝 Demo User Registration</h2>
+<p class="muted">नाम, मोबाइल नंबर और Password भरें। Username आपका मोबाइल नंबर रहेगा। Email वैकल्पिक है। Registration के बाद Admin approval जरूरी होगा।</p>
+<form id="demoRegisterForm">
+<input name="name" minlength="2" maxlength="80" placeholder="पूरा नाम" required>
+<input name="mobile" type="tel" inputmode="numeric" pattern="[6-9][0-9]{9}" maxlength="10" placeholder="10 अंकों का मोबाइल नंबर" required>
+<input name="email" type="email" maxlength="120" placeholder="Email (वैकल्पिक)">
+<input name="password" type="password" minlength="8" maxlength="100" placeholder="Password (कम से कम 8 अक्षर)" required>
+<button type="submit">Registration करें</button>
+</form>
+<a class="demo-register-link" href="./demo-play.html">← Login पेज पर वापस जाएँ</a>
+<p id="registerMessage" class="demo-message" role="status" aria-live="polite"></p>
+</section>
 <div id="demoGame" hidden>
 <section class="demo-head"><h1>🎮 Demo Play Zone</h1><p>केवल अभ्यास के लिए वर्चुअल पॉइंट्स। यहाँ कोई असली पैसा, भुगतान, जमा या निकासी नहीं होती।</p>
 <div class="demo-wallet"><div><small style="color:#bdb29b">आपके Virtual Points</small><br><strong id="demoBalance">500</strong></div><span>🪙 DEMO</span></div></section>
@@ -50,6 +63,14 @@ const request=async(path,opts={})=>{
  return d;
 };
 function showAuth(message=""){ $("demoAuth").hidden=false;$("demoGame").hidden=true;$("demoAuthMessage").textContent=message; }
+function showRegistration(){ $("demoAuth").hidden=true;$("demoRegistration").hidden=false;$("demoGame").hidden=true; }
+$("demoRegisterForm").addEventListener("submit",async e=>{
+ e.preventDefault();const form=e.currentTarget,data=new FormData(form),button=form.querySelector("button");button.disabled=true;$("registerMessage").textContent="Registration हो रहा है…";
+ try{const result=await request("/api/demo/register",{method:"POST",body:JSON.stringify({name:data.get("name"),mobile:data.get("mobile"),email:data.get("email"),password:data.get("password")})});form.reset();$("registerMessage").textContent=(result.message||"Registration सफल।")+" अब Admin approval के बाद Login करें।";}
+ catch(error){$("registerMessage").textContent=error.message;}finally{button.disabled=false;}
+});
+window.addEventListener("hashchange",()=>{if(location.hash==="#register")showRegistration();else if(!token){$("demoRegistration").hidden=true;$("demoAuth").hidden=false;}});
+
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function render(){
  $("demoBalance").textContent=Number(state.balance||0).toLocaleString("en-IN");
@@ -103,7 +124,7 @@ $("demoPlayButton").addEventListener("click",async()=>{
 });
 $("demoRefreshButton").addEventListener("click",checkResults);
 const reset=$("demoResetButton");if(reset)reset.remove();
-if(token){location.replace("./demo-game.html");}else{showAuth();if(new URLSearchParams(location.search).has("expired"))$("demoAuthMessage").textContent="Session समाप्त हो गया। दोबारा Login करें।";}
+if(location.hash==="#register"){showRegistration();}else if(token){location.replace("./demo-game.html");}else{showAuth();if(new URLSearchParams(location.search).has("expired"))$("demoAuthMessage").textContent="Session समाप्त हो गया। दोबारा Login करें।";}
 })();
 </script>
 </body></html>
