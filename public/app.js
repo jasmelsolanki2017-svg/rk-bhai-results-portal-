@@ -168,6 +168,7 @@ function renderRecent(){
     if(!byCity.has(key))byCity.set(key,{today:null,yesterday:null});
     if(!cityLabels.has(key)||/\bcity$/i.test(String(cityLabels.get(key))))cityLabels.set(key,String(city.cityName||"").replace(/\s+city$/i,"").trim());
   });
+  if(byCity.has("chandigarh"))cityLabels.set("chandigarh","Chandigarh City");
   recentRows.forEach(row=>{
     const key=normalizeMarketName(row.title);
     if(!key)return;
