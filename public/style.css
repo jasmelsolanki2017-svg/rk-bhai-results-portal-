@@ -1366,6 +1366,11 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
   text-shadow:0 1px 2px #560000;white-space:nowrap;
   transform:rotate(145deg) scaleX(-1);
 }
+.published-result-highlight .happy-robot-scene .robot-arm-right .result-flag:before{
+  content:"";position:absolute;left:-1px;top:13px;width:3px;height:38px;
+  border-radius:3px;background:linear-gradient(90deg,#8a5a20,#ffe6a0 48%,#a66b25);
+  box-shadow:0 1px 3px #0009;z-index:-1;
+}
 
 
 /* Make the robot's head and body bob in sync with its walking legs. */
