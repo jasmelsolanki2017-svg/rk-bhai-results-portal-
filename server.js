@@ -144,7 +144,7 @@ const DemoPlayer = mongoose.model("DemoPlayer", new mongoose.Schema({
 const DemoPlay = mongoose.model("DemoPlay", new mongoose.Schema({
   playerId: { type: mongoose.Schema.Types.ObjectId, ref: "DemoPlayer", required: true, index: true },
   market: { type: String, required: true, trim: true, maxlength: 80 },
-  number: { type: String, required: true, match: /^\\d{2}$/ },
+  number: { type: String, required: true, match: /^\d{2}$/ },
   points: { type: Number, required: true, min: 1, max: 50 },
   status: { type: String, enum: ["PENDING", "WIN", "NO MATCH"], default: "PENDING", index: true },
   playDate: { type: String, required: true, index: true },
@@ -367,7 +367,7 @@ app.post("/api/demo/plays", demoPlayerOnly, async (req, res) => {
   const number = String(req.body?.number ?? "").trim().padStart(2, "0");
   const points = Number(req.body?.points);
   if (market.length < 2 || market.length > 80) return res.status(400).json({ error: "सही मार्केट चुनें।" });
-  if (!/^\\d{2}$/.test(number) || Number(number) > 99) return res.status(400).json({ error: "00 से 99 के बीच नंबर डालें।" });
+  if (!/^\d{2}$/.test(number) || Number(number) > 99) return res.status(400).json({ error: "00 से 99 के बीच नंबर डालें।" });
   if (![10, 25, 50].includes(points)) return res.status(400).json({ error: "Points विकल्प सही नहीं है।" });
   const player = await DemoPlayer.findOneAndUpdate(
     { _id: req.demoPlayer.id, status: "approved", walletPoints: { $gte: points } },
@@ -395,10 +395,10 @@ app.post("/api/demo/settle", demoPlayerOnly, async (req, res) => {
     const start = new Date(startDate + "T00:00:00.000Z");
     const end = new Date(new Date(endDate + "T00:00:00.000Z").getTime() + 86400000);
     const results = await Result.find({
-      published: true, deleted: { $ne: true }, title: { $in: markets }, resultDate: { $gte: start, $lt: end }
+      published: true, deleted: { $ne: true }, title: { $in: markets }, resultDate: { $gte: new Date(start.getTime() - 86400000), $lt: new Date(end.getTime() + 86400000) }
     }).select("title resultText resultDate").lean();
     const dateKey = value => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(value));
-    const pairs = value => String(value ?? "").match(/\\d{2}/g) || [];
+    const pairs = value => String(value ?? "").match(/\d{2}/g) || [];
     for (const play of pending) {
       const result = results.find(r => String(r.title).trim().toLowerCase() === play.market.trim().toLowerCase() && dateKey(r.resultDate) === play.playDate);
       if (!result) continue;
@@ -749,7 +749,7 @@ app.post("/api/admin/restore", adminOnly, express.json({ limit: "25mb" }), async
   if (data.users.length > 5000 || data.cities.length > 5000 || data.results.length > 20000) {
     return res.status(413).json({ error: "Backup में records की संख्या तय सीमा से अधिक है।" });
   }
-  const validId = value => value && /^[a-f\\d]{24}$/i.test(String(value));
+  const validId = value => value && /^[a-f\d]{24}$/i.test(String(value));
   if (data.users.some(x => !validId(x._id) || !x.username || !x.passwordHash) ||
       data.cities.some(x => !validId(x._id) || !validId(x.userId) || !x.cityName) ||
       data.results.some(x => !validId(x._id) || !x.title || !x.resultText || !x.resultDate || Number.isNaN(new Date(x.resultDate).getTime()))) {
