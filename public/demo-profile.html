@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="hi"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090909"><meta name="robots" content="noindex,nofollow">
+<title>👑 SATTA KING | Demo Profile</title><link rel="stylesheet" href="./style.css?v=20261127-profile1">
+<style>
+.profile-wrap{max-width:850px;margin:24px auto;padding:0 14px 60px}.panel{border:1px solid #765c2c;border-radius:16px;background:linear-gradient(145deg,#20190f,#101010 70%);padding:17px;margin:0 0 14px}.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}.top a,.link{color:#f4d58b;text-decoration:none}.hero h1{color:#f4d58b;margin:0 0 6px}.muted{color:#c8b995;font-size:13px}.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stat{background:#090909;border:1px solid #574323;border-radius:12px;padding:13px}.stat small{color:#bdb29b;display:block}.stat strong{font-size:23px;color:#f5d58c}.history{display:grid;gap:8px}.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px;border:1px solid #42351f;border-radius:10px;background:#111}.item strong{color:#f3d58e}.item small{display:block;color:#aaa;margin-top:4px}.pill{font-size:11px;font-weight:900;padding:5px 8px;border-radius:20px;background:#3a3424;color:#ffe2a0;white-space:nowrap}.win{background:#173b27;color:#a6efbd}.loss{background:#3a2020;color:#ffb5b5}.actions{display:flex;gap:9px;flex-wrap:wrap}.actions button{border:1px solid #d6ad55;border-radius:10px;padding:10px 14px;background:linear-gradient(135deg,#f4d58b,#bd8b35);color:#211707;font-weight:900}.empty{text-align:center;color:#aaa;padding:18px}.notice{color:#f3d58e;min-height:20px}@media(min-width:600px){.stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
+</style></head><body>
+<header class="user-dashboard-header"><div class="brand">👑 SATTA KING 👑</div><p>DEMO PLAYER PROFILE</p></header>
+<main class="profile-wrap">
+<div class="top"><a href="./demo-game.html">← Demo Game पर वापस जाएँ</a><button id="logout" type="button">Logout</button></div>
+<section class="panel hero"><h1>👤 मेरी Profile</h1><p class="muted">आपके Demo Account, Virtual Wallet और Performance की जानकारी</p><h2 id="name" style="color:#fff;margin:10px 0 3px">लोड हो रहा है…</h2><p class="muted" id="mobile"></p></section>
+<section class="panel"><h2 style="color:#f4d58b;margin-top:0">🪙 Virtual Wallet</h2><div class="stats"><div class="stat"><small>Available Points</small><strong id="wallet">—</strong></div><div class="stat"><small>Total Played</small><strong id="played">—</strong></div><div class="stat"><small>Won Plays</small><strong id="wins">—</strong></div><div class="stat"><small>Unmatched Plays</small><strong id="losses">—</strong></div></div></section>
+<section class="panel"><h2 style="color:#f4d58b;margin-top:0">📊 My Performance</h2><div class="stats"><div class="stat"><small>Total Points Played</small><strong id="staked">—</strong></div><div class="stat"><small>Pending Plays</small><strong id="pending">—</strong></div><div class="stat"><small>Win Rate</small><strong id="rate">—</strong></div><div class="stat"><small>Winning Points (97x)</small><strong id="earned">—</strong></div></div><p class="muted">यह आँकड़े Demo Play History पर आधारित हैं। Demo Points की कोई नकद कीमत नहीं है।</p></section>
+<section class="panel"><div class="top"><h2 style="color:#f4d58b;margin:0">📋 मेरी Play History</h2><button id="refresh" type="button">↻ Refresh</button></div><div id="history" class="history"><p class="empty">डेटा लोड हो रहा है…</p></div><p class="notice" id="message" role="status"></p></section>
+<div class="panel muted">⚠️ केवल अभ्यास के लिए Virtual Points। कोई असली पैसा, जमा, भुगतान या निकासी नहीं।</div>
+</main><script>
+(()=>{"use strict";
+const API="https://rk-bhai-results-portal.onrender.com",key="sattaking_demo_token",token=sessionStorage.getItem(key)||"", $=id=>document.getElementById(id);
+const req=async(path,opts={})=>{const r=await fetch(API+path,{...opts,headers:{"Content-Type":"application/json",Authorization:"Bearer "+token,...(opts.headers||{})},mode:"cors",credentials:"omit",cache:"no-store"});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Request failed");return d;};
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt=v=>Number(v||0).toLocaleString("en-IN");
+async function load(){if(!token){location.replace("./demo-play.html?login=required");return;}try{
+const [me,settled]=await Promise.all([req("/api/demo/me"),req("/api/demo/settle",{method:"POST",body:"{}"})]);
+const p=me.player||{},rows=settled.plays||[];$("name").textContent=p.name||"Demo Player";$("mobile").textContent="Mobile: "+(p.mobile||"");
+const wins=rows.filter(x=>x.status==="WIN"),loss=rows.filter(x=>x.status==="NO MATCH"),pending=rows.filter(x=>x.status==="PENDING"),staked=rows.reduce((n,x)=>n+Number(x.points||0),0),earned=wins.reduce((n,x)=>n+Number(x.points||0)*97,0);
+$("wallet").textContent=fmt(settled.walletPoints);$("played").textContent=fmt(rows.length);$("wins").textContent=fmt(wins.length);$("losses").textContent=fmt(loss.length);$("staked").textContent=fmt(staked);$("pending").textContent=fmt(pending.length);$("rate").textContent=(rows.length?Math.round(wins.length/rows.length*100):0)+"%";$("earned").textContent=fmt(earned);
+$("history").innerHTML=rows.length?rows.map(x=>'<article class="item"><div><strong>'+esc(x.market)+' · '+esc(x.number)+'</strong><small>'+new Date(x.createdAt).toLocaleString("en-IN")+' · '+fmt(x.points)+' Points'+(x.result?' · Result: '+esc(x.result):"")+'</small></div><span class="pill '+(x.status==="WIN"?"win":x.status==="NO MATCH"?"loss":"")+'">'+(x.status==="WIN"?"जीत · +"+fmt(x.points*97):x.status==="NO MATCH"?"मैच नहीं":"Pending")+'</span></article>').join(""):'<p class="empty">अभी कोई Play History नहीं है।</p>';
+$("message").textContent="Profile और Wallet Server से अपडेट हैं।";
+}catch(e){$("message").textContent=e.message;if(/approved|session|login/i.test(e.message)){sessionStorage.removeItem(key);location.replace("./demo-play.html?expired=1");}}}
+$("refresh").addEventListener("click",load);$("logout").addEventListener("click",()=>{sessionStorage.removeItem(key);location.replace("./demo-play.html");});load();
+})();
+</script></body></html>
