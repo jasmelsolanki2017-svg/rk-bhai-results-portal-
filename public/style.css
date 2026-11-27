@@ -1412,3 +1412,44 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
   .robot-mascot .robot-body,
   .robot-scene .result-matka{animation:none!important}
 }
+
+
+/* Small repeating speech bubble above the robot, inspired by 1XSatta's moving captions. */
+.robot-scene:before{
+  content:"रिजल्ट का इंतज़ार...";
+  position:absolute;z-index:7;top:7px;left:34%;
+  width:max-content;max-width:62%;
+  padding:5px 10px;border:1px solid #e8bd70;border-radius:12px;
+  background:linear-gradient(135deg,#fff1c9,#e5b85e);
+  color:#39200f;font-size:clamp(9px,2.5vw,12px);font-weight:900;
+  line-height:1.25;text-align:center;white-space:nowrap;
+  box-shadow:0 3px 9px #0007;
+  animation:robotSpeechLoop 9s steps(1,end) infinite;
+}
+.robot-scene:not(.matka-result-broken):before{
+  animation-name:robotSpeechLoop;
+}
+.published-result-highlight .happy-robot-scene:before{
+  content:"रिजल्ट आ गया!";
+  left:36%;color:#fff;background:linear-gradient(135deg,#c92b2b,#791414);
+  border-color:#ffd36a;text-shadow:0 1px 2px #300;
+  animation:robotHappySpeechLoop 6s steps(1,end) infinite;
+}
+@keyframes robotSpeechLoop{
+  0%,29%{content:"रिजल्ट का इंतज़ार..."}
+  30%,59%{content:"मटका तैयार है!"}
+  60%,89%{content:"बस आने ही वाला है!"}
+  90%,100%{content:"रोबोट चल पड़ा!"}
+}
+@keyframes robotHappySpeechLoop{
+  0%,32%{content:"रिजल्ट आ गया!"}
+  33%,65%{content:"मटका फूट गया!"}
+  66%,100%{content:"ये रहा आज का नंबर!"}
+}
+@media(max-width:420px){
+  .robot-scene:before{left:29%;max-width:68%;padding:4px 7px}
+  .published-result-highlight .happy-robot-scene:before{left:31%}
+}
+@media(prefers-reduced-motion:reduce){
+  .robot-scene:before{animation:none!important}
+}
