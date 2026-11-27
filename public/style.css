@@ -1516,3 +1516,77 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
   .published-result-highlight .happy-robot-scene .robot-mascot,
   .published-result-highlight .happy-robot-scene .robot-head{animation:none!important}
 }
+
+/* Natural 1XSatta-style in-place walk cycle: lively limbs, fixed position, no side-to-side travel. */
+.next-market-robot.robot-scene .robot-mascot{
+  animation:robotStandWalkBody 1.05s ease-in-out infinite!important;
+  left:3%!important;
+  transform:scaleX(-1)!important;
+}
+.next-market-robot.robot-scene .robot-mascot .robot-arm-left{
+  animation:robotStandWalkArmA .9s ease-in-out infinite alternate!important;
+  transform-origin:top center!important;
+}
+.next-market-robot.robot-scene .robot-mascot .robot-arm-right{
+  animation:robotStandWalkArmB .9s ease-in-out infinite alternate!important;
+  transform-origin:top center!important;
+}
+.next-market-robot.robot-scene .robot-mascot .robot-leg-left{
+  animation:robotStandWalkLegA .9s ease-in-out infinite alternate!important;
+  transform-origin:top center!important;
+}
+.next-market-robot.robot-scene .robot-mascot .robot-leg-right{
+  animation:robotStandWalkLegB .9s ease-in-out infinite alternate!important;
+  transform-origin:top center!important;
+}
+.next-market-robot.robot-scene .robot-mascot .robot-head{
+  animation:robotStandWalkHead 1.05s ease-in-out infinite!important;
+}
+.next-market-robot.robot-scene .robot-mascot .robot-antenna:after{
+  animation:robotIdleAntenna 1.5s ease-in-out infinite alternate!important;
+}
+.published-result-highlight .happy-robot-scene .robot-mascot{
+  animation:robotStandWalkBody 1.05s ease-in-out infinite!important;
+}
+.published-result-highlight .happy-robot-scene .robot-arm-left{
+  animation:robotStandWalkArmA .9s ease-in-out infinite alternate!important;
+}
+.published-result-highlight .happy-robot-scene .robot-arm-right{
+  animation:robotStandWalkArmB .9s ease-in-out infinite alternate!important;
+}
+.published-result-highlight .happy-robot-scene .robot-leg-left{
+  animation:robotStandWalkLegA .9s ease-in-out infinite alternate!important;
+}
+.published-result-highlight .happy-robot-scene .robot-leg-right{
+  animation:robotStandWalkLegB .9s ease-in-out infinite alternate!important;
+}
+@keyframes robotStandWalkBody{
+  0%,100%{translate:0 0}
+  50%{translate:0 -2px}
+}
+@keyframes robotStandWalkHead{
+  0%,100%{rotate:-1deg}
+  50%{rotate:1deg}
+}
+@keyframes robotStandWalkArmA{
+  from{rotate:22deg}
+  to{rotate:-22deg}
+}
+@keyframes robotStandWalkArmB{
+  from{rotate:-22deg}
+  to{rotate:22deg}
+}
+@keyframes robotStandWalkLegA{
+  from{rotate:-17deg}
+  to{rotate:17deg}
+}
+@keyframes robotStandWalkLegB{
+  from{rotate:17deg}
+  to{rotate:-17deg}
+}
+@media(prefers-reduced-motion:reduce){
+  .next-market-robot.robot-scene .robot-mascot,
+  .next-market-robot.robot-scene .robot-mascot *,
+  .published-result-highlight .happy-robot-scene .robot-mascot,
+  .published-result-highlight .happy-robot-scene .robot-mascot *{animation:none!important}
+}
