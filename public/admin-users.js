@@ -1,3 +1,8 @@
+
+ const ledgerSelect=$("#demoLedgerUser"),selectedLedgerUser=ledgerSelect.value;
+ ledgerSelect.innerHTML='<option value="">Demo User चुनें</option>'+demoPlayers.map(p=>'<option value="'+esc(p._id)+'">'+esc(p.name)+' · '+esc(p.mobile)+'</option>').join("");
+ if(demoPlayers.some(p=>p._id===selectedLedgerUser))ledgerSelect.value=selectedLedgerUser;
+ if(!$("#demoLedgerMonth").value)$("#demoLedgerMonth").value=currentIndiaMonth();
 const $=s=>document.querySelector(s);
 async function api(url,opts={}){const r=await fetch(url,{credentials:"same-origin",...opts,headers:{...(opts.body?{"Content-Type":"application/json"}:{}),...(opts.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Request failed");return d;}
 function esc(v){return String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
@@ -10,9 +15,23 @@ function showUserTab(tab){
  $("#showPortalUsers").setAttribute("aria-pressed",String(!demo));
  $("#showDemoPlayers").setAttribute("aria-pressed",String(demo));
 }
+$("#loadDemoLedger").addEventListener("click",loadDemoLedger);
 $("#showPortalUsers").addEventListener("click",()=>showUserTab("portal"));
 $("#showDemoPlayers").addEventListener("click",()=>showUserTab("demo"));
 
+function currentIndiaMonth(){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit"}).format(new Date());}
+function money(v){return Number(v||0).toLocaleString("en-IN",{maximumFractionDigits:1});}
+async function loadDemoLedger(){
+ const userId=$("#demoLedgerUser").value,month=$("#demoLedgerMonth").value,msg=$("#demoLedgerMsg"),out=$("#demoLedgerResult");
+ if(!userId||!month){msg.textContent="पहले Demo User और महीना चुनें।";return;}
+ msg.textContent="हिसाब लोड हो रहा है…";out.innerHTML="";
+ try{
+  const d=await api("/api/admin/demo-players/"+encodeURIComponent(userId)+"/ledger?month="+encodeURIComponent(month));
+  msg.textContent=d.player.name+" · "+month+" · कुल लगाए "+money(d.totals.staked)+" Points · Return "+money(d.totals.returned)+" Points · Net "+(d.totals.net>=0?"+":"")+money(d.totals.net)+" Points";
+  out.innerHTML=d.markets.length?d.markets.map(m=> '<section class="admin-box" style="margin-top:12px"><h3>'+esc(m.market)+'</h3><p class="muted">कुल Play: '+m.totals.plays+' · लगाए: '+money(m.totals.staked)+' · Return: '+money(m.totals.returned)+' · Net: '+(m.totals.net>=0?"+":"")+money(m.totals.net)+'</p><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:520px"><thead><tr><th style="text-align:left;padding:8px">तारीख</th><th style="text-align:right;padding:8px">Play</th><th style="text-align:right;padding:8px">लगाए Points</th><th style="text-align:right;padding:8px">Return</th><th style="text-align:right;padding:8px">Net</th></tr></thead><tbody>'+m.days.map(day=> '<tr><td style="padding:8px">'+esc(day.date)+'</td><td style="text-align:right;padding:8px">'+day.plays+' <small>(जीत '+day.wins+')</small></td><td style="text-align:right;padding:8px">'+money(day.staked)+'</td><td style="text-align:right;padding:8px">'+money(day.returned)+'</td><td style="text-align:right;padding:8px">'+(day.net>=0?"+":"")+money(day.net)+'</td></tr>').join("")+'</tbody></table></div></section>').join(""):'<p class="muted">इस महीने इस User की कोई Play नहीं मिली।</p>';
+  if(d.walletTransactions.length)out.innerHTML+= '<section class="admin-box" style="margin-top:12px"><h3>Wallet Transactions</h3>'+d.walletTransactions.map(t=> '<p style="padding:7px 0;border-bottom:1px solid #ddd">'+esc(t.date)+' · '+esc(t.reason)+' · <b>'+(t.type==="CREDIT"?"+":"-")+money(t.amount)+'</b></p>').join("")+'</section>';
+ }catch(e){msg.textContent=e.message;}
+}
 function indiaToday(){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());}
 async function refresh(){
  const users=await api("/api/admin/users");
