@@ -105,7 +105,7 @@ app.use((req, res, next) => {
   hasAdminSession(req).then(valid => {
     if (!valid) return res.sendFile(path.join(__dirname, "public", "admin-login.html"));
     if (req.path === "/admin.html") return res.sendFile(path.join(__dirname, "public", "admin.html"));
-    if (req.path === "/admin-users.html") return res.sendFile(path.join(__dirname, "public", "admin-users.html"));
+    if (req.path === "/admin/users" || req.path === "/admin-users.html") return res.sendFile(path.join(__dirname, "public", "admin-users.html"));
     next();
   }).catch(() => res.sendFile(path.join(__dirname, "public", "admin-login.html")));
   return;
