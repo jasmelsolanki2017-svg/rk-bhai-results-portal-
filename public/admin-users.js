@@ -11,6 +11,17 @@ function showUserTab(tab){
  $("#showDemoPlayers").setAttribute("aria-pressed",String(demo));
 }
 $("#loadDemoLedger").addEventListener("click",loadDemoLedger);
+$("#loadDemoPlays").addEventListener("click",loadDemoPlays);
+async function loadDemoPlays(){
+ const msg=$("#demoPlaysMsg"),out=$("#demoPlaysList"),status=$("#demoPlayStatusFilter").value;
+ msg.textContent="Plays लोड हो रही हैं…";out.innerHTML="";
+ try{
+  const d=await api("/api/admin/demo-plays?status="+encodeURIComponent(status));
+  msg.textContent="कुल "+d.plays.length+" हाल की Plays";
+  out.innerHTML=d.plays.length?d.plays.map(p=>'<article class="admin-row"><div class="admin-row-info"><b>'+esc(p.playerId?.name||"Deleted User")+' · '+esc(p.playerId?.mobile||"")+'</b><p>'+esc(p.market)+' · '+(p.playType==="LINE"?"Line "+esc(p.lineDigit):"Number "+esc(p.number))+' · '+esc(p.playDate)+' · '+money(p.points)+' Points · <strong>'+esc(p.status)+'</strong></p></div><div class="actions">'+(p.status==="PENDING"?'<button type="button" class="danger" data-playnotok="'+esc(p._id)+'">Not OK · Points वापस करें</button>':'')+'</div></article>').join(""):'<p class="muted">कोई Play नहीं मिली।</p>';
+ }catch(e){msg.textContent=e.message;}
+}
+
 $("#showPortalUsers").addEventListener("click",()=>showUserTab("portal"));
 $("#showDemoPlayers").addEventListener("click",()=>showUserTab("demo"));
 
@@ -83,9 +94,10 @@ $("#assignSelectedCity").addEventListener("click",async()=>{
 $("#loginForm").addEventListener("submit",async e=>{e.preventDefault();try{const f=new FormData(e.target);await api("/api/admin/login",{method:"POST",body:JSON.stringify({username:f.get("username"),password:f.get("password")})});show(true);await refresh();}catch(err){$("#loginMsg").textContent=err.message;}});
 $("#createUserForm").addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(e.target);try{await api("/api/admin/users",{method:"POST",body:JSON.stringify({name:f.get("name"),username:f.get("username"),mobile:f.get("mobile"),email:f.get("email"),expiresInDays:Number(f.get("expiresInDays"))})});e.target.reset();$("#userMsg").textContent="User बन गया। चुनी गई अवधि के बाद account अपने आप बंद हो जाएगा। Login Password: userlogin (पहली Login पर बदलना जरूरी)।";await refresh();}catch(err){$("#userMsg").textContent=err.message;}});
 document.addEventListener("click",async e=>{
- const demoPoints=e.target.closest("[data-demopoints]"),demoPlayer=e.target.closest("[data-demoplayer]"),demoDelete=e.target.closest("[data-demodelete]"),assignany=e.target.closest("[data-assignanychartcity]"),city=e.target.closest("[data-city]"),editcity=e.target.closest("[data-editcity]"),returncity=e.target.closest("[data-returncity]"),hidecity=e.target.closest("[data-hidecity]"),deletecity=e.target.closest("[data-deletecity]"),toggle=e.target.closest("[data-toggle]"),del=e.target.closest("[data-delete]"),reset=e.target.closest("[data-reset]"),setdays=e.target.closest("[data-setdays]"),setdate=e.target.closest("[data-setdate]");
- if(!demoPoints&&!demoPlayer&&!demoDelete&&!assignany&&!city&&!editcity&&!returncity&&!hidecity&&!deletecity&&!toggle&&!del&&!reset&&!setdays&&!setdate)return;
+ const playNotOk=e.target.closest("[data-playnotok]"),demoPoints=e.target.closest("[data-demopoints]"),demoPlayer=e.target.closest("[data-demoplayer]"),demoDelete=e.target.closest("[data-demodelete]"),assignany=e.target.closest("[data-assignanychartcity]"),city=e.target.closest("[data-city]"),editcity=e.target.closest("[data-editcity]"),returncity=e.target.closest("[data-returncity]"),hidecity=e.target.closest("[data-hidecity]"),deletecity=e.target.closest("[data-deletecity]"),toggle=e.target.closest("[data-toggle]"),del=e.target.closest("[data-delete]"),reset=e.target.closest("[data-reset]"),setdays=e.target.closest("[data-setdays]"),setdate=e.target.closest("[data-setdate]");
+ if(!playNotOk&&!demoPoints&&!demoPlayer&&!demoDelete&&!assignany&&!city&&!editcity&&!returncity&&!hidecity&&!deletecity&&!toggle&&!del&&!reset&&!setdays&&!setdate)return;
  try{
+  if(playNotOk){if(!confirm("इस Play को Not OK करके "+(playNotOk.closest(".admin-row")?.querySelector(".admin-row-info p")?.textContent||"") +" के Points वापस User के Wallet में जोड़ने हैं?"))return;const result=await api("/api/admin/demo-plays/"+encodeURIComponent(playNotOk.dataset.playnotok)+"/not-ok",{method:"POST",body:JSON.stringify({})});alert(result.player.name+" की Play Not OK हुई। "+money(result.refunded)+" Points वापस Wallet में जोड़ दिए गए। नया Balance: "+money(result.player.walletPoints));await loadDemoPlays();}
   if(demoPoints){const id=demoPoints.dataset.demopoints,field=document.getElementById("demo-points-"+id),points=Number(field?.value);if(!Number.isSafeInteger(points)||points<1||points>1000000)throw new Error("1 से 10,00,000 तक पूरे Points लिखें।");const result=await api("/api/admin/demo-players/"+id+"/points",{method:"POST",body:JSON.stringify({points})});alert(result.player.name+" के Wallet में "+points.toLocaleString("en-IN")+" Points जोड़ दिए गए। नया Balance: "+Number(result.player.walletPoints).toLocaleString("en-IN"));}
   if(demoPlayer){const status=demoPlayer.dataset.demostatus;if(!confirm("इस Demo account का status "+status+" करना है?"))return;await api("/api/admin/demo-players/"+demoPlayer.dataset.demoplayer,{method:"PATCH",body:JSON.stringify({status})});}
   if(demoDelete){if(!confirm("इस Demo User को हमेशा के लिए हटाएँ? उसका Wallet और पूरा Play History भी delete हो जाएगा। यह वापस नहीं आएगा।"))return;await api("/api/admin/demo-players/"+demoDelete.dataset.demodelete,{method:"DELETE"});alert("Demo User और उसका Play History delete हो गया।");}
