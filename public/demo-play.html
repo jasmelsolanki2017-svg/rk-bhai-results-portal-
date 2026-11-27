@@ -24,9 +24,9 @@
 <div class="demo-field"><label for="demoStake">Virtual Points</label><select id="demoStake"><option value="10">10 Points</option><option value="25">25 Points</option><option value="50">50 Points</option></select></div>
 <div class="demo-field"><label>नियम</label><input value="जीतने पर हर 1 Point के 97 Points" readonly></div>
 </div>
-<div class="demo-actions"><button id="demoPlayButton" type="button">🎮 Demo Play करें</button><button id="demoRefreshButton" class="secondary" type="button">↻ रिजल्ट चेक करें</button><button id="demoResetButton" class="secondary" type="button">रीसेट 500 Points</button></div>
+<div class="demo-actions"><button id="demoPlayButton" type="button">🎮 Demo Play करें</button><button id="demoRefreshButton" class="secondary" type="button">↻ रिजल्ट चेक करें</button><button id="demoResetButton" class="secondary" type="button"></button></div>
 <p id="demoMessage" class="demo-message" role="status" aria-live="polite"></p>
-<p class="demo-note">Play करने पर चुने गए Points आपके Demo Wallet से घटेंगे। प्रकाशित रिजल्ट में वही दो अंकों का नंबर मिलने पर 97x Demo Points वापस जुड़ेंगे। यह केवल स्थानीय ब्राउज़र में सेव होता है।</p>
+<p class="demo-note">Play करने पर चुने गए Points आपके Demo Wallet से घटेंगे। प्रकाशित रिजल्ट में वही दो अंकों का नंबर मिलने पर 97x Demo Points वापस जुड़ेंगे। अब Wallet और Play History MongoDB Server पर सुरक्षित रहते हैं।</p>
 </section>
 <section class="demo-panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0;color:#f4d58b">📋 मेरी Demo Plays</h2><small id="demoPlayCount" style="color:#bdb29b">0 Plays</small></div><div id="demoHistory" class="demo-history" style="margin-top:12px"><p class="demo-empty">अभी कोई Demo Play नहीं है।</p></div></section>
 <div class="demo-disclaimer">⚠️ Demo Points की कोई नकद कीमत नहीं है। इन्हें खरीदा, बेचा, ट्रांसफर या कैश में बदला नहीं जा सकता। यह पेज केवल मनोरंजन/अभ्यास के लिए है।</div>
@@ -40,47 +40,40 @@ const $=id=>document.getElementById(id);
 const tokenKey="sattaking_demo_token";
 let token=sessionStorage.getItem(tokenKey)||"";
 let player=null;
-let state={balance:500,plays:[],serverWalletSeen:null};
-const todayIST=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
-async function request(path,opts={}) {
+let state={balance:0,plays:[]};
+const request=async(path,opts={})=>{
  const headers={"Content-Type":"application/json",...(opts.headers||{})};
  if(token)headers.Authorization="Bearer "+token;
  const r=await fetch(API+path,{...opts,headers,mode:"cors",credentials:"omit",cache:"no-store"});
  const d=await r.json().catch(()=>({}));
  if(!r.ok)throw new Error(d.error||"Request failed");
  return d;
-}
+};
 function showAuth(message=""){ $("demoAuth").hidden=false;$("demoGame").hidden=true;$("demoAuthMessage").textContent=message; }
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function save(){localStorage.setItem("sattaking_demo_play_"+player.id,JSON.stringify(state));render();}
 function render(){
- $("demoBalance").textContent=state.balance.toLocaleString("en-IN");
+ $("demoBalance").textContent=Number(state.balance||0).toLocaleString("en-IN");
  $("demoPlayCount").textContent=state.plays.length+" Plays";
- $("demoHistory").innerHTML=state.plays.length?state.plays.slice().reverse().map(p=>'<article class="demo-row"><div><strong>'+esc(p.market)+' · '+esc(p.number)+'</strong><small>'+new Date(p.createdAt).toLocaleString("en-IN")+' · '+p.points+' Demo Points</small></div><span class="demo-status '+(p.status==="WIN"?"win":p.status==="NO MATCH"?"loss":"")+'">'+(p.status==="WIN"?"जीत":p.status==="NO MATCH"?"मैच नहीं":"Pending")+'</span></article>').join(""):'<p class="demo-empty">अभी कोई Demo Play नहीं है।</p>';
+ $("demoHistory").innerHTML=state.plays.length?state.plays.map(p=>'<article class="demo-row"><div><strong>'+esc(p.market)+' · '+esc(p.number)+'</strong><small>'+new Date(p.createdAt).toLocaleString("en-IN")+' · '+p.points+' Demo Points</small></div><span class="demo-status '+(p.status==="WIN"?"win":p.status==="NO MATCH"?"loss":"")+'">'+(p.status==="WIN"?"जीत":p.status==="NO MATCH"?"मैच नहीं":"Pending")+(p.status==="WIN"?' · +'+(p.points*97):"")+'</span></article>').join(""):'<p class="demo-empty">अभी कोई Demo Play नहीं है।</p>';
 }
 async function loadMarkets(){
  try{const rows=await request("/api/public/cities");const select=$("demoMarket");select.innerHTML='<option value="">मार्केट चुनें</option>'+rows.map(x=>'<option value="'+esc(x.cityName)+'">'+esc(x.cityName)+'</option>').join("");}
  catch{$("demoMarket").innerHTML='<option value="">मार्केट लोड नहीं हुआ</option>';$("demoMessage").textContent="मार्केट लोड नहीं हुए। थोड़ी देर बाद कोशिश करें।";}
+}
+async function syncWallet(){
+ const d=await request("/api/demo/plays");state.balance=Number(d.walletPoints||0);state.plays=d.plays||[];render();return d;
 }
 async function ensureApproved(){
  if(!token)throw new Error("पहले Demo account में login करें।");
  const d=await request("/api/demo/me");player=d.player;return player;
 }
 async function enterGame(){
- await ensureApproved();
- const saved=JSON.parse(localStorage.getItem("sattaking_demo_play_"+player.id)||"null");
- state=saved&&Number.isFinite(saved.balance)&&Array.isArray(saved.plays)?saved:{balance:Number(player.walletPoints||0),plays:[],serverWalletSeen:Number(player.walletPoints||0)};
- const serverWallet=Number(player.walletPoints||0);
- if(state.serverWalletSeen===null||!Number.isFinite(state.serverWalletSeen)){state.balance=serverWallet;}
- else state.balance=Math.max(0,state.balance+(serverWallet-state.serverWalletSeen));
- state.serverWalletSeen=serverWallet;
- localStorage.setItem("sattaking_demo_play_"+player.id,JSON.stringify(state));
+ await ensureApproved();await syncWallet();
  $("demoAuth").hidden=true;$("demoGame").hidden=false;
- render();await loadMarkets();await checkResults();
+ await loadMarkets();await checkResults();
 }
 $("demoRegisterForm").addEventListener("submit",async e=>{
- e.preventDefault();const f=new FormData(e.target);
- $("demoAuthMessage").textContent="Registration हो रहा है…";
+ e.preventDefault();const f=new FormData(e.target);$("demoAuthMessage").textContent="Registration हो रहा है…";
  try{const d=await request("/api/demo/register",{method:"POST",body:JSON.stringify({name:f.get("name"),mobile:f.get("mobile"),email:f.get("email"),password:f.get("password")})});e.target.reset();$("demoAuthMessage").textContent=d.message;}
  catch(err){$("demoAuthMessage").textContent=err.message;}
 });
@@ -89,36 +82,32 @@ $("demoLoginForm").addEventListener("submit",async e=>{
  try{const d=await request("/api/demo/login",{method:"POST",body:JSON.stringify({mobile:f.get("mobile"),password:f.get("password")})});token=d.token;sessionStorage.setItem(tokenKey,token);await enterGame();}
  catch(err){token="";sessionStorage.removeItem(tokenKey);showAuth(err.message);}
 });
-function pairs(value){return String(value??"").match(/\d{2}/g)||[];}
 async function checkResults(){
  $("demoMessage").textContent="प्रकाशित रिजल्ट चेक हो रहे हैं…";
  try{
   await ensureApproved();
-  const rows=await request("/api/results?recent=2");let changed=0;
-  for(const p of state.plays){
-   if(p.status!=="PENDING")continue;
-   const found=rows.find(x=>x.published!==false&&!x.deleted&&String(x.title).trim().toLowerCase()===p.market.trim().toLowerCase()&&new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata"}).format(new Date(x.resultDate))===p.playDate);
-   if(!found)continue;
-   const matched=pairs(found.resultText).includes(p.number);
-   p.status=matched?"WIN":"NO MATCH";p.result=String(found.resultText||"");p.resolvedAt=new Date().toISOString();
-   if(matched)state.balance+=p.points*97;
-   changed++;
-  }
-  save();$("demoMessage").textContent=changed?changed+" Demo Play का रिजल्ट अपडेट हुआ।":"अभी आपकी किसी Pending Play का प्रकाशित रिजल्ट नहीं आया है।";
+  const d=await request("/api/demo/settle",{method:"POST",body:"{}"});
+  state.balance=Number(d.walletPoints||0);state.plays=d.plays||[];render();
+  const settled=state.plays.filter(p=>p.status!=="PENDING").length;
+  $("demoMessage").textContent="Wallet और Play History Server से अपडेट हो गई।";
  }catch(e){$("demoMessage").textContent=e.message;if(/approved|session|login/i.test(e.message)){token="";sessionStorage.removeItem(tokenKey);showAuth(e.message);}}
 }
 $("demoPlayButton").addEventListener("click",async()=>{
- try{await ensureApproved();}catch(e){$("demoMessage").textContent=e.message;return;}
+ const button=$("demoPlayButton");if(button.disabled)return;
  const market=$("demoMarket").value,number=$("demoNumber").value.trim(),points=Number($("demoStake").value);
  if(!market)return $("demoMessage").textContent="पहले मार्केट चुनें।";
- if(!/^\d{1,2}$/.test(number))return $("demoMessage").textContent="00 से 99 के बीच नंबर डालें।";
+ if(!/^\d{1,2}$/.test(number)||Number(number)>99)return $("demoMessage").textContent="00 से 99 के बीच नंबर डालें।";
  if(![10,25,50].includes(points))return $("demoMessage").textContent="Points विकल्प सही नहीं है।";
- if(state.balance<points)return $("demoMessage").textContent="आपके Demo Points कम हैं। Reset कर सकते हैं।";
- state.balance-=points;state.plays.push({id:Date.now()+"-"+Math.random().toString(36).slice(2,7),market,number:number.padStart(2,"0"),points,status:"PENDING",playDate:todayIST(),createdAt:new Date().toISOString()});
- save();$("demoNumber").value="";$("demoMessage").textContent="Demo Play सेव हो गई। रिजल्ट आने पर 'रिजल्ट चेक करें' दबाएँ।";
+ button.disabled=true;$("demoMessage").textContent="Server पर Play सेव हो रही है…";
+ try{
+  await ensureApproved();
+  await request("/api/demo/plays",{method:"POST",body:JSON.stringify({market,number:number.padStart(2,"0"),points})});
+  await syncWallet();$("demoNumber").value="";$("demoMessage").textContent="Play Server और MongoDB में सेव हो गई। रिजल्ट आने पर Points अपने-आप settle होंगे।";
+ }catch(e){$("demoMessage").textContent=e.message;}
+ finally{button.disabled=false;}
 });
 $("demoRefreshButton").addEventListener("click",checkResults);
-$("demoResetButton").addEventListener("click",()=>{if(!confirm("Demo Wallet को 500 Points पर रीसेट करें?"))return;state={balance:500,plays:[]};save();$("demoMessage").textContent="Demo Wallet रीसेट हो गया।";});
+const reset=$("demoResetButton");if(reset)reset.remove();
 if(token){enterGame().catch(e=>{token="";sessionStorage.removeItem(tokenKey);showAuth(e.message);});}else showAuth();
 })();
 </script>
