@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090909"><meta name="robots" content="noindex,nofollow">
+<title>👑 SATTA KING | Demo Registration</title>
+<link rel="stylesheet" href="./style.css?v=20261127-demo1">
+<style>
+body{background:#090909;color:#fff}.register-wrap{max-width:560px;margin:26px auto;padding:0 14px 60px}.register-panel{border:1px solid #765c2c;border-radius:16px;background:linear-gradient(145deg,#20190f,#101010 70%);padding:20px;box-shadow:0 8px 24px #0005}.register-panel h1{margin:0 0 8px;color:#f4d58b;font-size:24px}.register-panel p{color:#c8b995;font-size:13px;line-height:1.5}.register-panel form{display:grid;gap:11px;margin-top:18px}.register-panel input{width:100%;min-height:46px;border:1px solid #70552a;border-radius:9px;padding:11px;background:#090909;color:#fff;font:inherit}.register-panel button,.back-link{display:block;text-align:center;border:1px solid #d6ad55;border-radius:10px;padding:12px 16px;background:linear-gradient(135deg,#f4d58b,#bd8b35);color:#211707;font-weight:900;text-decoration:none;cursor:pointer}.back-link{margin-top:12px;background:#201a10;color:#f4d58b}.register-message{min-height:22px;color:#f3d58e;font-size:13px;margin-top:12px}
+</style>
+</head>
+<body>
+<header class="user-dashboard-header"><div class="brand">👑 SATTA KING 👑</div><p>DEMO USER REGISTRATION</p></header>
+<main class="register-wrap">
+<section class="register-panel">
+<h1>📝 Demo Registration</h1>
+<p>अपना नाम, मोबाइल नंबर और Password भरकर Registration करें। Username आपका मोबाइल नंबर ही रहेगा। Email वैकल्पिक है। Registration के बाद Admin approval जरूरी होगा।</p>
+<form id="demoRegisterForm">
+<input name="name" minlength="2" maxlength="80" placeholder="पूरा नाम" required>
+<input name="mobile" type="tel" inputmode="numeric" pattern="[6-9][0-9]{9}" maxlength="10" placeholder="10 अंकों का मोबाइल नंबर" required>
+<input name="email" type="email" maxlength="120" placeholder="Email (वैकल्पिक)">
+<input name="password" type="password" minlength="8" maxlength="100" placeholder="Password (कम से कम 8 अक्षर)" required>
+<button type="submit">Registration करें</button>
+</form>
+<p id="registerMessage" class="register-message" role="status" aria-live="polite"></p>
+<a class="back-link" href="./demo-play.html">← Login पेज पर वापस जाएँ</a>
+</section>
+</main>
+<script>
+(()=>{
+"use strict";
+const API="https://rk-bhai-results-portal.onrender.com";
+const form=document.getElementById("demoRegisterForm"),message=document.getElementById("registerMessage");
+form.addEventListener("submit",async e=>{
+ e.preventDefault();const data=new FormData(form);const button=form.querySelector("button");button.disabled=true;message.textContent="Registration हो रहा है…";
+ try{
+  const response=await fetch(API+"/api/demo/register",{method:"POST",mode:"cors",credentials:"omit",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:data.get("name"),mobile:data.get("mobile"),email:data.get("email"),password:data.get("password")})});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(result.error||"Registration नहीं हो पाया।");
+  form.reset();message.textContent=(result.message||"Registration सफल।")+" अब Admin approval के बाद Login करें।";
+ }catch(error){message.textContent=error.message;}
+ finally{button.disabled=false;}
+});
+})();
+</script>
+</body></html>
