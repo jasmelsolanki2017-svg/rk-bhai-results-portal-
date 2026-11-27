@@ -132,7 +132,7 @@ const User = mongoose.model("PortalUser", new mongoose.Schema({
 
 const DemoPlayer = mongoose.model("DemoPlayer", new mongoose.Schema({
   name: { type: String, required: true, trim: true, minlength: 2, maxlength: 80 },
-  mobile: { type: String, required: true, unique: true, match: /^[6-9]\\d{9}$/ },
+  mobile: { type: String, required: true, unique: true, match: /^[6-9]\d{9}$/ },
   email: { type: String, default: "", trim: true, lowercase: true, maxlength: 120 },
   passwordHash: { type: String, required: true },
   status: { type: String, enum: ["pending", "approved", "rejected", "disabled"], default: "pending", index: true },
@@ -294,12 +294,12 @@ function demoRateLimit(req, res, next) {
 
 app.post("/api/demo/register", demoRateLimit, async (req, res) => {
   const name = String(req.body?.name || "").trim();
-  const mobile = String(req.body?.mobile || "").replace(/\\D/g, "");
+  const mobile = String(req.body?.mobile || "").replace(/\D/g, "");
   const email = String(req.body?.email || "").trim().toLowerCase();
   const password = String(req.body?.password || "");
   if (name.length < 2 || name.length > 80) return res.status(400).json({ error: "नाम 2 से 80 अक्षर में लिखें।" });
-  if (!/^[6-9]\\d{9}$/.test(mobile)) return res.status(400).json({ error: "सही 10 अंकों का मोबाइल नंबर लिखें।" });
-  if (email && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) return res.status(400).json({ error: "Email सही लिखें या खाली छोड़ें।" });
+  if (!/^[6-9]\d{9}$/.test(mobile)) return res.status(400).json({ error: "सही 10 अंकों का मोबाइल नंबर लिखें।" });
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: "Email सही लिखें या खाली छोड़ें।" });
   if (password.length < 8 || password.length > 100) return res.status(400).json({ error: "Password कम से कम 8 अक्षर का रखें।" });
   if (await DemoPlayer.exists({ mobile })) return res.status(409).json({ error: "इस मोबाइल नंबर से Demo account पहले से बना है।" });
   try {
@@ -312,7 +312,7 @@ app.post("/api/demo/register", demoRateLimit, async (req, res) => {
 });
 
 app.post("/api/demo/login", demoRateLimit, async (req, res) => {
-  const mobile = String(req.body?.mobile || "").replace(/\\D/g, "");
+  const mobile = String(req.body?.mobile || "").replace(/\D/g, "");
   const password = String(req.body?.password || "");
   const player = await DemoPlayer.findOne({ mobile });
   if (!player || !(await bcrypt.compare(password, player.passwordHash))) return res.status(401).json({ error: "मोबाइल नंबर या Password गलत है।" });
