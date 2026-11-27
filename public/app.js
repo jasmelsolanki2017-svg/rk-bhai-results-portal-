@@ -179,6 +179,7 @@ function renderRecent(){
     if(dayKey===todayKey)item.today=row;
     if(dayKey===yesterdayKey)item.yesterday=row;
   });
+  if(byCity.has("chandigarh"))cityLabels.set("chandigarh","Chandigarh City");
   const todayStat=document.getElementById("statToday");
   if(todayStat)todayStat.textContent=recentRows.filter(r=>dateKey(r.resultDate)===todayKey).length;
   const query=(citySearch?.value||"").trim().toLocaleLowerCase("hi");
