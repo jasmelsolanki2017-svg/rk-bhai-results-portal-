@@ -1453,3 +1453,14 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
 @media(prefers-reduced-motion:reduce){
   .robot-scene:before{animation:none!important}
 }
+
+/* Keep the waiting robot in one fixed spot; remove the left-right walking/travel motion. */
+.next-market-robot.robot-scene .robot-mascot,
+.next-market-robot.robot-scene .robot-mascot *,
+.next-market-robot.robot-scene .result-matka{
+  animation:none!important;
+}
+.next-market-robot.robot-scene .robot-mascot{
+  left:3%!important;
+  transform:scaleX(-1)!important;
+}
