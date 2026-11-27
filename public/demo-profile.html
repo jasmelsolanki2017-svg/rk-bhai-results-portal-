@@ -47,7 +47,7 @@ function groupedPlayRows(rows){
  const sorted=[...rows].sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
  const batches=[];
  sorted.forEach(row=>{
-  const num=String(row.number??"").trim(),n=/^\\d{1,2}$/.test(num)?Number(num):NaN,ts=new Date(row.createdAt).getTime();
+  const num=String(row.number??"").trim(),ts=new Date(row.createdAt).getTime();
   const key=[row.market,row.status,row.points,row.result||"",localDateKey(row.createdAt)].join("|");
   let batch=batches.find(b=>b.key===key&&Math.abs(ts-b.lastTime)<=5000);
   if(!batch){batch={key,rows:[],lastTime:ts};batches.push(batch);}
@@ -55,8 +55,8 @@ function groupedPlayRows(rows){
  });
  const output=[];
  batches.forEach(batch=>{
-  const numeric=batch.rows.filter(r=>/^\\d{1,2}$/.test(String(r.number??"").trim())).sort((a,b)=>Number(a.number)-Number(b.number));
-  const other=batch.rows.filter(r=>!/^\\d{1,2}$/.test(String(r.number??"").trim()));
+  const numeric=batch.rows.filter(r=>/^\d{1,2}$/.test(String(r.number??"").trim())).sort((a,b)=>Number(a.number)-Number(b.number));
+  const other=batch.rows.filter(r=>!/^\d{1,2}$/.test(String(r.number??"").trim()));
   let run=[];
   const flush=()=>{if(!run.length)return;output.push({rows:run,first:run[0],from:Number(run[0].number),to:Number(run[run.length-1].number)});run=[];};
   numeric.forEach(r=>{if(run.length&&Number(r.number)!==Number(run[run.length-1].number)+1)flush();run.push(r);});flush();
