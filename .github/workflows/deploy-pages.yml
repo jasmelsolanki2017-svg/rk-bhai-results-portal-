@@ -42,7 +42,7 @@ jobs:
           output = Path("_site")
           output.mkdir(exist_ok=True)
           # Copy only public-facing assets. Admin and user panel files stay on Render.
-          for name in ("style.css", "clock.js", "icon.svg", "brand-crown.svg", "disclaimer.html", "visitor-tracking.js", "refresh-button.js"):
+          for name in ("style.css", "clock.js", "icon.svg", "brand-crown.svg", "disclaimer.html", "visitor-tracking.js", "refresh-button.js", "demo-play.html"):
               (output / name).write_bytes((source / name).read_bytes())
 
           html = (source / "index.html").read_text(encoding="utf-8")
