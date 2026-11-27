@@ -1,19 +1,18 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-27T08:59:58.240Z",
+  "updatedAt": "2026-11-27T09:02:05.214Z",
   "results": [
     {
       "_id": "6b08c44928a5f35075a2b2bc",
       "title": "Disawar",
       "resultText": "66",
       "resultDate": "2026-11-27T12:00:00.000Z",
-      "sourceUrl": "https://satta-king-gali.com/, https://sattafree.com/, https://galidisawer.com/, https://www.realsattaking.com/, https://www.faridabadlucky.com/chart/new-disawar/2026-11, https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi",
+      "sourceUrl": "https://satta-king-gali.com/, https://sattafree.com/, https://www.realsattaking.com/, https://www.faridabadlucky.com/chart/new-disawar/2026-11, https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi",
       "verificationMeta": {
         "value": "66",
         "sources": [
           "https://satta-king-gali.com/",
           "https://sattafree.com/",
-          "https://galidisawer.com/",
           "https://www.realsattaking.com/",
           "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
           "https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi"
@@ -21,16 +20,14 @@
         "domains": [
           "satta-king-gali.com",
           "sattafree.com",
-          "galidisawer.com",
           "www.realsattaking.com",
           "www.faridabadlucky.com",
           "www.delhilucky.com"
         ],
-        "checkedAt": "2026-11-27T08:59:47.864Z",
+        "checkedAt": "2026-11-27T09:01:54.750Z",
         "firstPassDomains": [
           "satta-king-gali.com",
           "sattafree.com",
-          "galidisawer.com",
           "www.realsattaking.com",
           "www.faridabadlucky.com",
           "www.delhilucky.com"
@@ -153,14 +150,13 @@
       "title": "Gali",
       "resultText": "52",
       "resultDate": "2026-11-26T12:00:00.000Z",
-      "sourceUrl": "https://kingsofsatta.com/, https://satta-king-gali.com/, https://sattafree.com/, https://galidisawer.com/, https://www.realsattaking.com/, https://www.faridabadlucky.com/chart/new-disawar/2026-11, https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi, https://satta-fast.com/satta-king-chart-november-2026",
+      "sourceUrl": "https://kingsofsatta.com/, https://satta-king-gali.com/, https://sattafree.com/, https://www.realsattaking.com/, https://www.faridabadlucky.com/chart/new-disawar/2026-11, https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi, https://satta-fast.com/satta-king-chart-november-2026",
       "verificationMeta": {
         "value": "52",
         "sources": [
           "https://kingsofsatta.com/",
           "https://satta-king-gali.com/",
           "https://sattafree.com/",
-          "https://galidisawer.com/",
           "https://www.realsattaking.com/",
           "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
           "https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi",
@@ -170,18 +166,16 @@
           "kingsofsatta.com",
           "satta-king-gali.com",
           "sattafree.com",
-          "galidisawer.com",
           "www.realsattaking.com",
           "www.faridabadlucky.com",
           "www.delhilucky.com",
           "satta-fast.com"
         ],
-        "checkedAt": "2026-11-27T08:59:47.864Z",
+        "checkedAt": "2026-11-27T09:01:54.751Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
           "sattafree.com",
-          "galidisawer.com",
           "www.realsattaking.com",
           "www.faridabadlucky.com",
           "www.delhilucky.com",
