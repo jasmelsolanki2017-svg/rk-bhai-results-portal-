@@ -52,6 +52,9 @@ const publicFrontendOrigins = new Set([
   "https://rk-bhai-results-portal.firebaseapp.com"
 ]);
 const publicFrontendApiPaths = new Set([
+  "/api/demo/register",
+  "/api/demo/login",
+  "/api/demo/me",
   "/api/results",
   "/api/public/cities",
   "/api/public/export.csv",
@@ -71,7 +74,7 @@ app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   }
   if (req.method === "OPTIONS") {
     if (origin && publicFrontendOrigins.has(origin)) return res.sendStatus(204);
@@ -126,6 +129,16 @@ const User = mongoose.model("PortalUser", new mongoose.Schema({
   expiresAt: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now }
 }));
+
+const DemoPlayer = mongoose.model("DemoPlayer", new mongoose.Schema({
+  name: { type: String, required: true, trim: true, minlength: 2, maxlength: 80 },
+  mobile: { type: String, required: true, unique: true, match: /^[6-9]\\d{9}$/ },
+  email: { type: String, default: "", trim: true, lowercase: true, maxlength: 120 },
+  passwordHash: { type: String, required: true },
+  status: { type: String, enum: ["pending", "approved", "rejected", "disabled"], default: "pending", index: true },
+  createdAt: { type: Date, default: Date.now },
+  approvedAt: { type: Date, default: null }
+}, { versionKey: false }));
 
 const AdminAuthState = mongoose.model("AdminAuthState", new mongoose.Schema({
   key: { type: String, required: true, unique: true },
@@ -250,6 +263,81 @@ async function adminOnly(req, res, next) {
     return res.status(401).json({ error: "Session expired. Login again." });
   }
 }
+
+async function demoPlayerOnly(req, res, next) {
+  try {
+    const header = String(req.get("Authorization") || "");
+    const token = header.startsWith("Bearer ") ? header.slice(7) : "";
+    if (!token) return res.status(401).json({ error: "Demo account में login करें।" });
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    if (payload.role !== "demo_player" || !payload.sub) return res.status(403).json({ error: "Demo access denied." });
+    const player = await DemoPlayer.findById(payload.sub).select("name mobile status").lean();
+    if (!player || player.status !== "approved") return res.status(403).json({ error: "आपका Demo account approved नहीं है या बंद कर दिया गया है।" });
+    req.demoPlayer = { id: String(player._id), name: player.name, mobile: player.mobile };
+    next();
+  } catch {
+    return res.status(401).json({ error: "Demo session समाप्त हो गया। दोबारा login करें।" });
+  }
+}
+
+const demoAuthAttempts = new Map();
+function demoRateLimit(req, res, next) {
+  const key = (req.ip || "unknown") + ":" + req.path;
+  const now = Date.now();
+  const old = demoAuthAttempts.get(key);
+  const record = !old || now - old.startedAt > 15 * 60 * 1000 ? { startedAt: now, count: 0 } : old;
+  if (record.count >= 12) return res.status(429).json({ error: "बहुत बार प्रयास हुए। 15 मिनट बाद फिर कोशिश करें।" });
+  record.count++;
+  demoAuthAttempts.set(key, record);
+  next();
+}
+
+app.post("/api/demo/register", demoRateLimit, async (req, res) => {
+  const name = String(req.body?.name || "").trim();
+  const mobile = String(req.body?.mobile || "").replace(/\\D/g, "");
+  const email = String(req.body?.email || "").trim().toLowerCase();
+  const password = String(req.body?.password || "");
+  if (name.length < 2 || name.length > 80) return res.status(400).json({ error: "नाम 2 से 80 अक्षर में लिखें।" });
+  if (!/^[6-9]\\d{9}$/.test(mobile)) return res.status(400).json({ error: "सही 10 अंकों का मोबाइल नंबर लिखें।" });
+  if (email && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) return res.status(400).json({ error: "Email सही लिखें या खाली छोड़ें।" });
+  if (password.length < 8 || password.length > 100) return res.status(400).json({ error: "Password कम से कम 8 अक्षर का रखें।" });
+  if (await DemoPlayer.exists({ mobile })) return res.status(409).json({ error: "इस मोबाइल नंबर से Demo account पहले से बना है।" });
+  try {
+    await DemoPlayer.create({ name, mobile, email, passwordHash: await bcrypt.hash(password, 12), status: "pending" });
+    res.status(201).json({ ok: true, status: "pending", message: "Registration सफल। Admin approval के बाद आप login कर सकेंगे।" });
+  } catch (error) {
+    if (error.code === 11000) return res.status(409).json({ error: "इस मोबाइल नंबर से Demo account पहले से बना है।" });
+    throw error;
+  }
+});
+
+app.post("/api/demo/login", demoRateLimit, async (req, res) => {
+  const mobile = String(req.body?.mobile || "").replace(/\\D/g, "");
+  const password = String(req.body?.password || "");
+  const player = await DemoPlayer.findOne({ mobile });
+  if (!player || !(await bcrypt.compare(password, player.passwordHash))) return res.status(401).json({ error: "मोबाइल नंबर या Password गलत है।" });
+  if (player.status === "pending") return res.status(403).json({ status: "pending", error: "आपका account Admin approval का इंतजार कर रहा है।" });
+  if (player.status === "rejected") return res.status(403).json({ status: "rejected", error: "आपका registration approve नहीं हुआ। Admin से संपर्क करें।" });
+  if (player.status !== "approved") return res.status(403).json({ status: "disabled", error: "आपका Demo account बंद है। Admin से संपर्क करें।" });
+  const token = jwt.sign({ role: "demo_player", sub: String(player._id) }, process.env.JWT_SECRET, { expiresIn: "12h" });
+  res.json({ ok: true, token, player: { id: String(player._id), name: player.name, mobile: player.mobile } });
+});
+
+app.get("/api/demo/me", demoPlayerOnly, (req, res) => res.setHeader("Cache-Control", "no-store").json({ ok: true, player: req.demoPlayer }));
+
+app.get("/api/admin/demo-players", adminOnly, async (req, res) => {
+  const rows = await DemoPlayer.find().select("name mobile email status createdAt approvedAt").sort({ createdAt: -1 }).lean();
+  res.json(rows);
+});
+
+app.patch("/api/admin/demo-players/:id", adminOnly, async (req, res) => {
+  const status = String(req.body?.status || "");
+  if (!["approved", "rejected", "disabled", "pending"].includes(status)) return res.status(400).json({ error: "सही account status चुनें।" });
+  const update = { status, approvedAt: status === "approved" ? new Date() : null };
+  const player = await DemoPlayer.findByIdAndUpdate(req.params.id, update, { new: true }).select("name mobile status approvedAt").lean();
+  if (!player) return res.status(404).json({ error: "Demo player नहीं मिला।" });
+  res.json({ ok: true, player });
+});
 
 // Keep API requests from querying MongoDB while Atlas is disconnected.
 // This prevents async route failures from restarting the web process during outages.
