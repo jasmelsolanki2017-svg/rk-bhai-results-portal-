@@ -524,8 +524,9 @@ app.get("/api/admin/demo-players/:id/ledger", adminOnly, async (req, res) => {
   const player = await DemoPlayer.findById(req.params.id).select("name mobile").lean();
   if (!player) return res.status(404).json({ error: "Demo User नहीं मिला।" });
   const plays = await DemoPlay.find({ playerId: player._id, playDate: { $regex: "^" + month } }).sort({ playDate: 1, market: 1, createdAt: 1 }).lean();
-  const start = new Date(month + "-01T00:00:00+05:30");
-  const nextMonth = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 1));
+  const [yearPart, monthPart] = month.split("-").map(Number);
+  const start = new Date(Date.UTC(yearPart, monthPart - 1, 1) - 330 * 60 * 1000);
+  const nextMonth = new Date(Date.UTC(yearPart, monthPart, 1) - 330 * 60 * 1000);
   const transactions = await DemoWalletTransaction.find({ playerId: player._id, createdAt: { $gte: start, $lt: nextMonth } }).sort({ createdAt: 1 }).lean();
   const marketMap = new Map();
   const totals = { plays: 0, staked: 0, returned: 0, wins: 0, losses: 0, pending: 0, net: 0 };
