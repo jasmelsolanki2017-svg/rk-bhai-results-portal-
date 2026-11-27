@@ -415,20 +415,36 @@ app.post("/api/demo/plays", demoPlayerOnly, async (req, res) => {
   if (market.length < 2 || market.length > 80) return res.status(400).json({ error: "सही मार्केट चुनें।" });
   if (!/^\d{2}$/.test(number) || Number(number) > 99) return res.status(400).json({ error: "00 से 99 के बीच नंबर डालें।" });
   if (!Number.isSafeInteger(points) || points < 1 || points > 1000000) return res.status(400).json({ error: "1 से 10,00,000 तक पूरे Points भरें।" });
+  const playDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const matchingPendingPlay = await DemoPlay.findOne({ playerId: req.demoPlayer.id, market, number, playDate, status: "PENDING" }).sort({ createdAt: 1 }).lean();
+  if (matchingPendingPlay && Number(matchingPendingPlay.points || 0) + points > 1000000) {
+    return res.status(400).json({ error: "एक ही मार्केट और नंबर पर कुल Play Points 10,00,000 से अधिक नहीं हो सकते।" });
+  }
   const player = await DemoPlayer.findOneAndUpdate(
     { _id: req.demoPlayer.id, status: "approved", walletPoints: { $gte: points } },
     { $inc: { walletPoints: -points } },
     { new: true }
   ).select("walletPoints").lean();
   if (!player) return res.status(400).json({ error: "आपके Demo Points कम हैं या account active नहीं है।" });
-  const playDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   let createdPlay = null;
+  let mergedPlayId = null;
   try {
-    createdPlay = await DemoPlay.create({ playerId: req.demoPlayer.id, market, number, points, playDate });
+    if (matchingPendingPlay) {
+      createdPlay = await DemoPlay.findOneAndUpdate(
+        { _id: matchingPendingPlay._id, playerId: req.demoPlayer.id, status: "PENDING" },
+        { $inc: { points } },
+        { new: true }
+      );
+      if (!createdPlay) throw new Error("यह Play अभी अपडेट नहीं हो पाई। दोबारा कोशिश करें।");
+      mergedPlayId = createdPlay._id;
+    } else {
+      createdPlay = await DemoPlay.create({ playerId: req.demoPlayer.id, market, number, points, playDate });
+    }
     await DemoWalletTransaction.create({ playerId: req.demoPlayer.id, type: "DEBIT", amount: points, reason: "Demo Play · " + market + " · " + number });
-    res.status(201).json({ ok: true, walletPoints: player.walletPoints, play: createdPlay });
+    res.status(201).json({ ok: true, walletPoints: player.walletPoints, play: createdPlay, merged: !!matchingPendingPlay });
   } catch (error) {
-    if (createdPlay) await DemoPlay.deleteOne({ _id: createdPlay._id, playerId: req.demoPlayer.id });
+    if (mergedPlayId) await DemoPlay.updateOne({ _id: mergedPlayId, playerId: req.demoPlayer.id }, { $inc: { points: -points } });
+    else if (createdPlay) await DemoPlay.deleteOne({ _id: createdPlay._id, playerId: req.demoPlayer.id });
     await DemoPlayer.updateOne({ _id: req.demoPlayer.id }, { $inc: { walletPoints: points } });
     throw error;
   }
