@@ -422,11 +422,13 @@ app.post("/api/demo/plays", demoPlayerOnly, async (req, res) => {
   ).select("walletPoints").lean();
   if (!player) return res.status(400).json({ error: "आपके Demo Points कम हैं या account active नहीं है।" });
   const playDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  let createdPlay = null;
   try {
-    const play = await DemoPlay.create({ playerId: req.demoPlayer.id, market, number, points, playDate });
+    createdPlay = await DemoPlay.create({ playerId: req.demoPlayer.id, market, number, points, playDate });
     await DemoWalletTransaction.create({ playerId: req.demoPlayer.id, type: "DEBIT", amount: points, reason: "Demo Play · " + market + " · " + number });
-    res.status(201).json({ ok: true, walletPoints: player.walletPoints, play });
+    res.status(201).json({ ok: true, walletPoints: player.walletPoints, play: createdPlay });
   } catch (error) {
+    if (createdPlay) await DemoPlay.deleteOne({ _id: createdPlay._id, playerId: req.demoPlayer.id });
     await DemoPlayer.updateOne({ _id: req.demoPlayer.id }, { $inc: { walletPoints: points } });
     throw error;
   }
