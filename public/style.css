@@ -1281,3 +1281,15 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
   box-shadow:0 2px 3px #0007;
 }
 @media(max-width:420px){.robot-scene .result-matka{width:70px;height:77px;right:4%;bottom:18px}}
+
+
+/* Make the waiting robot face the matka while walking toward it. */
+.robot-scene .robot-mascot{transform:scaleX(-1);animation-name:robotMatkaTripFacing!important}
+.robot-scene .robot-head b{display:none}
+@keyframes robotMatkaTripFacing{
+  0%,7%{transform:translateX(0) scaleX(-1)}
+  34%,40%{transform:translateX(calc(100% + 105px)) scaleX(-1)}
+  47%{transform:translateX(calc(100% + 105px)) rotate(-7deg) scaleX(-1)}
+  54%{transform:translateX(calc(100% + 105px)) rotate(5deg) scaleX(-1)}
+  88%,100%{transform:translateX(0) scaleX(-1)}
+}
