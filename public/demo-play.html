@@ -79,7 +79,7 @@ $("demoRegisterForm").addEventListener("submit",async e=>{
 });
 $("demoLoginForm").addEventListener("submit",async e=>{
  e.preventDefault();const f=new FormData(e.target);$("demoAuthMessage").textContent="Login हो रहा है…";
- try{const d=await request("/api/demo/login",{method:"POST",body:JSON.stringify({mobile:f.get("mobile"),password:f.get("password")})});token=d.token;sessionStorage.setItem(tokenKey,token);await enterGame();}
+ try{const d=await request("/api/demo/login",{method:"POST",body:JSON.stringify({mobile:f.get("mobile"),password:f.get("password")})});token=d.token;sessionStorage.setItem(tokenKey,token);location.href="./demo-game.html";}
  catch(err){token="";sessionStorage.removeItem(tokenKey);showAuth(err.message);}
 });
 async function checkResults(){
@@ -108,7 +108,7 @@ $("demoPlayButton").addEventListener("click",async()=>{
 });
 $("demoRefreshButton").addEventListener("click",checkResults);
 const reset=$("demoResetButton");if(reset)reset.remove();
-if(token){enterGame().catch(e=>{token="";sessionStorage.removeItem(tokenKey);showAuth(e.message);});}else showAuth();
+if(token){location.replace("./demo-game.html");}else{showAuth();if(new URLSearchParams(location.search).has("expired"))$("demoAuthMessage").textContent="Session समाप्त हो गया। दोबारा Login करें।";}
 })();
 </script>
 </body></html>
