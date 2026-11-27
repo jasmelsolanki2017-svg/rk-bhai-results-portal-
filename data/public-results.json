@@ -1,6 +1,6 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-27T19:36:17.094Z",
+  "updatedAt": "2026-11-27T19:37:37.041Z",
   "results": [
     {
       "_id": "6b09522a28a5f35075a2c250",
@@ -80,7 +80,7 @@
       "title": "Gali",
       "resultText": "79",
       "resultDate": "2026-11-27T12:00:00.000Z",
-      "sourceUrl": "https://kingsofsatta.com/, https://satta-king-gali.com/, https://sattafree.com/, https://galidisawer.com/, https://www.realsattaking.com/, https://www.faridabadlucky.com/chart/new-disawar/2026-11, https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi, https://satta-fast.com/satta-king-chart-november-2026",
+      "sourceUrl": "https://kingsofsatta.com/, https://satta-king-gali.com/, https://sattafree.com/, https://galidisawer.com/, https://satta-king-fast.com/, https://www.realsattaking.com/, https://www.faridabadlucky.com/chart/new-disawar/2026-11",
       "verificationMeta": {
         "value": "79",
         "sources": [
@@ -88,31 +88,28 @@
           "https://satta-king-gali.com/",
           "https://sattafree.com/",
           "https://galidisawer.com/",
+          "https://satta-king-fast.com/",
           "https://www.realsattaking.com/",
-          "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
-          "https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi",
-          "https://satta-fast.com/satta-king-chart-november-2026"
+          "https://www.faridabadlucky.com/chart/new-disawar/2026-11"
         ],
         "domains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
           "sattafree.com",
           "galidisawer.com",
+          "satta-king-fast.com",
           "www.realsattaking.com",
-          "www.faridabadlucky.com",
-          "www.delhilucky.com",
-          "satta-fast.com"
+          "www.faridabadlucky.com"
         ],
-        "checkedAt": "2026-11-27T19:36:07.271Z",
+        "checkedAt": "2026-11-27T19:37:26.417Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
           "sattafree.com",
           "galidisawer.com",
+          "satta-king-fast.com",
           "www.realsattaking.com",
-          "www.faridabadlucky.com",
-          "www.delhilucky.com",
-          "satta-fast.com"
+          "www.faridabadlucky.com"
         ],
         "recheckDomains": [],
         "rule": "same_value_on_three_independent_domains_single_check"
