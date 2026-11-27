@@ -292,6 +292,18 @@ function demoRateLimit(req, res, next) {
   next();
 }
 
+
+
+// Keep API requests from querying MongoDB while Atlas is disconnected.
+// This prevents async route failures from restarting the web process during outages.
+app.use("/api", (req, res, next) => {
+  if (req.path === "/health") return next();
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({ error: "Database is temporarily unavailable. Please try again shortly." });
+  }
+  next();
+});
+
 app.post("/api/demo/register", demoRateLimit, async (req, res) => {
   const name = String(req.body?.name || "").trim();
   const mobile = String(req.body?.mobile || "").replace(/\D/g, "");
@@ -337,16 +349,6 @@ app.patch("/api/admin/demo-players/:id", adminOnly, async (req, res) => {
   const player = await DemoPlayer.findByIdAndUpdate(req.params.id, update, { new: true }).select("name mobile status approvedAt").lean();
   if (!player) return res.status(404).json({ error: "Demo player नहीं मिला।" });
   res.json({ ok: true, player });
-});
-
-// Keep API requests from querying MongoDB while Atlas is disconnected.
-// This prevents async route failures from restarting the web process during outages.
-app.use("/api", (req, res, next) => {
-  if (req.path === "/health") return next();
-  if (mongoose.connection.readyState !== 1) {
-    return res.status(503).json({ error: "Database is temporarily unavailable. Please try again shortly." });
-  }
-  next();
 });
 
 // Mirror public results to a static GitHub JSON file after successful admin/user changes.
