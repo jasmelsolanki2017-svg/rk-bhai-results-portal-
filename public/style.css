@@ -1316,3 +1316,11 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
 @keyframes resultPopFromMatka{0%{opacity:0;transform:translateY(16px) scale(.65)}35%,80%{opacity:1;transform:translateY(-5px) scale(1)}100%{opacity:0;transform:translateY(-20px) scale(.9)}}
 @keyframes happySparkle{from{transform:scale(.8) rotate(-10deg)}to{transform:scale(1.2) rotate(10deg)}}
 @media(prefers-reduced-motion:reduce){.published-result-highlight .happy-robot-scene *{animation:none!important}}
+
+
+/* Calm, gentle celebration: slow the robot's happy movement. */
+.published-result-highlight .happy-robot-scene .robot-mascot{animation:robotHappyBounce 3.8s ease-in-out infinite}
+.published-result-highlight .happy-robot-scene .robot-arm{animation:robotHappyWave 2.6s ease-in-out infinite alternate}
+.published-result-highlight .happy-robot-scene .robot-leg{animation:robotHappyDance 2.2s ease-in-out infinite alternate}
+.published-result-highlight .happy-robot-scene .robot-happy{animation:happySparkle 2.8s ease-in-out infinite alternate}
+@keyframes robotHappyBounce{0%,100%{transform:translateY(0) scaleX(-1)}50%{transform:translateY(-3px) scaleX(-1)}}
