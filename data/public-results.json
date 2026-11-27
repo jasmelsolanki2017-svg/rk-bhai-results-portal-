@@ -1,13 +1,13 @@
 {
   "app": "rk-bhai-results-portal",
-  "updatedAt": "2026-11-27T05:16:05.224Z",
+  "updatedAt": "2026-11-27T05:16:58.581Z",
   "results": [
     {
       "_id": "6b08c44928a5f35075a2b2bc",
       "title": "Disawar",
       "resultText": "66",
       "resultDate": "2026-11-27T12:00:00.000Z",
-      "sourceUrl": "https://satta-king-gali.com/, https://sattafree.com/, https://galidisawer.com/, https://satta-king-fast.com/, https://sattaking.live/, https://satta.live/record_chart/disawar_record_chart.php, https://www.realsattaking.com/, https://www.faridabadlucky.com/chart/new-disawar/2026-11, https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi, https://1xsatta.today/",
+      "sourceUrl": "https://satta-king-gali.com/, https://sattafree.com/, https://galidisawer.com/, https://satta-king-fast.com/, https://sattaking.live/, https://satta.live/record_chart/disawar_record_chart.php, https://www.realsattaking.com/, https://www.faridabadlucky.com/chart/new-disawar/2026-11, https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi, https://1xsatta.today/record-chart/disawar/",
       "verificationMeta": {
         "value": "66",
         "sources": [
@@ -20,7 +20,7 @@
           "https://www.realsattaking.com/",
           "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
           "https://www.delhilucky.com/chart/new-disawar/2026-11?lang=hi",
-          "https://1xsatta.today/"
+          "https://1xsatta.today/record-chart/disawar/"
         ],
         "domains": [
           "satta-king-gali.com",
@@ -34,7 +34,7 @@
           "www.delhilucky.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-27T05:15:53.726Z",
+        "checkedAt": "2026-11-27T05:16:47.544Z",
         "firstPassDomains": [
           "satta-king-gali.com",
           "sattafree.com",
@@ -196,7 +196,7 @@
           "satta-fast.com",
           "1xsatta.today"
         ],
-        "checkedAt": "2026-11-27T05:15:53.726Z",
+        "checkedAt": "2026-11-27T05:16:47.544Z",
         "firstPassDomains": [
           "kingsofsatta.com",
           "satta-king-gali.com",
