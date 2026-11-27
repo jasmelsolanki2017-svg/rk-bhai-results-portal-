@@ -1,8 +1,8 @@
 {
   "app": "rk-bhai-results-portal",
   "reportType": "ai-parser-independent-comparison",
-  "generatedAt": "2026-11-27T20:50:07.961Z",
-  "syncCheckedAt": "2026-11-27T20:50:05.473Z",
+  "generatedAt": "2026-11-27T20:51:27.762Z",
+  "syncCheckedAt": "2026-11-27T20:51:26.355Z",
   "syncStatus": "success",
   "note": "Comparison only. AI observations are not counted as independent parser domains and do not change the three-domain publication rule.",
   "summary": {
@@ -24,15 +24,15 @@
       "parserDomains": [
         "sattafree.com",
         "satta-king-gali.com",
-        "galidisawer.com",
         "kingsofsatta.com",
+        "galidisawer.com",
         "satta-king-fast.com",
-        "sattaking.live",
         "satta-superfast.com",
         "www.realsattaking.com",
         "satta.live",
         "www.delhilucky.com",
         "satta-fast.com",
+        "sattaking.live",
         "www.faridabadlucky.com",
         "1xsatta.today"
       ],
@@ -53,13 +53,6 @@
         },
         {
           "value": "79",
-          "host": "galidisawer.com",
-          "url": "https://galidisawer.com/",
-          "parser": "exact_date_monthly_chart",
-          "pass": "first_check"
-        },
-        {
-          "value": "79",
           "host": "kingsofsatta.com",
           "url": "https://kingsofsatta.com/",
           "parser": "same_row_explicit_today_yesterday_table",
@@ -67,15 +60,15 @@
         },
         {
           "value": "79",
-          "host": "satta-king-fast.com",
-          "url": "https://satta-king-fast.com/",
+          "host": "galidisawer.com",
+          "url": "https://galidisawer.com/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
         {
           "value": "79",
-          "host": "sattaking.live",
-          "url": "https://sattaking.live/",
+          "host": "satta-king-fast.com",
+          "url": "https://satta-king-fast.com/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
@@ -111,6 +104,13 @@
           "value": "79",
           "host": "satta-fast.com",
           "url": "https://satta-fast.com/satta-king-chart-november-2026",
+          "parser": "exact_date_monthly_chart",
+          "pass": "first_check"
+        },
+        {
+          "value": "79",
+          "host": "sattaking.live",
+          "url": "https://sattaking.live/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
