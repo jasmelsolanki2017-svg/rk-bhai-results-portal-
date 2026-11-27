@@ -431,6 +431,14 @@ app.post("/api/admin/demo-players/:id/points", adminOnly, async (req, res) => {
   res.json({ ok: true, player });
 });
 
+app.delete("/api/admin/demo-players/:id", adminOnly, async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: "Demo User ID सही नहीं है।" });
+  const player = await DemoPlayer.findByIdAndDelete(req.params.id).select("_id name mobile").lean();
+  if (!player) return res.status(404).json({ error: "Demo User नहीं मिला।" });
+  await DemoPlay.deleteMany({ playerId: player._id });
+  res.json({ ok: true, message: "Demo User और उसका play history हटाया गया।" });
+});
+
 app.patch("/api/admin/demo-players/:id", adminOnly, async (req, res) => {
   const status = String(req.body?.status || "");
   if (!["approved", "rejected", "disabled", "pending"].includes(status)) return res.status(400).json({ error: "सही account status चुनें।" });
