@@ -136,6 +136,7 @@ const DemoPlayer = mongoose.model("DemoPlayer", new mongoose.Schema({
   email: { type: String, default: "", trim: true, lowercase: true, maxlength: 120 },
   passwordHash: { type: String, required: true },
   status: { type: String, enum: ["pending", "approved", "rejected", "disabled"], default: "pending", index: true },
+  walletPoints: { type: Number, default: 500, min: 0 },
   createdAt: { type: Date, default: Date.now },
   approvedAt: { type: Date, default: null }
 }, { versionKey: false }));
@@ -335,11 +336,22 @@ app.post("/api/demo/login", demoRateLimit, async (req, res) => {
   res.json({ ok: true, token, player: { id: String(player._id), name: player.name, mobile: player.mobile } });
 });
 
-app.get("/api/demo/me", demoPlayerOnly, (req, res) => res.setHeader("Cache-Control", "no-store").json({ ok: true, player: req.demoPlayer }));
+app.get("/api/demo/me", demoPlayerOnly, async (req, res) => {
+  const player = await DemoPlayer.findById(req.demoPlayer.id).select("name mobile walletPoints").lean();
+  res.setHeader("Cache-Control", "no-store").json({ ok: true, player: { ...req.demoPlayer, walletPoints: Number(player?.walletPoints || 0) } });
+});
 
 app.get("/api/admin/demo-players", adminOnly, async (req, res) => {
-  const rows = await DemoPlayer.find().select("name mobile email status createdAt approvedAt").sort({ createdAt: -1 }).lean();
+  const rows = await DemoPlayer.find().select("name mobile email status walletPoints createdAt approvedAt").sort({ createdAt: -1 }).lean();
   res.json(rows);
+});
+
+app.post("/api/admin/demo-players/:id/points", adminOnly, async (req, res) => {
+  const points = Number(req.body?.points);
+  if (!Number.isSafeInteger(points) || points < 1 || points > 1000000) return res.status(400).json({ error: "1 से 10,00,000 तक पूरे Points डालें।" });
+  const player = await DemoPlayer.findByIdAndUpdate(req.params.id, { $inc: { walletPoints: points } }, { new: true }).select("name mobile status walletPoints").lean();
+  if (!player) return res.status(404).json({ error: "Demo player नहीं मिला।" });
+  res.json({ ok: true, player });
 });
 
 app.patch("/api/admin/demo-players/:id", adminOnly, async (req, res) => {
