@@ -1424,7 +1424,7 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
   color:#39200f;font-size:clamp(9px,2.5vw,12px);font-weight:900;
   line-height:1.25;text-align:center;white-space:nowrap;
   box-shadow:0 3px 9px #0007;
-  animation:robotSpeechLoop 9s steps(1,end) infinite;
+  animation:robotSpeechLoop 12s steps(1,end) infinite;
 }
 .robot-scene:not(.matka-result-broken):before{
   animation-name:robotSpeechLoop;
@@ -1433,18 +1433,33 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
   content:"रिजल्ट आ गया!";
   left:36%;color:#fff;background:linear-gradient(135deg,#c92b2b,#791414);
   border-color:#ffd36a;text-shadow:0 1px 2px #300;
-  animation:robotHappySpeechLoop 6s steps(1,end) infinite;
+  animation:robotHappySpeechLoop 9s steps(1,end) infinite;
 }
 @keyframes robotSpeechLoop{
-  0%,29%{content:"रिजल्ट का इंतज़ार..."}
-  30%,59%{content:"मटका तैयार है!"}
-  60%,89%{content:"बस आने ही वाला है!"}
-  90%,100%{content:"रोबोट चल पड़ा!"}
+  0%{content:"रिजल्ट"}
+  4%{content:"रिजल्ट का"}
+  8%,24%{content:"रिजल्ट का इंतज़ार..."}
+  25%{content:"मटका"}
+  29%{content:"मटका तैयार"}
+  33%,49%{content:"मटका तैयार है!"}
+  50%{content:"बस"}
+  54%{content:"बस आने"}
+  58%{content:"बस आने ही"}
+  62%,74%{content:"बस आने ही वाला है!"}
+  75%{content:"रोबोट"}
+  79%,100%{content:"रोबोट चल पड़ा!"}
 }
 @keyframes robotHappySpeechLoop{
-  0%,32%{content:"रिजल्ट आ गया!"}
-  33%,65%{content:"मटका फूट गया!"}
-  66%,100%{content:"ये रहा आज का नंबर!"}
+  0%{content:"रिजल्ट"}
+  6%{content:"रिजल्ट आ"}
+  12%,32%{content:"रिजल्ट आ गया!"}
+  33%{content:"मटका"}
+  39%{content:"मटका फूट"}
+  45%,65%{content:"मटका फूट गया!"}
+  66%{content:"ये"}
+  72%{content:"ये रहा"}
+  78%{content:"ये रहा आज"}
+  84%,100%{content:"ये रहा आज का नंबर!"}
 }
 @media(max-width:420px){
   .robot-scene:before{left:29%;max-width:68%;padding:4px 7px}
