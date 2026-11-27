@@ -1221,3 +1221,46 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
 @keyframes matkaShakeOnTap{0%,35%,100%{transform:translateX(0) rotate(0)}39%{transform:translateX(-3px) rotate(-7deg)}43%{transform:translateX(3px) rotate(7deg)}47%{transform:translateX(-2px) rotate(-4deg)}51%{transform:translateX(0) rotate(0)}}
 @media(max-width:420px){.robot-scene .robot-mascot{left:0;transform-origin:50% 100%}.result-matka{right:6%;width:46px;height:47px}}
 @media(prefers-reduced-motion:reduce){.robot-scene .robot-mascot,.robot-scene .result-matka{animation:none!important}}
+
+
+/* Refined traditional clay matka silhouette: rounded belly, narrow neck, thick mouth and foot ring. */
+.robot-scene .result-matka{
+  width:60px;height:61px;right:7%;bottom:28px;
+  border:2px solid #9b5728;
+  border-radius:46% 46% 43% 43% / 34% 34% 53% 53%;
+  background:
+    radial-gradient(ellipse at 30% 24%,#f8d69a 0 5%,transparent 23%),
+    radial-gradient(ellipse at 35% 38%,#e8a653 0 8%,#bd702e 48%,#88431e 82%,#5b2b18 100%);
+  box-shadow:inset 5px 4px 8px #fff5,inset -7px -5px 10px #3e1b13a8,0 5px 8px #0009;
+}
+.robot-scene .result-matka:before{
+  left:19px;top:-12px;width:20px;height:17px;
+  border:2px solid #a35e2d;border-bottom:0;border-radius:5px 5px 1px 1px;
+  background:linear-gradient(90deg,#8a431e,#e6a454 42%,#a85c28);
+  box-shadow:inset 2px 0 3px #fff5;
+}
+.robot-scene .result-matka:after{
+  left:14px;top:-15px;width:30px;height:5px;
+  border:2px solid #f0c17b;border-radius:50%;
+  background:linear-gradient(#f6d59c,#a45c29);
+  box-shadow:0 2px 2px #4b2416;
+}
+.robot-scene .result-matka i{
+  display:block;position:absolute;left:5px;right:5px;top:29px;height:4px;
+  border-top:2px solid #f3c47b;border-bottom:1px solid #713719;
+  border-radius:50%;opacity:.75;
+}
+.robot-scene .result-matka b{
+  display:block;position:absolute;left:15px;right:15px;bottom:-3px;height:7px;
+  border:2px solid #87431f;border-radius:50%;
+  background:linear-gradient(#d58a3e,#793a1c);
+}
+.robot-scene .result-matka em{
+  display:block;position:absolute;left:11px;top:17px;width:7px;height:19px;
+  border-radius:50%;background:#ffe0a4;opacity:.32;transform:rotate(12deg);
+}
+.robot-scene .matka-shards i,.robot-scene .matka-shards b,.robot-scene .matka-shards em{
+  width:22px;height:14px;border:1px solid #8e4a24;
+  background:linear-gradient(135deg,#f1bd70,#b66a2c 55%,#713819);
+}
+@media(max-width:420px){.robot-scene .result-matka{width:54px;height:56px;right:6%}.robot-scene .result-matka:before{left:17px;width:18px}.robot-scene .result-matka:after{left:12px;width:28px}}
