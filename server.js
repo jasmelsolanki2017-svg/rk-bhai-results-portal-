@@ -517,6 +517,45 @@ app.get("/api/admin/demo-players", adminOnly, async (req, res) => {
   res.json(rows);
 });
 
+app.get("/api/admin/demo-players/:id/ledger", adminOnly, async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: "Demo User ID सही नहीं है।" });
+  const month = String(req.query.month || "");
+  if (!/^\\d{4}-(0[1-9]|1[0-2])$/.test(month)) return res.status(400).json({ error: "सही महीना चुनें।" });
+  const player = await DemoPlayer.findById(req.params.id).select("name mobile").lean();
+  if (!player) return res.status(404).json({ error: "Demo User नहीं मिला।" });
+  const plays = await DemoPlay.find({ playerId: player._id, playDate: { $regex: "^" + month } }).sort({ playDate: 1, market: 1, createdAt: 1 }).lean();
+  const start = new Date(month + "-01T00:00:00+05:30");
+  const nextMonth = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 1));
+  const transactions = await DemoWalletTransaction.find({ playerId: player._id, createdAt: { $gte: start, $lt: nextMonth } }).sort({ createdAt: 1 }).lean();
+  const marketMap = new Map();
+  const totals = { plays: 0, staked: 0, returned: 0, wins: 0, losses: 0, pending: 0, net: 0 };
+  for (const play of plays) {
+    const marketName = String(play.market || "अन्य");
+    if (!marketMap.has(marketName)) marketMap.set(marketName, { market: marketName, days: new Map(), totals: { plays: 0, staked: 0, returned: 0, wins: 0, losses: 0, pending: 0, net: 0 } });
+    const market = marketMap.get(marketName);
+    if (!market.days.has(play.playDate)) market.days.set(play.playDate, { date: play.playDate, plays: 0, staked: 0, returned: 0, wins: 0, losses: 0, pending: 0, net: 0 });
+    const day = market.days.get(play.playDate);
+    const returned = play.status === "WIN" ? Number(play.points || 0) * (play.playType === "LINE" ? 9.7 : 97) : 0;
+    const loss = play.status === "NO MATCH";
+    for (const row of [day, market.totals, totals]) {
+      row.plays += 1;
+      row.staked += Number(play.points || 0);
+      row.returned += returned;
+      row.wins += play.status === "WIN" ? 1 : 0;
+      row.losses += loss ? 1 : 0;
+      row.pending += play.status === "PENDING" ? 1 : 0;
+      row.net = row.returned - row.staked;
+    }
+  }
+  const dateFormat = value => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(value));
+  const walletTransactions = transactions.map(t => ({ date: dateFormat(t.createdAt), type: t.type, amount: Number(t.amount || 0), reason: t.reason }));
+  res.setHeader("Cache-Control", "no-store").json({
+    ok: true, player, month, totals,
+    markets: [...marketMap.values()].map(m => ({ market: m.market, totals: m.totals, days: [...m.days.values()] })),
+    walletTransactions
+  });
+});
+
 app.post("/api/admin/demo-players/:id/points", adminOnly, async (req, res) => {
   const points = Number(req.body?.points);
   if (!Number.isSafeInteger(points) || points < 1 || points > 1000000) return res.status(400).json({ error: "1 से 10,00,000 तक पूरे Points डालें।" });
