@@ -20,7 +20,7 @@
 <div class="demo-field"><label for="demoMarket">मार्केट चुनें</label><select id="demoMarket"><option value="">मार्केट लोड हो रहे हैं…</option></select></div>
 <div class="demo-field"><label for="demoNumber">अपना नंबर (00–99)</label><input id="demoNumber" inputmode="numeric" maxlength="2" placeholder="जैसे 27" autocomplete="off"></div>
 <div class="demo-field"><label for="demoStake">Virtual Points</label><select id="demoStake"><option value="10">10 Points</option><option value="25">25 Points</option><option value="50">50 Points</option></select></div>
-<div class="demo-field"><label>नियम</label><input value="सही नंबर = 2x Demo Points" readonly></div>
+<div class="demo-field"><label>नियम</label><input value="जीतने पर हर 1 Point के 97 Points" readonly></div>
 </div>
 <div class="demo-actions"><button id="demoPlayButton" type="button">🎮 Demo Play करें</button><button id="demoRefreshButton" class="secondary" type="button">↻ रिजल्ट चेक करें</button><button id="demoResetButton" class="secondary" type="button">रीसेट 500 Points</button></div>
 <p id="demoMessage" class="demo-message" role="status" aria-live="polite"></p>
@@ -61,7 +61,7 @@ async function checkResults(){
    if(!found)continue;
    const matched=pairs(found.resultText).includes(p.number);
    p.status=matched?"WIN":"NO MATCH";p.result=String(found.resultText||"");p.resolvedAt=new Date().toISOString();
-   if(matched)state.balance+=p.points*2;
+   if(matched)state.balance+=p.points*97;
    changed++;
   }
   save();$("demoMessage").textContent=changed?changed+" Demo Play का रिजल्ट अपडेट हुआ।":"अभी आपकी किसी Pending Play का प्रकाशित रिजल्ट नहीं आया है।";
