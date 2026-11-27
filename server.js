@@ -431,7 +431,7 @@ app.post("/api/demo/plays", demoPlayerOnly, async (req, res) => {
     const [yy, mm, dd] = today.split("-").map(Number);
     const dayStart = new Date(Date.UTC(yy, mm - 1, dd) - 330 * 60000);
     const dayEnd = new Date(dayStart.getTime() + 86400000);
-    const escapedMarket = market.replace(/[.*+?^${}()|[\]\\]/g, "\\  if (!setting.enabled) return res.status(403).json({ error: "Demo Game अभी Admin ने बंद किया है।" });");
+    const escapedMarket = market.replace(/[.*+?^${}()|[\\]\\\\]/g, ch => "\\" + ch);
     const published = await Result.exists({ title: { $regex: "^" + escapedMarket + "$", $options: "i" }, published: true, deleted: { $ne: true }, resultDate: { $gte: dayStart, $lt: dayEnd } });
     const locked = !published && (closeAt >= 0 ? currentMinutes >= closeAt : currentMinutes >= closeAt || currentMinutes < rh * 60 + rm);
     if (locked) return res.status(403).json({ error: market + " का रिजल्ट आने से 30 मिनट पहले Play बंद है। रिजल्ट प्रकाशित होते ही यह Market फिर खुल जाएगा।" });
