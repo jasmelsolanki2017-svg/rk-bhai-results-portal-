@@ -171,6 +171,7 @@ DemoWalletTransaction.schema.index({playerId:1,createdAt:-1});
 const DemoGameSetting = mongoose.model("DemoGameSetting",new mongoose.Schema({
  key:{type:String,default:"global",unique:true},enabled:{type:Boolean,default:true},
  minPoints:{type:Number,default:1,min:1,max:1000000},maxPoints:{type:Number,default:1000000,min:1,max:1000000},
+ marketTimes:{type:mongoose.Schema.Types.Mixed,default:{}},
  updatedAt:{type:Date,default:Date.now}
 },{versionKey:false}));
 
@@ -416,6 +417,25 @@ app.post("/api/demo/plays", demoPlayerOnly, async (req, res) => {
   const points = Number(req.body?.points);
   const setting = await DemoGameSetting.findOne({ key: "global" }).lean() || { enabled: true, minPoints: 1, maxPoints: 1000000 };
   if (!setting.enabled) return res.status(403).json({ error: "Demo Game अभी Admin ने बंद किया है।" });
+  // Lock only this market 30 minutes before its configured result time; reopen on today's publication.
+  const marketTimes = setting.marketTimes && typeof setting.marketTimes === "object" ? setting.marketTimes : {};
+  const scheduleKey = Object.keys(marketTimes).find(k => k.trim().toLocaleLowerCase("en") === market.toLocaleLowerCase("en"));
+  const resultTime = scheduleKey ? String(marketTimes[scheduleKey] || "") : "";
+  if (/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(resultTime)) {
+    const now = new Date();
+    const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(now).split(":").map(Number);
+    const currentMinutes = parts[0] * 60 + parts[1];
+    const [rh, rm] = resultTime.split(":").map(Number);
+    const closeAt = rh * 60 + rm - 30;
+    const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+    const [yy, mm, dd] = today.split("-").map(Number);
+    const dayStart = new Date(Date.UTC(yy, mm - 1, dd) - 330 * 60000);
+    const dayEnd = new Date(dayStart.getTime() + 86400000);
+    const escapedMarket = market.replace(/[.*+?^${}()|[\]\\]/g, "\\  if (!setting.enabled) return res.status(403).json({ error: "Demo Game अभी Admin ने बंद किया है।" });");
+    const published = await Result.exists({ title: { $regex: "^" + escapedMarket + "$", $options: "i" }, published: true, deleted: { $ne: true }, resultDate: { $gte: dayStart, $lt: dayEnd } });
+    const locked = !published && (closeAt >= 0 ? currentMinutes >= closeAt : currentMinutes >= closeAt || currentMinutes < rh * 60 + rm);
+    if (locked) return res.status(403).json({ error: market + " का रिजल्ट आने से 30 मिनट पहले Play बंद है। रिजल्ट प्रकाशित होते ही यह Market फिर खुल जाएगा।" });
+  }
   if (market.length < 2 || market.length > 80) return res.status(400).json({ error: "सही मार्केट चुनें।" });
   if (numbers.length + lines.length < 1 || numbers.length + lines.length > 100 || numbers.some(n => !/^\d{2}$/.test(n) || Number(n) > 99) || lines.some(n => !Number.isInteger(n) || n < 1 || n > 9)) return res.status(400).json({ error: "00 से 99 के नंबर या 1 से 9 तक की सही लाइन चुनें।" });
   if (!Number.isSafeInteger(points) || points < Number(setting.minPoints || 1) || points > Number(setting.maxPoints || 1000000)) return res.status(400).json({ error: "हर नंबर/लाइन के Points सीमा " + setting.minPoints + " से " + setting.maxPoints + " के बीच रखें।" });
@@ -503,14 +523,18 @@ app.post("/api/demo/settle", demoPlayerOnly, async (req, res) => {
 
 app.get("/api/admin/demo-game-settings",adminOnly,async(req,res)=>{
  const x=await DemoGameSetting.findOneAndUpdate({key:"global"},{$setOnInsert:{enabled:true,minPoints:1,maxPoints:1000000}},{upsert:true,new:true,setDefaultsOnInsert:true}).lean();
- res.json({enabled:x.enabled,minPoints:x.minPoints,maxPoints:x.maxPoints});
+ res.json({enabled:x.enabled,minPoints:x.minPoints,maxPoints:x.maxPoints,marketTimes:x.marketTimes||{}});
 });
 app.patch("/api/admin/demo-game-settings",adminOnly,async(req,res)=>{
  const enabled=req.body?.enabled,minPoints=Number(req.body?.minPoints),maxPoints=Number(req.body?.maxPoints);
+ const marketTimes=req.body?.marketTimes && typeof req.body.marketTimes==="object" && !Array.isArray(req.body.marketTimes) ? req.body.marketTimes : {};
+ const cleanMarketTimes={};
+ for(const [name,time] of Object.entries(marketTimes)){const key=String(name).trim(),value=String(time||"").trim();if(key.length<2||key.length>80||(value&&!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value)))return res.status(400).json({error:"हर Market का समय HH:MM में सही भरें।"});if(value)cleanMarketTimes[key]=value;}
+
  if(typeof enabled!=="boolean")return res.status(400).json({error:"Game On/Off चुनें।"});
  if(!Number.isSafeInteger(minPoints)||!Number.isSafeInteger(maxPoints)||minPoints<1||maxPoints>1000000||maxPoints<minPoints)return res.status(400).json({error:"Points सीमा सही रखें (1 से 10,00,000)।"});
- const x=await DemoGameSetting.findOneAndUpdate({key:"global"},{$set:{enabled,minPoints,maxPoints,updatedAt:new Date()}},{upsert:true,new:true,setDefaultsOnInsert:true}).lean();
- res.json({ok:true,enabled:x.enabled,minPoints:x.minPoints,maxPoints:x.maxPoints});
+ const x=await DemoGameSetting.findOneAndUpdate({key:"global"},{$set:{enabled,minPoints,maxPoints,marketTimes:cleanMarketTimes,updatedAt:new Date()}},{upsert:true,new:true,setDefaultsOnInsert:true}).lean();
+ res.json({ok:true,enabled:x.enabled,minPoints:x.minPoints,maxPoints:x.maxPoints,marketTimes:x.marketTimes||{}});
 });
 app.get("/api/admin/demo-players", adminOnly, async (req, res) => {
   const rows = await DemoPlayer.find().select("name mobile email status walletPoints createdAt approvedAt").sort({ createdAt: -1 }).lean();
