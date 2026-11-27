@@ -121,7 +121,7 @@ async function loadAutoSyncStatus(){
     aiBox.innerHTML=savedHtml+aiBox.innerHTML;
    }
   }
-  box.innerHTML='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0"><strong style="color:'+color+'">'+esc(labels[data.status]||data.status||"Unknown")+'</strong><span class="muted">Last check: '+esc(when)+'</span></div><p style="margin:6px 0;white-space:pre-wrap">'+esc(data.message||"कोई विवरण नहीं")+'</p><p class="muted" style="margin:4px 0">कुल Source Requests: '+esc(data.attempts??diagnostics.length)+' · हर वेबसाइट की स्थिति नीचे</p>'+buildSourceCityChart(diagnostics)+'<div style="margin-top:8px"><h3 style="font-size:15px;margin:0 0 6px">वेबसाइट की जाँच का विवरण</h3>'+(sourceRows||'<p class="muted">अभी Source-wise विवरण उपलब्ध नहीं है। अगली Sync के बाद दिखेगा।</p>')+'</div>';
+  box.innerHTML='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0"><strong style="color:'+color+'">'+esc(labels[data.status]||data.status||"Unknown")+'</strong><span class="muted">Last check: '+esc(when)+'</span></div><p style="margin:6px 0;white-space:pre-wrap">'+esc(data.message||"कोई विवरण नहीं")+'</p><p class="muted" style="margin:4px 0">कुल Source Requests: '+esc(data.attempts??diagnostics.length)+' · हर वेबसाइट की स्थिति नीचे</p>'+buildSourceCityChart(diagnostics);
  }catch(error){
   box.innerHTML='<span class="muted">अभी sync status उपलब्ध नहीं है। अगली automatic run के बाद यहाँ दिखाई देगा। ('+esc(error.message)+')</span>';
  }
