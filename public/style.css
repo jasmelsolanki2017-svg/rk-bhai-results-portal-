@@ -1199,3 +1199,25 @@ body.theme-light .how-to-use-note{border-color:#e5e7eb}
 @keyframes robotTouchDance{0%,100%{transform:translateY(0) rotate(0) scale(1)}20%{transform:translateY(-13px) rotate(-16deg) scale(1.06)}40%{transform:translateY(0) rotate(16deg) scale(1)}60%{transform:translateY(-13px) rotate(-16deg) scale(1.06)}80%{transform:translateY(0) rotate(16deg) scale(1)}}
 @keyframes robotTouchSpin{0%{transform:rotate(0) scale(1)}50%{transform:rotate(360deg) scale(1.12)}100%{transform:rotate(720deg) scale(1)}}
 @keyframes robotTouchGlow{to{filter:brightness(2.2);box-shadow:0 0 18px #8ef1d2}}
+
+
+/* Robot walks to the result matka, taps it, then returns; it breaks only after a result is published. */
+.next-market-robot.robot-scene{position:relative;display:block;height:126px;min-height:126px;margin:8px 0 0;overflow:hidden;border-radius:12px;background:linear-gradient(180deg,#171d27 0%,#202a31 72%,#3b3020 73%,#251d15 100%)}
+.robot-scene:after{content:"";position:absolute;left:7%;right:7%;bottom:27px;height:2px;background:linear-gradient(90deg,transparent,#b28a46,#b28a46,transparent);opacity:.65}
+.robot-scene .robot-mascot{position:absolute;z-index:2;left:3%;bottom:27px;animation:robotMatkaTrip 5.2s ease-in-out infinite;transform-origin:50% 100%}
+.robot-scene .robot-arm,.robot-scene .robot-leg{animation-duration:.32s}
+.result-matka{position:absolute;z-index:3;right:8%;bottom:29px;width:52px;height:52px;border:2px solid #e8bd70;border-radius:42% 42% 48% 48%/30% 30% 60% 60%;background:linear-gradient(135deg,#e9bd70 0%,#a76528 55%,#6e391d 100%);box-shadow:inset 5px 3px 7px #fff5,inset -5px -4px 8px #3b1c12,0 5px 9px #0008}
+.result-matka:before{content:"";position:absolute;left:12px;top:-8px;width:25px;height:10px;border:2px solid #e8bd70;border-radius:5px 5px 2px 2px;background:linear-gradient(#e9c47c,#89501f)}
+.result-matka:after{content:"";position:absolute;left:18px;top:15px;width:13px;height:13px;border:2px solid #f5d99b;border-radius:50%;opacity:.75}
+.matka-shards{display:none;position:absolute;z-index:4;right:6%;bottom:26px;width:66px;height:27px}
+.matka-shards i,.matka-shards b,.matka-shards em{position:absolute;bottom:0;width:20px;height:10px;background:linear-gradient(135deg,#e9bd70,#88491f);clip-path:polygon(0 0,100% 30%,70% 100%,15% 80%)}
+.matka-shards i{left:0;transform:rotate(-12deg)}.matka-shards b{left:22px;bottom:3px;transform:rotate(18deg)}.matka-shards em{right:0;transform:rotate(-25deg)}
+.robot-scene:not(.matka-result-broken) .result-matka{animation:matkaShakeOnTap 5.2s ease-in-out infinite}
+.robot-scene.matka-result-broken .robot-mascot{animation:none;left:3%;transform:none}
+.robot-scene.matka-result-broken .result-matka{display:none}
+.robot-scene.matka-result-broken .matka-shards{display:block}
+.robot-scene.matka-result-broken .robot-leg,.robot-scene.matka-result-broken .robot-arm{animation:none}
+@keyframes robotMatkaTrip{0%,7%{transform:translateX(0)}34%,40%{transform:translateX(calc(100% + 105px))}47%{transform:translateX(calc(100% + 105px)) rotate(-7deg)}54%{transform:translateX(calc(100% + 105px)) rotate(5deg)}88%,100%{transform:translateX(0)}}
+@keyframes matkaShakeOnTap{0%,35%,100%{transform:translateX(0) rotate(0)}39%{transform:translateX(-3px) rotate(-7deg)}43%{transform:translateX(3px) rotate(7deg)}47%{transform:translateX(-2px) rotate(-4deg)}51%{transform:translateX(0) rotate(0)}}
+@media(max-width:420px){.robot-scene .robot-mascot{left:0;transform-origin:50% 100%}.result-matka{right:6%;width:46px;height:47px}}
+@media(prefers-reduced-motion:reduce){.robot-scene .robot-mascot,.robot-scene .result-matka{animation:none!important}}
