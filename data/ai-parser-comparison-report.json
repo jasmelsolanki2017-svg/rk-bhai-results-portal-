@@ -1,8 +1,8 @@
 {
   "app": "rk-bhai-results-portal",
   "reportType": "ai-parser-independent-comparison",
-  "generatedAt": "2026-11-27T00:28:37.582Z",
-  "syncCheckedAt": "2026-11-27T00:28:35.742Z",
+  "generatedAt": "2026-11-27T00:29:35.516Z",
+  "syncCheckedAt": "2026-11-27T00:29:33.817Z",
   "syncStatus": "success",
   "note": "Comparison only. AI observations are not counted as independent parser domains and do not change the three-domain publication rule.",
   "summary": {
