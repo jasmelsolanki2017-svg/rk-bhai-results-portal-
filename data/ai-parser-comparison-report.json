@@ -1,8 +1,8 @@
 {
   "app": "rk-bhai-results-portal",
   "reportType": "ai-parser-independent-comparison",
-  "generatedAt": "2026-11-27T18:31:37.970Z",
-  "syncCheckedAt": "2026-11-27T18:31:36.250Z",
+  "generatedAt": "2026-11-27T18:32:44.581Z",
+  "syncCheckedAt": "2026-11-27T18:32:42.839Z",
   "syncStatus": "success",
   "note": "Comparison only. AI observations are not counted as independent parser domains and do not change the three-domain publication rule.",
   "summary": {
@@ -24,6 +24,7 @@
       "parserDomains": [
         "satta-superfast.com",
         "www.faridabadlucky.com",
+        "sattaking.live",
         "www.delhilucky.com"
       ],
       "parserObservations": [
@@ -38,6 +39,13 @@
           "value": "66",
           "host": "www.faridabadlucky.com",
           "url": "https://www.faridabadlucky.com/chart/new-disawar/2026-11",
+          "parser": "exact_date_monthly_chart",
+          "pass": "first_check"
+        },
+        {
+          "value": "66",
+          "host": "sattaking.live",
+          "url": "https://sattaking.live/",
           "parser": "exact_date_monthly_chart",
           "pass": "first_check"
         },
