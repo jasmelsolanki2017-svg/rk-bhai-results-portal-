@@ -93,6 +93,11 @@ async function loadMyCity(){
  status.innerHTML="शहर: "+userEsc(city.cityName)+" · स्थिति: "+({pending:"Approval pending",approved:"Approved",rejected:"Rejected",returned:"Admin ने वापस भेजा — नाम edit करें",hidden:"Admin ने hide किया"}[city.status]||city.status)+"<br>परिणाम का समय: "+(city.expectedTime||"समय नहीं दिया गया")+" IST";
  if(city.status==="returned") status.innerHTML+='<form id="cityRenameForm" class="inline-time-form"><label>शहर का नाम सुधारें</label><input name="cityName" minlength="2" maxlength="60" required value="'+userEsc(city.cityName)+'"><label>परिणाम का समय</label><input name="expectedTime" type="time" required value="'+userEsc(city.expectedTime||"")+'"><button type="submit">दोबारा Approval भेजें</button></form>';
  if(city.status==="approved") status.innerHTML+='<form id="cityTimeForm" class="inline-time-form"><label>परिणाम आने का समय बदलें (IST)</label><input name="expectedTime" type="time" required value="'+userEsc(city.expectedTime||"")+'"><button type="submit">समय अपडेट करें</button></form>';
+ const isChandigarhSuperUser=city.status==="approved"&&String(city.cityName).trim().toLowerCase()==="chandigarh city";
+ const reportBox=$("#chandigarhPointsReport"),reportMenu=$("#chandigarhReportMenu");
+ if(reportBox)reportBox.hidden=!isChandigarhSuperUser;
+ if(reportMenu)reportMenu.hidden=!isChandigarhSuperUser;
+ if(isChandigarhSuperUser)await loadChandigarhPointsReport();
  box.hidden=city.status!=="approved";
  if(recordsPanel)recordsPanel.hidden=city.status!=="approved";
  if(city.status==="approved") await loadMyRecords();
@@ -134,6 +139,24 @@ async function loadMyRecords(){
  }).join(""):'<p class="muted my-record-empty">'+empty+'</p>';
  list.innerHTML='<section class="my-record-half"><h3>1–16 तारीख <span>('+firstHalf.length+')</span></h3>'+renderRows(firstHalf,"इस हिस्से में कोई रिकॉर्ड नहीं")+'</section><section class="my-record-half"><h3>17–महीने का आखिरी दिन <span>('+secondHalf.length+')</span></h3>'+renderRows(secondHalf,"इस हिस्से में कोई रिकॉर्ड नहीं")+'</section>';
 }
+
+function indiaTodayKey(){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());}
+async function loadChandigarhPointsReport(){
+ const dateInput=$("#chandigarhReportDate"),status=$("#chandigarhReportStatus"),rows=$("#chandigarhReportRows"),summary=$("#chandigarhReportSummary");
+ if(!dateInput||!status||!rows||!summary)return;
+ if(!dateInput.value)dateInput.value=indiaTodayKey();
+ status.textContent="हिसाब लोड हो रहा है…";rows.innerHTML="";summary.innerHTML="";
+ try{
+  const data=await userApi("/api/user/chandigarh-number-report?date="+encodeURIComponent(dateInput.value));
+  summary.innerHTML='<p><b>कुल Points:</b> '+Number(data.totals?.points||0).toLocaleString("en-IN")+' &nbsp; <b>कुल Plays:</b> '+Number(data.totals?.plays||0).toLocaleString("en-IN")+'</p>';
+  if(!data.numbers?.length){rows.innerHTML='<p class="muted">इस तारीख को कोई Chandigarh City Play नहीं मिली।</p>';}
+  else rows.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="width:100%;border-collapse:collapse"><thead><tr><th>Number / Line</th><th>लगे Points</th><th>Pending Points</th><th>संभावित Return</th><th>Plays</th></tr></thead><tbody>'+data.numbers.map(x=>'<tr><td>'+userEsc(x.label)+'</td><td>'+Number(x.totalPoints||0).toLocaleString("en-IN")+'</td><td>'+Number(x.pendingPoints||0).toLocaleString("en-IN")+'</td><td>'+Number(x.returnPoints||0).toLocaleString("en-IN")+'</td><td>'+Number(x.plays||0)+'</td></tr>').join("")+'</tbody></table></div>';
+  status.textContent="Chandigarh City का हिसाब · "+data.date+" · केवल देखने के लिए";
+ }catch(error){status.textContent=error.message;}
+}
+$("#chandigarhReportRefresh")?.addEventListener("click",loadChandigarhPointsReport);
+$("#chandigarhReportDate")?.addEventListener("change",loadChandigarhPointsReport);
+
 function userEsc(v){return String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 $("#cityForm").addEventListener("submit",async e=>{
  e.preventDefault();const cityName=new FormData(e.target).get("cityName");
