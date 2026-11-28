@@ -638,6 +638,44 @@ app.get("/api/admin/demo-players/:id/ledger", adminOnly, async (req, res) => {
   });
 });
 
+app.get("/api/admin/chandigarh-number-report", adminOnly, async (req, res) => {
+  try {
+    const date = String(req.query.date || new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()));
+    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) return res.status(400).json({ error: "सही तारीख चुनें।" });
+    const plays = await DemoPlay.find({ market: /^Chandigarh City$/i, playDate: date, status: "PENDING" })
+      .select("playerId number playType lineDigit points status")
+      .lean();
+    const grouped = new Map();
+    for (const play of plays) {
+      const number = String(play.number ?? "").trim();
+      if (!number) continue;
+      const points = Number(play.points || 0);
+      const multiplier = play.playType === "LINE" ? 9.7 : 97;
+      if (!grouped.has(number)) grouped.set(number, { number, totalPoints: 0, winningPoints: 0, plays: 0, users: new Set() });
+      const row = grouped.get(number);
+      row.totalPoints += points;
+      row.winningPoints += points * multiplier;
+      row.plays += 1;
+      if (play.playerId) row.users.add(String(play.playerId));
+    }
+    const numbers = [...grouped.values()]
+      .map(row => ({ number: row.number, totalPoints: row.totalPoints, winningPoints: Math.round(row.winningPoints * 100) / 100, plays: row.plays, users: row.users.size }))
+      .sort((a, b) => b.totalPoints - a.totalPoints || a.number.localeCompare(b.number, "en", { numeric: true }));
+    res.setHeader("Cache-Control", "no-store").json({
+      ok: true, market: "Chandigarh City", date, numbers,
+      totals: {
+        numbers: numbers.length,
+        points: numbers.reduce((sum, row) => sum + row.totalPoints, 0),
+        winningPoints: Math.round(numbers.reduce((sum, row) => sum + row.winningPoints, 0) * 100) / 100,
+        plays: numbers.reduce((sum, row) => sum + row.plays, 0)
+      }
+    });
+  } catch (error) {
+    console.error("Chandigarh number report error:", error);
+    res.status(500).json({ error: "Chandigarh City Number Report लोड नहीं हो सकी।" });
+  }
+});
+
 app.get("/api/admin/demo-plays", adminOnly, async (req, res) => {
   const status = String(req.query.status || "PENDING").toUpperCase();
   if (!["PENDING", "ALL"].includes(status)) return res.status(400).json({ error: "सही Play status चुनें।" });
