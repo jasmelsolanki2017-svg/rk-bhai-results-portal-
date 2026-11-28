@@ -48,7 +48,7 @@ function renderWalletTransactions(rows){
   const m=String(x.reason||"").match(/^Demo Play · (.+) · (\d{1,2})$/);
   if(!m){groups.push({rows:[x],market:null});return;}
   const market=m[1],number=Number(m[2]),time=new Date(x.createdAt).getTime();
-  let g=groups.find(z=>z.market===market&&z.type===x.type&&z.amount===Number(x.amount)&&Math.abs(time-z.lastTime)<=5000&&z.numbers.includes(number-1));
+  let g=groups.find(z=>z.market===market&&z.type===x.type&&z.amount===Number(x.amount)&&Math.abs(time-z.lastTime)<=5000&&(z.numbers.includes(number-1)||z.numbers.includes(number+1)));
   if(!g){g={rows:[],market,type:x.type,amount:Number(x.amount),numbers:[],lastTime:time};groups.push(g);}
   g.rows.push(x);g.numbers.push(number);g.lastTime=time;
  });
