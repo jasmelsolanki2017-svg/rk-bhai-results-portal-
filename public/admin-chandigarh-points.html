@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#090909">
+<title>Chandigarh City Number Report · SATTA KING</title><link rel="stylesheet" href="/style.css">
+<style>
+.report-wrap{max-width:1050px;margin:20px auto;padding:0 14px}.report-head,.report-card{background:#151515;border:1px solid #554323;border-radius:14px;padding:16px;margin-bottom:14px}.report-head h1{margin:0 0 8px;color:#f4d58b}.report-controls{display:flex;gap:10px;align-items:end;flex-wrap:wrap}.report-controls label{display:grid;gap:6px;color:#ddd}.report-controls input{padding:11px;border-radius:9px;border:1px solid #66502b;background:#090909;color:#fff}.report-controls button{padding:11px 16px;border:0;border-radius:9px;background:#d6ad55;color:#17110a;font-weight:800}.report-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px}.report-stat{background:#211b11;border:1px solid #4c3b20;border-radius:10px;padding:12px}.report-stat small{display:block;color:#c7b894}.report-stat strong{display:block;color:#ffe3a0;font-size:20px;margin-top:5px}.table-scroll{overflow:auto}table{width:100%;border-collapse:collapse;min-width:620px}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid #393126}th{color:#f4d58b}td{color:#f4f0e8}.rank{font-weight:900;color:#f4d58b}.muted{color:#aaa}.empty{text-align:center;padding:25px;color:#bbb}
+</style>
+</head>
+<body>
+<header class="pro-header"><div class="pro-brand"><div class="brand-mark"><img src="/brand-crown.svg" alt=""></div><div><div class="brand">SATTA <span>KING 👑</span></div><p>CHANDIGARH CITY REPORT</p></div></div><div class="pro-header-right"><a class="pro-nav-link" href="/admin">← Admin Panel</a></div></header>
+<main class="report-wrap">
+<section class="report-head"><h1>📊 Chandigarh City · Number-Wise Points</h1><p class="muted">आज/चुनी गई तारीख के Pending Demo Plays का नंबर के अनुसार कुल हिसाब। सबसे ज्यादा Points वाला नंबर सबसे ऊपर रहेगा।</p>
+<div class="report-controls"><label>तारीख चुनें<input id="reportDate" type="date"></label><button id="refreshReport" type="button">Report Refresh करें</button></div></section>
+<section class="report-card"><div class="report-stats"><div class="report-stat"><small>कुल Numbers</small><strong id="totalNumbers">—</strong></div><div class="report-stat"><small>कुल लगे Points</small><strong id="totalPoints">—</strong></div><div class="report-stat"><small>Winning Return संभावित</small><strong id="totalWinning">—</strong></div><div class="report-stat"><small>कुल Plays</small><strong id="totalPlays">—</strong></div></div></section>
+<section class="report-card"><h2>सबसे ज्यादा से सबसे कम Points</h2><div id="reportStatus" class="muted" role="status">रिपोर्ट लोड हो रही है…</div><div class="table-scroll"><table><thead><tr><th>Rank</th><th>Number</th><th>लगे हुए Points</th><th>Number निकलने पर Winning Points</th><th>Users</th><th>Plays</th></tr></thead><tbody id="reportRows"></tbody></table></div></section>
+<p class="muted">नोट: केवल Pending Chandigarh City Plays शामिल हैं। Winning Return में सामान्य Number के लिए 97x और Line Play के लिए 9.7x की गणना शामिल है। यह केवल Virtual Demo Points का हिसाब है।</p>
+</main>
+<script>
+(function(){
+ const $=id=>document.getElementById(id);
+ const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata"}).format(new Date());
+ $("reportDate").value=today;
+ const fmt=n=>Number(n||0).toLocaleString("en-IN",{maximumFractionDigits:2});
+ async function load(){
+  const date=$("reportDate").value||today;
+  $("reportStatus").textContent="रिपोर्ट लोड हो रही है…";$("reportRows").innerHTML="";
+  try{
+   const res=await fetch("/api/admin/chandigarh-number-report?date="+encodeURIComponent(date),{credentials:"same-origin",cache:"no-store"});
+   const data=await res.json();if(!res.ok||!data.ok)throw new Error(data.error||"रिपोर्ट लोड नहीं हुई।");
+   const t=data.totals||{};
+   $("totalNumbers").textContent=fmt(t.numbers);$("totalPoints").textContent=fmt(t.points);$("totalWinning").textContent=fmt(t.winningPoints);$("totalPlays").textContent=fmt(t.plays);
+   if(!data.numbers?.length){$("reportStatus").textContent="इस तारीख के लिए कोई Pending Chandigarh City Play नहीं है।";return;}
+   $("reportStatus").textContent="तारीख: "+data.date+" · ज्यादा Points से कम Points के क्रम में";
+   $("reportRows").innerHTML=data.numbers.map((x,i)=>"<tr><td class='rank'>"+(i+1)+"</td><td><strong>"+String(x.number).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))+"</strong></td><td>"+fmt(x.totalPoints)+"</td><td>"+fmt(x.winningPoints)+"</td><td>"+fmt(x.users)+"</td><td>"+fmt(x.plays)+"</td></tr>").join("");
+  }catch(e){$("reportStatus").textContent=e.message;$("totalNumbers").textContent="—";$("totalPoints").textContent="—";$("totalWinning").textContent="—";$("totalPlays").textContent="—";}
+ }
+ $("refreshReport").addEventListener("click",load);$("reportDate").addEventListener("change",load);load();
+})();
+</script>
+</body></html>
