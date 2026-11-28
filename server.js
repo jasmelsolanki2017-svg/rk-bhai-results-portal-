@@ -643,6 +643,10 @@ app.get("/api/admin/chandigarh-number-report", adminOnly, async (req, res) => {
   try {
     const date = String(req.query.date || new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()));
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: "सही तारीख चुनें।" });
+    const cityOwner = await City.findOne({ cityName: /^Chandigarh City$/i, status: "approved" }).select("userId cityName").lean();
+    const superUser = cityOwner?.userId
+      ? await User.findById(cityOwner.userId).select("name username").lean()
+      : null;
     const plays = await DemoPlay.find({ market: /^Chandigarh City$/i, playDate: date, status: { $in: ["PENDING", "WIN", "NO MATCH"] } })
       .select("playerId number playType lineDigit points status")
       .lean();
@@ -669,7 +673,9 @@ app.get("/api/admin/chandigarh-number-report", adminOnly, async (req, res) => {
       .map(row => ({ label: row.label, number: row.number, playType: row.playType, totalPoints: row.totalPoints, pendingPoints: row.pendingPoints, winningPoints: Math.round(row.winningPoints * 100) / 100, plays: row.plays, users: row.users.size }))
       .sort((a, b) => b.totalPoints - a.totalPoints || a.label.localeCompare(b.label, "en", { numeric: true }));
     res.setHeader("Cache-Control", "no-store").json({
-      ok: true, market: "Chandigarh City", date, numbers,
+      ok: true, market: "Chandigarh City", date,
+      superUser: superUser ? { name: superUser.name || superUser.username, username: superUser.username } : null,
+      numbers,
       totals: {
         numbers: numbers.length,
         points: numbers.reduce((sum, row) => sum + row.totalPoints, 0),
