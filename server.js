@@ -643,7 +643,7 @@ app.get("/api/admin/chandigarh-number-report", adminOnly, async (req, res) => {
   try {
     const date = String(req.query.date || new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()));
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: "सही तारीख चुनें।" });
-    const plays = await DemoPlay.find({ market: /^Chandigarh City$/i, playDate: date, status: "PENDING" })
+    const plays = await DemoPlay.find({ market: /^Chandigarh City$/i, playDate: date, status: { $in: ["PENDING", "WIN", "NO MATCH"] } })
       .select("playerId number playType lineDigit points status")
       .lean();
     const grouped = new Map();
@@ -657,15 +657,16 @@ app.get("/api/admin/chandigarh-number-report", adminOnly, async (req, res) => {
       const key = isLine ? "LINE:" + lineDigit : "NUMBER:" + number;
       const label = isLine ? "Line " + lineDigit : "Number " + number;
       const multiplier = isLine ? 9.7 : 97;
-      if (!grouped.has(key)) grouped.set(key, { key, label, number: isLine ? String(lineDigit) : number, playType: isLine ? "LINE" : "NUMBER", totalPoints: 0, winningPoints: 0, plays: 0, users: new Set() });
+      if (!grouped.has(key)) grouped.set(key, { key, label, number: isLine ? String(lineDigit) : number, playType: isLine ? "LINE" : "NUMBER", totalPoints: 0, pendingPoints: 0, winningPoints: 0, plays: 0, users: new Set() });
       const row = grouped.get(key);
       row.totalPoints += points;
-      row.winningPoints += points * multiplier;
+      if (play.status === "PENDING") { row.pendingPoints += points; row.winningPoints += points * multiplier; }
+      else if (play.status === "WIN") row.winningPoints += points * multiplier;
       row.plays += 1;
       if (play.playerId) row.users.add(String(play.playerId));
     }
     const numbers = [...grouped.values()]
-      .map(row => ({ label: row.label, number: row.number, playType: row.playType, totalPoints: row.totalPoints, winningPoints: Math.round(row.winningPoints * 100) / 100, plays: row.plays, users: row.users.size }))
+      .map(row => ({ label: row.label, number: row.number, playType: row.playType, totalPoints: row.totalPoints, pendingPoints: row.pendingPoints, winningPoints: Math.round(row.winningPoints * 100) / 100, plays: row.plays, users: row.users.size }))
       .sort((a, b) => b.totalPoints - a.totalPoints || a.label.localeCompare(b.label, "en", { numeric: true }));
     res.setHeader("Cache-Control", "no-store").json({
       ok: true, market: "Chandigarh City", date, numbers,
