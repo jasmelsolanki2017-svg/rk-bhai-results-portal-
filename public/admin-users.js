@@ -11,8 +11,10 @@ function showUserTab(tab){
  $("#portalUsersPanel").hidden=demo;
  $("#portalCityPanel").hidden=demo;
  $("#demoUsersPanel").hidden=!demo;
+ $("#demoQuickMenu").hidden=!demo;
 }
 $("#loadDemoLedger").addEventListener("click",loadDemoLedger);
+$("#demoQuickMenu").querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>$("#demoQuickMenu").open=false));
 $("#loadDemoPlays").addEventListener("click",loadDemoPlays);
 async function loadDemoPlays(){
  const msg=$("#demoPlaysMsg"),out=$("#demoPlaysList"),status=$("#demoPlayStatusFilter").value;
