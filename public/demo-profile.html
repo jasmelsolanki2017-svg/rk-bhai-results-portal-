@@ -82,11 +82,12 @@ function renderWalletTransactions(rows){
   if(!g){g={rows:[],market,kind,type:x.type,amount:Number(x.amount),numbers:[],lastTime:time};groups.push(g);}
   g.rows.push(x);if(number!==null)g.numbers.push(number);g.lastTime=time;
  });
- const receipt=x=>'<details style="margin-top:5px"><summary style="color:#cdb77f;cursor:pointer;font-size:11px">🧾 Receipt देखें</summary><small>Transaction ID: '+esc(x._id||x.id||"—")+'<br>पूरा विवरण: '+esc(x.reason||"—")+'<br>तारीख: '+esc(new Date(x.createdAt).toLocaleString("hi-IN"))+'</small></details>';
+ const cleanReason=x=>String(x.reason||"—").replace(/^Demo Play\\s*·\\s*/i,"");
+ const receipt=x=>'<details style="margin-top:5px"><summary style="color:#cdb77f;cursor:pointer;font-size:11px">🧾 Receipt देखें</summary><small>Transaction ID: '+esc(x._id||x.id||"—")+'<br>पूरा विवरण: '+esc(cleanReason(x))+'<br>तारीख: '+esc(new Date(x.createdAt).toLocaleString("hi-IN"))+'</small></details>';
  const card=g=>{
   const x=g.rows[0],count=g.rows.length,total=g.rows.reduce((n,r)=>n+Number(r.amount||0),0),nums=[...new Set(g.numbers)].sort((a,b)=>a-b),range=nums.length>1?nums[0]+"–"+nums[nums.length-1]:nums.length?String(nums[0]):"";
   const title=g.market?"🎮 "+esc(g.market)+(range?" · "+(g.kind==="LINE"?"Line ":"")+range:""):(x.type==="CREDIT"?"➕ Credit":"➖ Debit");
-  const detail=g.market?(count>1?fmt(x.amount)+" Points × "+count+" = "+fmt(total)+" Points":esc(x.reason)):esc(x.reason);
+  const detail=g.market?(count>1?fmt(x.amount)+" Points × "+count+" = "+fmt(total)+" Points":esc(cleanReason(x))):esc(cleanReason(x));
   return '<article class="item"><div style="min-width:0"><strong>'+title+'</strong><small>'+detail+' · '+new Date(x.createdAt).toLocaleString("hi-IN")+'</small>'+g.rows.map(receipt).join("")+'</div><span class="pill '+(x.type==="CREDIT"?"win":"loss")+'">'+(x.type==="CREDIT"?"+":"−")+fmt(total)+'</span></article>';
  };
  const folders=new Map(),others=[];
