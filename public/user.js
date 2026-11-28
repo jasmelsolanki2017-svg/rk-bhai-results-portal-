@@ -164,10 +164,10 @@ async function loadChandigarhPointsReport(){
    const numberRow=reportRows.find(x=>x.playType==="NUMBER"&&String(x.number||"")===raw);
    const lineRow=reportRows.find(x=>x.playType==="LINE"&&String(x.number||"")===lineDigit);
    const numberStake=Number(numberRow?.totalPoints||0),lineStake=Number(lineRow?.totalPoints||0);
-   const numberReturn=numberStake*97,lineReturn=lineStake*9.7,totalReturn=numberReturn+lineReturn,net=totalReturn-totalPoints;
+   const numberReturn=numberStake*97,lineReturn=lineStake*9.7,totalReturn=numberReturn+lineReturn,net=totalPoints-totalReturn;
    const sign=net>0?"+":net<0?"−":"";
    const color=net>0?"#16803c":net<0?"#d13b35":"inherit";
-   calcResult.innerHTML='<div style="display:grid;gap:7px"><div>Number '+raw+' पर लगे: <b>'+formatPoints(numberStake)+' Points</b> · Return: <b>'+formatPoints(numberReturn)+'</b></div><div>Line '+lineDigit+' पर लगे: <b>'+formatPoints(lineStake)+' Points</b> · Return: <b>'+formatPoints(lineReturn)+'</b></div><div>कुल Return: <b>'+formatPoints(totalReturn)+' Points</b></div><div>कुल लगे Points: <b>'+formatPoints(totalPoints)+' Points</b></div><div style="padding-top:8px;border-top:1px solid var(--border,#777);font-size:18px;color:'+color+'"><b>अंतिम फायदा / नुकसान: '+sign+formatPoints(Math.abs(net))+' Points</b></div></div>';
+   calcResult.innerHTML='<div style="display:grid;gap:7px"><div>Number '+raw+' पर लगे: <b>'+formatPoints(numberStake)+' Points</b> · Return: <b>'+formatPoints(numberReturn)+'</b></div><div>Line '+lineDigit+' पर लगे: <b>'+formatPoints(lineStake)+' Points</b> · Return: <b>'+formatPoints(lineReturn)+'</b></div><div>कुल Return: <b>'+formatPoints(totalReturn)+' Points</b></div><div>कुल लगे Points: <b>'+formatPoints(totalPoints)+' Points</b></div><div style="padding-top:8px;border-top:1px solid var(--border,#777);font-size:18px;color:'+color+'"><b>Super User का फायदा / नुकसान: '+sign+formatPoints(Math.abs(net))+' Points</b></div></div>';
   };
   calcInput.addEventListener("input",calculate);
   status.textContent="Chandigarh City का हिसाब · "+data.date+" · केवल देखने के लिए";
