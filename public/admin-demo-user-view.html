@@ -31,17 +31,18 @@ async function load(){
   const sortedPlays=[...d.plays].sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
   const playGroups=[];
   sortedPlays.forEach(x=>{
-   const time=new Date(x.createdAt).getTime(),key=[x.market,x.status,x.points,x.result||"",x.playType||"NUMBER",x.lineDigit??"",new Date(x.createdAt).toLocaleDateString("en-CA",{timeZone:"Asia/Kolkata"})].join("|");
-   let g=playGroups.find(g=>g.key===key&&Math.abs(time-g.lastTime)<=5000);
-   if(!g){g={key,rows:[],lastTime:time};playGroups.push(g);}
-   g.rows.push(x);g.lastTime=time;
+   const key=[x.market,x.status,x.result||"",new Date(x.createdAt).toLocaleDateString("en-CA",{timeZone:"Asia/Kolkata"})].join("|");
+   let g=playGroups.find(g=>g.key===key);
+   if(!g){g={key,rows:[]};playGroups.push(g);}
+   g.rows.push(x);
   });
   playGroups.sort((a,b)=>new Date(b.rows[0].createdAt)-new Date(a.rows[0].createdAt));
   $("#playCount").textContent="("+d.plays.length+" Plays · "+playGroups.length+" Groups)";
   $("#plays").innerHTML=playGroups.map(g=>{
    const first=g.rows[0],count=g.rows.length,total=g.rows.reduce((sum,x)=>sum+Number(x.points||0),0);
    const numbers=[...new Set(g.rows.map(x=>String(x.number??"").trim()).filter(Boolean))].sort((a,b)=>Number(a)-Number(b));
-   const numberLabel=first.playType==="LINE"?"Line "+first.lineDigit:numbers.join(", ");
+   const numberLabel=g.rows.map(x=>(x.playType==="LINE"?"Line "+x.lineDigit:String(x.number))+" ("+money(x.points)+")").join(", ");
+   const stake=money(total);
    const stake=count>1?money(first.points)+" × "+count+" = "+money(total):money(total);
    return '<tr><td>'+esc(date(first.createdAt))+'</td><td>'+esc(first.market)+'</td><td>'+esc(numberLabel)+'</td><td>'+stake+' Demo Points</td><td>'+esc(first.status)+'</td></tr>';
   }).join("")||'<tr><td colspan="5">कोई Play नहीं मिली।</td></tr>';
