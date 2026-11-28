@@ -155,7 +155,7 @@ function localDateKey(value){const d=new Date(value);if(Number.isNaN(d.getTime()
 function groupedPlayRows(rows){
  const batches=new Map();
  [...rows].sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt)).forEach(row=>{
-  const key=[row.market,row.status,localDateKey(row.createdAt)].join("|");
+  const key=[row.market,row.status,row.playType||"NUMBER",localDateKey(row.createdAt)].join("|");
   if(!batches.has(key))batches.set(key,[]);
   batches.get(key).push(row);
  });
