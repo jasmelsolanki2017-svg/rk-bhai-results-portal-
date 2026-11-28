@@ -160,9 +160,9 @@ function groupedPlayRows(rows){
  batches.forEach(batch=>{
   const numeric=batch.rows.filter(r=>r.playType!=="LINE"&&/^\d{1,2}$/.test(String(r.number??"").trim())).sort((a,b)=>Number(a.number)-Number(b.number));
   const other=batch.rows.filter(r=>r.playType==="LINE"||!/^\d{1,2}$/.test(String(r.number??"").trim()));
-  let run=[];
-  const flush=()=>{if(!run.length)return;output.push({rows:run,first:run[0],from:Number(run[0].number),to:Number(run[run.length-1].number)});run=[];};
-  numeric.forEach(r=>{if(run.length&&Number(r.number)!==Number(run[run.length-1].number)+1)flush();run.push(r);});flush();
+  // एक ही User, Market, तारीख, Status और Points की एक batch के सभी अलग-अलग नंबर साथ दिखाएँ।
+  numeric.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  if(numeric.length)output.push({rows:numeric,first:numeric[0],from:null,to:null});
   other.forEach(r=>output.push({rows:[r],first:r,from:null,to:null}));
  });
  return output.sort((a,b)=>new Date(b.first.createdAt)-new Date(a.first.createdAt));
@@ -175,7 +175,7 @@ function renderPlayHistory(){
  $("history").innerHTML=[...markets.entries()].sort((a,b)=>a[0].localeCompare(b[0],"hi")).map(([market,items])=>{
   const playCount=items.reduce((n,g)=>n+g.rows.length,0),points=items.reduce((n,g)=>n+g.rows.reduce((v,r)=>v+Number(r.points||0),0),0);
   const cards=items.map(g=>{
-   const x=g.first,count=g.rows.length,total=g.rows.reduce((sum,r)=>sum+Number(r.points||0),0),range=count>1&&g.from!==null?g.from+"–"+g.to:(x.playType==="LINE"?"Line "+x.lineDigit:String(x.number)),time=new Date(x.createdAt).toLocaleString("en-IN");
+   const x=g.first,count=g.rows.length,total=g.rows.reduce((sum,r)=>sum+Number(r.points||0),0),numbers=[...new Set(g.rows.map(r=>String(r.number??"").trim()).filter(Boolean))],range=x.playType==="LINE"?"Line "+x.lineDigit:(count>1?numbers.join(", "):String(x.number)),time=new Date(x.createdAt).toLocaleString("en-IN");
    const amount=count>1?fmt(x.points)+" Points × "+count+" = "+fmt(total)+" Demo Points":fmt(x.points)+" Demo Points";
    return '<article class="item"><div><strong>'+esc(market)+' · '+esc(range)+'</strong><small>'+time+' · '+amount+(x.result?' · Result: '+esc(x.result):"")+'</small></div><span class="pill '+(x.status==="WIN"?"win":x.status==="NO MATCH"?"loss":"") +'">'+(x.status==="WIN"?"जीत · +"+fmt(total*(x.playType==="LINE"?9.7:97)):x.status==="NO MATCH"?"मैच नहीं":x.status==="NOT OK"?"Not OK · Points वापस":"Pending")+'</span></article>';
   }).join("");
