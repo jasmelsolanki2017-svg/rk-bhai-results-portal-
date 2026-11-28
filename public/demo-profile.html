@@ -104,7 +104,7 @@ function renderWalletTransactions(rows){
 function renderActivePlays(rows){
  const pending=rows.filter(x=>x.status==="PENDING");
  $("activeCount").textContent=String(pending.length);
- $("activePlays").innerHTML=pending.length?pending.map(x=>'<article class="item"><div><strong>'+esc(x.market)+' · '+esc(x.number)+'</strong><small>'+fmt(x.points)+' Demo Points · '+new Date(x.createdAt).toLocaleString("hi-IN")+'</small></div><span class="pill">Pending</span></article>').join(""):'<p class="empty">अभी कोई Active Play नहीं है।</p>';
+ $("activePlays").innerHTML=pending.length?pending.map(x=>'<article class="item"><div><strong>'+esc(x.market)+' · '+esc(x.playType==="LINE"?"Line "+x.lineDigit:x.number)+'</strong><small>'+fmt(x.points)+' Demo Points · '+new Date(x.createdAt).toLocaleString("hi-IN")+'</small></div><span class="pill">Pending</span></article>').join(""):'<p class="empty">अभी कोई Active Play नहीं है।</p>';
 }
 function renderMarketSummary(rows){
  const today=localDateKey(Date.now()),map=new Map();
@@ -150,15 +150,15 @@ function groupedPlayRows(rows){
  const batches=[];
  sorted.forEach(row=>{
   const num=String(row.number??"").trim(),ts=new Date(row.createdAt).getTime();
-  const key=[row.market,row.status,row.points,row.result||"",localDateKey(row.createdAt)].join("|");
+  const key=[row.market,row.status,row.points,row.result||"",row.playType||"NUMBER",row.lineDigit??"",localDateKey(row.createdAt)].join("|");
   let batch=batches.find(b=>b.key===key&&Math.abs(ts-b.lastTime)<=5000);
   if(!batch){batch={key,rows:[],lastTime:ts};batches.push(batch);}
   batch.rows.push(row);batch.lastTime=ts;
  });
  const output=[];
  batches.forEach(batch=>{
-  const numeric=batch.rows.filter(r=>/^\d{1,2}$/.test(String(r.number??"").trim())).sort((a,b)=>Number(a.number)-Number(b.number));
-  const other=batch.rows.filter(r=>!/^\d{1,2}$/.test(String(r.number??"").trim()));
+  const numeric=batch.rows.filter(r=>r.playType!=="LINE"&&/^\d{1,2}$/.test(String(r.number??"").trim())).sort((a,b)=>Number(a.number)-Number(b.number));
+  const other=batch.rows.filter(r=>r.playType==="LINE"||!/^\d{1,2}$/.test(String(r.number??"").trim()));
   let run=[];
   const flush=()=>{if(!run.length)return;output.push({rows:run,first:run[0],from:Number(run[0].number),to:Number(run[run.length-1].number)});run=[];};
   numeric.forEach(r=>{if(run.length&&Number(r.number)!==Number(run[run.length-1].number)+1)flush();run.push(r);});flush();
@@ -174,9 +174,9 @@ function renderPlayHistory(){
  $("history").innerHTML=[...markets.entries()].sort((a,b)=>a[0].localeCompare(b[0],"hi")).map(([market,items])=>{
   const playCount=items.reduce((n,g)=>n+g.rows.length,0),points=items.reduce((n,g)=>n+g.rows.reduce((v,r)=>v+Number(r.points||0),0),0);
   const cards=items.map(g=>{
-   const x=g.first,count=g.rows.length,total=g.rows.reduce((sum,r)=>sum+Number(r.points||0),0),range=count>1&&g.from!==null?g.from+"–"+g.to:String(x.number),time=new Date(x.createdAt).toLocaleString("en-IN");
+   const x=g.first,count=g.rows.length,total=g.rows.reduce((sum,r)=>sum+Number(r.points||0),0),range=count>1&&g.from!==null?g.from+"–"+g.to:(x.playType==="LINE"?"Line "+x.lineDigit:String(x.number)),time=new Date(x.createdAt).toLocaleString("en-IN");
    const amount=count>1?fmt(x.points)+" Points × "+count+" = "+fmt(total)+" Demo Points":fmt(x.points)+" Demo Points";
-   return '<article class="item"><div><strong>'+esc(market)+' · '+esc(range)+'</strong><small>'+time+' · '+amount+(x.result?' · Result: '+esc(x.result):"")+'</small></div><span class="pill '+(x.status==="WIN"?"win":x.status==="NO MATCH"?"loss":"") +'">'+(x.status==="WIN"?"जीत · +"+fmt(total*97):x.status==="NO MATCH"?"मैच नहीं":"Pending")+'</span></article>';
+   return '<article class="item"><div><strong>'+esc(market)+' · '+esc(range)+'</strong><small>'+time+' · '+amount+(x.result?' · Result: '+esc(x.result):"")+'</small></div><span class="pill '+(x.status==="WIN"?"win":x.status==="NO MATCH"?"loss":"") +'">'+(x.status==="WIN"?"जीत · +"+fmt(total*(x.playType==="LINE"?9.7:97)):x.status==="NO MATCH"?"मैच नहीं":"Pending")+'</span></article>';
   }).join("");
   return '<details class="panel" style="padding:10px;margin-bottom:8px"><summary style="color:#f4d58b;font-weight:900;cursor:pointer;padding:5px">📁 '+esc(market)+' <span class="pill">'+playCount+' Plays · '+fmt(points)+' Points</span></summary><div class="history" style="margin-top:10px">'+cards+'</div></details>';
  }).join("");
