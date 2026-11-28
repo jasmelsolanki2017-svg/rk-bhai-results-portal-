@@ -3,7 +3,7 @@ async function api(url,opts={}){const r=await fetch(url,{credentials:"same-origi
 function esc(v){return String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 function show(on){$("#loginBox").hidden=on;$("#managePanel").hidden=!on;}
 function applyDemoPage(){
- const page=new URLSearchParams(location.search).get("demoPage")||"home";
+ const page=new URLSearchParams(location.search).get("demoPage")||({"/admin-demo-all-users.html":"all","/admin-demo-plays.html":"plays","/admin-demo-ledger.html":"ledger","/admin-demo-approval.html":"approval"}[location.pathname]||"home");
  const sections={all:["demoAllUsers"],plays:["demoNotOkPanel"],ledger:["demoLedgerPanel"],approval:["demoAllUsers"]};
  const titles={all:"👥 All Demo Users",plays:"🛑 Demo Plays / Not OK",ledger:"📅 User-wise हिसाब",approval:"✅ Demo User Approval & Wallet"};
  const allowed=sections[page];
@@ -163,4 +163,4 @@ document.addEventListener("click",async e=>{
   await refresh();
  }catch(err){alert(err.message);}
 });
-(async()=>{try{await api("/api/admin/session");show(true);showUserTab(location.hash==="#demo-users"?"demo":"portal");applyDemoPage();await refresh();}catch{show(false);}})();
+(async()=>{try{await api("/api/admin/session");show(true);const isDemoPage=location.pathname.startsWith("/admin-demo-")||location.hash==="#demo-users";showUserTab(isDemoPage?"demo":"portal");applyDemoPage();await refresh();}catch{show(false);}})();
