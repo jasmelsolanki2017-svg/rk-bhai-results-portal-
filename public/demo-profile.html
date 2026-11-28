@@ -103,9 +103,15 @@ function renderWalletTransactions(rows){
  return html.join("")||'<p class="empty">इस फ़िल्टर में कोई Transaction नहीं मिला।</p>';
 }
 function renderActivePlays(rows){
- const pending=rows.filter(x=>x.status==="PENDING");
+ const pending=rows.filter(x=>x.status==="PENDING"),groups=groupedPlayRows(pending);
  $("activeCount").textContent=String(pending.length);
- $("activePlays").innerHTML=pending.length?pending.map(x=>'<article class="item"><div><strong>'+esc(x.market)+' · '+esc(x.playType==="LINE"?"Line "+x.lineDigit:x.number)+'</strong><small>'+fmt(x.points)+' Demo Points · '+new Date(x.createdAt).toLocaleString("hi-IN")+'</small></div><span class="pill">Pending</span></article>').join(""):'<p class="empty">अभी कोई Active Play नहीं है।</p>';
+ $("activePlays").innerHTML=groups.length?groups.map(g=>{
+  const x=g.first,count=g.rows.length,total=g.rows.reduce((sum,r)=>sum+Number(r.points||0),0);
+  const numbers=[...new Set(g.rows.map(r=>String(r.number??"").trim()).filter(Boolean))];
+  const label=x.playType==="LINE"?"Line "+x.lineDigit:(count>1?numbers.join(", "):String(x.number));
+  const points=count>1?fmt(x.points)+" × "+count+" = "+fmt(total):fmt(total);
+  return '<article class="item"><div><strong>'+esc(x.market)+' · '+esc(label)+'</strong><small>'+points+' Demo Points · '+new Date(x.createdAt).toLocaleString("hi-IN")+'</small></div><span class="pill">Pending · '+count+' Plays</span></article>';
+ }).join(""):'<p class="empty">अभी कोई Active Play नहीं है।</p>';
 }
 function renderMarketSummary(rows){
  const today=localDateKey(Date.now()),map=new Map();
