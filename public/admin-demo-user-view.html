@@ -41,7 +41,7 @@ async function load(){
   $("#plays").innerHTML=playGroups.map(g=>{
    const first=g.rows[0],count=g.rows.length,total=g.rows.reduce((sum,x)=>sum+Number(x.points||0),0);
    const numbers=[...new Set(g.rows.map(x=>String(x.number??"").trim()).filter(Boolean))].sort((a,b)=>Number(a)-Number(b));
-   const numberLabel=g.rows.map(x=>x.playType==="LINE"?"Line "+x.lineDigit:String(x.number)).join(", ")+" — "+g.rows.map(x=>money(x.points)).join("-")+" Points";
+   const byNumber=new Map();g.rows.forEach(x=>{const label=x.playType==="LINE"?"Line "+x.lineDigit:String(x.number);byNumber.set(label,(byNumber.get(label)||0)+Number(x.points||0));});const numberLabel=[...byNumber.keys()].join(", ")+" — "+[...byNumber.values()].map(money).join("-")+" Points";
    const stake=money(total);
    const stake=count>1?money(first.points)+" × "+count+" = "+money(total):money(total);
    return '<tr><td>'+esc(date(first.createdAt))+'</td><td>'+esc(first.market)+'</td><td>'+esc(numberLabel)+'</td><td>'+stake+' Demo Points</td><td>'+esc(first.status)+'</td></tr>';
