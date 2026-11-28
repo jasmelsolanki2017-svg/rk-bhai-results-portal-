@@ -56,7 +56,7 @@ function render(){
  const rows=(state.plays||[]).filter(p=>localDateKey(p.createdAt)===date);
  const batches=new Map();
  [...rows].sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt)).forEach(p=>{
-  const key=[p.market,p.status,localDateKey(p.createdAt)].join("|");
+  const key=[p.market,p.status,p.playType||"NUMBER",localDateKey(p.createdAt)].join("|");
   if(!batches.has(key))batches.set(key,[]);
   batches.get(key).push(p);
  });
