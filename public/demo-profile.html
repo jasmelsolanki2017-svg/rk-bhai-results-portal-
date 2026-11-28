@@ -43,22 +43,32 @@ $("message").textContent="Profile और Wallet Server से अपडेट �
 }catch(e){$("message").textContent=e.message;if(/approved|session|login/i.test(e.message)){sessionStorage.removeItem(key);location.replace("./demo-play.html?expired=1");}}}
 document.querySelectorAll(".profile-tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".profile-tab").forEach(x=>x.classList.toggle("active",x===btn));document.querySelectorAll(".tab-panel").forEach(x=>x.classList.toggle("active",x.id==="tab-"+btn.dataset.tab));}));
 function renderWalletTransactions(rows){
- const sorted=[...rows].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)),groups=[];
- sorted.forEach(x=>{
-  const m=String(x.reason||"").match(/^Demo Play · (.+) · (\d{1,2})$/);
-  if(!m){groups.push({rows:[x],market:null});return;}
-  const market=m[1],number=Number(m[2]),time=new Date(x.createdAt).getTime();
-  let g=groups.find(z=>z.market===market&&z.type===x.type&&z.amount===Number(x.amount)&&Math.abs(time-z.lastTime)<=5000&&(z.numbers.includes(number-1)||z.numbers.includes(number+1)));
+ const marketNames=[...new Set((window.demoPlayRows||[]).map(p=>String(p.market||"").trim()).filter(Boolean))].sort((a,b)=>b.length-a.length);
+ const groups=[];
+ [...rows].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).forEach(x=>{
+  const reason=String(x.reason||"");
+  const market=marketNames.find(m=>reason.includes("· "+m+" ·"))||null;
+  const tail=market?reason.split("· "+market+" ·")[1]:"";
+  const numberMatch=tail.match(/(?:Line\\s+)?(\\d{1,2})\\s*$/);
+  const number=numberMatch?Number(numberMatch[1]):null;
+  const time=new Date(x.createdAt).getTime();
+  let g=market&&number!==null?groups.find(z=>z.market===market&&z.type===x.type&&z.amount===Number(x.amount)&&Math.abs(time-z.lastTime)<=5000&&(z.numbers.includes(number-1)||z.numbers.includes(number+1))):null;
   if(!g){g={rows:[],market,type:x.type,amount:Number(x.amount),numbers:[],lastTime:time};groups.push(g);}
-  g.rows.push(x);g.numbers.push(number);g.lastTime=time;
+  g.rows.push(x);if(number!==null)g.numbers.push(number);g.lastTime=time;
  });
- return groups.map(g=>{
-  const x=g.rows[0],count=g.rows.length,total=g.rows.reduce((n,r)=>n+Number(r.amount||0),0);
-  const numbers=[...(g.numbers||[])].sort((a,b)=>a-b),range=numbers.length>1?numbers[0]+"–"+numbers[numbers.length-1]:null;
-  const title=g.market?"🎮 "+esc(g.market)+" · "+(range||numbers[0]):(x.type==="CREDIT"?"➕ Credit":"➖ Debit");
+ const card=g=>{
+  const x=g.rows[0],count=g.rows.length,total=g.rows.reduce((n,r)=>n+Number(r.amount||0),0),nums=[...g.numbers].sort((a,b)=>a-b);
+  const range=nums.length>1?nums[0]+"–"+nums[nums.length-1]:nums.length?String(nums[0]):"";
+  const title=g.market?"🎮 "+esc(g.market)+" · "+range:(x.type==="CREDIT"?"➕ Credit":"➖ Debit");
   const detail=g.market?(count>1?fmt(x.amount)+" Points × "+count+" = "+fmt(total)+" Points":esc(x.reason)):esc(x.reason);
   return '<article class="item"><div><strong>'+title+'</strong><small>'+detail+' · '+new Date(x.createdAt).toLocaleString("hi-IN")+'</small></div><span class="pill '+(x.type==="CREDIT"?"win":"loss")+'">'+(x.type==="CREDIT"?"+":"−")+fmt(total)+'</span></article>';
- }).join("")||'<p class="empty">अभी कोई Transaction नहीं है।</p>';
+ };
+ const folders=new Map(),others=[];
+ groups.forEach(g=>{if(g.market){if(!folders.has(g.market))folders.set(g.market,[]);folders.get(g.market).push(g);}else others.push(g);});
+ const html=[];
+ if(others.length)html.push(others.map(card).join(""));
+ [...folders.keys()].sort().forEach(m=>{const items=folders.get(m);html.push('<details class="panel" style="padding:10px;margin-bottom:8px"><summary style="color:#f4d58b;font-weight:900;cursor:pointer;padding:5px">📁 '+esc(m)+' <span class="pill">'+items.reduce((n,g)=>n+g.rows.length,0)+' Transactions</span></summary><div class="history" style="margin-top:10px">'+items.map(card).join("")+'</div></details>');});
+ return html.join("")||'<p class="empty">अभी कोई Transaction नहीं है।</p>';
 }
 function localDateKey(value){const d=new Date(value);if(Number.isNaN(d.getTime()))return "";return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 function groupedPlayRows(rows){
