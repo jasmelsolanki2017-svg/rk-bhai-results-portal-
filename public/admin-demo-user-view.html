@@ -31,7 +31,7 @@ async function load(){
   $("#playCount").textContent="("+d.plays.length+" हाल की)";
   $("#plays").innerHTML=d.plays.map(x=>'<tr><td>'+esc(date(x.createdAt))+'</td><td>'+esc(x.market)+'</td><td>'+esc(x.playType==="LINE"?"Line "+x.lineDigit:x.number)+'</td><td>'+money(x.points)+'</td><td>'+esc(x.status)+'</td></tr>').join("")||'<tr><td colspan="5">कोई Play नहीं मिली।</td></tr>';
   $("#txCount").textContent="("+d.transactions.length+" हाल के)";
-  $("#transactions").innerHTML=d.transactions.map(x=>'<tr><td>'+esc(date(x.createdAt))+'</td><td>'+esc(String(x.reason||"—").replace(/^Demo Play\\s*·\\s*/i,""))+'</td><td>'+esc(x.type)+'</td><td>'+(x.type==="CREDIT"?"+":"−")+money(x.amount)+'</td></tr>').join("")||'<tr><td colspan="4">कोई Wallet Transaction नहीं मिली।</td></tr>';
+  $("#transactions").innerHTML=d.transactions.map(x=>'<tr><td>'+esc(date(x.createdAt))+'</td><td>'+esc(String(x.reason||"—").replace(/^Demo Play\s*·\s*/i,""))+'</td><td>'+esc(x.type)+'</td><td>'+(x.type==="CREDIT"?"+":"−")+money(x.amount)+'</td></tr>').join("")||'<tr><td colspan="4">कोई Wallet Transaction नहीं मिली।</td></tr>';
   $("#redeemCount").textContent="("+d.redeemRequests.length+")";
   $("#redeems").innerHTML=d.redeemRequests.map(x=>'<tr><td>'+esc(date(x.createdAt))+'</td><td>'+money(x.points)+'</td><td>'+esc(x.status)+'</td><td>'+esc(x.adminNote||"—")+'</td></tr>').join("")||'<tr><td colspan="4">कोई Redeem Request नहीं है।</td></tr>';
   $("#status").hidden=true;$("#account").hidden=false;
