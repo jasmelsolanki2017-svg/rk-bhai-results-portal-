@@ -31,7 +31,7 @@ async function load(){
   const sortedPlays=[...d.plays].sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
   const playGroups=[];
   sortedPlays.forEach(x=>{
-   const key=[x.market,x.status,x.result||"",new Date(x.createdAt).toLocaleDateString("en-CA",{timeZone:"Asia/Kolkata"})].join("|");
+   const key=[x.market,x.status,x.result||"",x.playType||"NUMBER",new Date(x.createdAt).toLocaleDateString("en-CA",{timeZone:"Asia/Kolkata"})].join("|");
    let g=playGroups.find(g=>g.key===key);
    if(!g){g={key,rows:[]};playGroups.push(g);}
    g.rows.push(x);
