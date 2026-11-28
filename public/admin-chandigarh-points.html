@@ -11,7 +11,7 @@
 <header class="pro-header"><div class="pro-brand"><div class="brand-mark"><img src="/brand-crown.svg" alt=""></div><div><div class="brand">SATTA <span>KING 👑</span></div><p>CHANDIGARH CITY REPORT</p></div></div><div class="pro-header-right"><a class="pro-nav-link" href="/admin">← Admin Panel</a></div></header>
 <main class="report-wrap">
 <section class="report-head"><h1>📊 Chandigarh City · Number-Wise Points</h1><p class="muted">चुनी गई तारीख के Chandigarh City Plays का कुल हिसाब। सबसे ज्यादा लगाए गए Points वाला नंबर सबसे ऊपर रहेगा। Not OK करके Refund किए गए Plays शामिल नहीं होंगे।</p>
-<div class="report-controls"><label>तारीख चुनें<input id="reportDate" type="date"></label><button id="refreshReport" type="button">Report Refresh करें</button></div></section>
+<p id="superUserInfo" class="muted">Super User: जानकारी लोड हो रही है…</p><div class="report-controls"><label>तारीख चुनें<input id="reportDate" type="date"></label><button id="refreshReport" type="button">Report Refresh करें</button></div></section>
 <section class="report-card"><div class="report-stats"><div class="report-stat"><small>कुल Numbers</small><strong id="totalNumbers">—</strong></div><div class="report-stat"><small>कुल लगे Points</small><strong id="totalPoints">—</strong></div><div class="report-stat"><small>Winning / संभावित Return</small><strong id="totalWinning">—</strong></div><div class="report-stat"><small>कुल Plays</small><strong id="totalPlays">—</strong></div></div></section>
 <section class="report-card"><h2>सबसे ज्यादा से सबसे कम Points</h2><div id="reportStatus" class="muted" role="status">रिपोर्ट लोड हो रही है…</div><div class="table-scroll"><table><thead><tr><th>Rank</th><th>Number / Line</th><th>कुल लगे Points</th><th>Pending Points</th><th>Winning / संभावित Return</th><th>Users</th><th>Plays</th></tr></thead><tbody id="reportRows"></tbody></table></div></section>
 <p class="muted">नोट: कुल Points में Pending, WIN और NO MATCH Plays शामिल हैं; Not OK/Refund Plays हटाए गए हैं। Winning / संभावित Return में WIN का वास्तविक Return और Pending का संभावित Return जोड़ा गया है। सामान्य Number 97x और Line 9.7x है। यह केवल Virtual Demo Points का हिसाब है।</p>
@@ -29,6 +29,9 @@
    const res=await fetch("/api/admin/chandigarh-number-report?date="+encodeURIComponent(date),{credentials:"same-origin",cache:"no-store"});
    const data=await res.json();if(!res.ok||!data.ok)throw new Error(data.error||"रिपोर्ट लोड नहीं हुई।");
    const t=data.totals||{};
+   $("superUserInfo").textContent=data.superUser
+    ? "Chandigarh City Super User: "+String(data.superUser.name||data.superUser.username)+" (@"+String(data.superUser.username)+") · इस Market का Demo Points हिसाब अलग"
+    : "Chandigarh City Super User: अभी City assignment record नहीं मिला। Admin Panel में assignment जाँचें।";
    $("totalNumbers").textContent=fmt(t.numbers);$("totalPoints").textContent=fmt(t.points);$("totalWinning").textContent=fmt(t.winningPoints);$("totalPlays").textContent=fmt(t.plays);
    if(!data.numbers?.length){$("reportStatus").textContent="इस तारीख के लिए कोई Chandigarh City Play नहीं है।";return;}
    $("reportStatus").textContent="तारीख: "+data.date+" · ज्यादा Points से कम Points के क्रम में";
