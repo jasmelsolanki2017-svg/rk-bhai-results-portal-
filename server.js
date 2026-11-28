@@ -644,13 +644,13 @@ app.get("/api/user/chandigarh-number-report", userOnly, async (req, res) => {
     const city = await City.findOne({ userId: req.portalUserId, cityName: /^Chandigarh City$/i, status: "approved" }).select("_id cityName").lean();
     if (!city) return res.status(403).json({ error: "यह रिपोर्ट केवल Chandigarh City के assigned Super User के लिए है।" });
     const date = String(req.query.date || new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()));
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) return res.status(400).json({ error: "सही तारीख चुनें।" });
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: "सही तारीख चुनें।" });
     const plays = await DemoPlay.find({ market: /^Chandigarh City$/i, playDate: date, status: { $in: ["PENDING", "WIN", "NO MATCH"] } }).select("number playType lineDigit points status").lean();
     const grouped = new Map();
     for (const play of plays) {
       const isLine = play.playType === "LINE", number = String(play.number ?? "").trim(), digit = Number(play.lineDigit);
       if (isLine && (!Number.isInteger(digit) || digit < 0 || digit > 9)) continue;
-      if (!isLine && !/^\\d{2}$/.test(number)) continue;
+      if (!isLine && !/^\d{2}$/.test(number)) continue;
       const points = Number(play.points || 0), key = isLine ? "LINE:" + digit : "NUMBER:" + number;
       const label = isLine ? "Line " + digit : "Number " + number, multiplier = isLine ? 9.7 : 97;
       if (!grouped.has(key)) grouped.set(key, { label, number: isLine ? String(digit) : number, playType: isLine ? "LINE" : "NUMBER", totalPoints: 0, pendingPoints: 0, returnPoints: 0, plays: 0 });
