@@ -36,40 +36,20 @@ async function loadDemoPlays(){
   const plays=userId?allPlays.filter(p=>String(p.playerId?._id||"")===String(userId)):allPlays;
   const userLabel=userId?($("#demoPlayUserFilter").selectedOptions[0]?.textContent||"चुना हुआ User"):"सभी Demo Users";
   msg.textContent=userLabel+" · कुल "+plays.length+" हाल की Plays";
-  const sorted=[...plays].sort((a,b)=>{
-   const user=String(a.playerId?._id||"").localeCompare(String(b.playerId?._id||""));
-   if(user)return user;
-   const market=String(a.market||"").localeCompare(String(b.market||""));
-   if(market)return market;
-   const date=String(a.playDate||"").localeCompare(String(b.playDate||""));
-   if(date)return date;
-   return new Date(a.createdAt)-new Date(b.createdAt)||Number(a.number||0)-Number(b.number||0);
+  const batches=new Map();
+  [...plays].sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt)).forEach(p=>{
+   const key=[p.playerId?._id||"",p.market,p.playDate,p.status].join("|");
+   if(!batches.has(key))batches.set(key,[]);
+   batches.get(key).push(p);
   });
-  const batches=[];
-  sorted.forEach(p=>{
-   const batchKey=[p.playerId?._id||"",p.market,p.playDate,p.status,p.points,p.playType||"NUMBER",p.lineDigit??""].join("|");
-   let batch=batches.find(x=>x.key===batchKey);
-   if(!batch){batch={key:batchKey,rows:[]};batches.push(batch);}
-   batch.rows.push(p);
-  });
-  const cards=[];
-  batches.forEach(batch=>{
-   const rows=batch.rows.sort((a,b)=>Number(a.number)-Number(b.number));
-   let groups=[];
-   rows.forEach(p=>{
-    const n=Number(p.number),last=groups[groups.length-1];
-    if(last&&p.playType!=="LINE"&&last.playType!=="LINE"&&n===last.to+1){last.to=n;last.rows.push(p);}
-    else groups.push({from:n,to:n,playType:p.playType||"NUMBER",lineDigit:p.lineDigit,rows:[p]});
-   });
-   groups.forEach(g=>{
-    const first=g.rows[0],count=g.rows.length,total=g.rows.reduce((s,p)=>s+Number(p.points||0),0);
-    const range=g.playType==="LINE"?"Line "+g.lineDigit:(count>1?String(g.from).padStart(2,"0")+"-"+String(g.to).padStart(2,"0"):"Number "+String(g.from).padStart(2,"0"));
-    const amount=count>1?money(first.points)+" × "+count+" = "+money(total)+" Points":money(total)+" Points";
-    const ids=g.rows.map(p=>p._id).join(",");
-    cards.push({time:new Date(first.createdAt).getTime(),html:'<article class="admin-row"><div class="admin-row-info"><b>'+esc(first.playerId?.name||"Deleted User")+' · '+esc(first.playerId?.mobile||"")+'</b><p>'+esc(first.market)+' · '+esc(range)+' · '+esc(first.playDate)+' · '+amount+' · <strong>'+esc(first.status)+'</strong></p></div><div class="actions">'+(first.status==="PENDING"?'<button type="button" class="danger" data-playnotok-group="'+esc(ids)+'">Not OK · Points वापस करें ('+count+')</button>':'')+'</div></article>'});
-   });
-  });
-  cards.sort((a,b)=>b.time-a.time);
+  const cards=[...batches.values()].map(rows=>{
+   rows.sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
+   const first=rows[0],total=rows.reduce((s,p)=>s+Number(p.points||0),0);
+   const details=rows.map(p=>(p.playType==="LINE"?"Line "+p.lineDigit:"Number "+String(p.number||"").padStart(2,"0"))+" ("+money(p.points)+")").join(", ");
+   const ids=rows.map(p=>p._id).join(",");
+   return {time:new Date(rows[rows.length-1].createdAt).getTime(),html:'<article class="admin-row"><div class="admin-row-info"><b>'+esc(first.playerId?.name||"Deleted User")+' · '+esc(first.playerId?.mobile||"")+'</b><p>'+esc(first.market)+' · '+esc(first.playDate)+' · '+esc(details)+' · कुल '+money(total)+' Points · <strong>'+esc(first.status)+'</strong> · '+rows.length+' Plays</p></div><div class="actions">'+(first.status==="PENDING"?'<button type="button" class="danger" data-playnotok-group="'+esc(ids)+'">Not OK · सभी '+rows.length+' Plays के Points वापस करें</button>':'')+'</div></article>'};
+  }).sort((a,b)=>b.time-a.time);
+  msg.textContent=userLabel+" · "+plays.length+" हाल की Plays · "+cards.length+" Groups";
   out.innerHTML=cards.length?cards.map(x=>x.html).join(""):'<p class="muted">कोई Play नहीं मिली।</p>';
  }catch(e){msg.textContent=e.message;}
 }
