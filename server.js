@@ -58,6 +58,7 @@ const publicFrontendApiPaths = new Set([
   "/api/demo/plays",
   "/api/demo/settle",
   "/api/demo/transactions",
+  "/api/demo/redeem-requests",
   "/api/demo/notifications",
   "/api/demo/leaderboard",
   "/api/demo/results",
@@ -105,7 +106,7 @@ async function hasAdminSession(req) {
 // Admin HTML routes are gated before static files are served. Without a valid
 // admin cookie, only the standalone username/password page is returned.
 app.use((req, res, next) => {
-  const adminPages = new Set(["/admin", "/admin/audit", "/admin/", "/admin/advertisements", "/admin/users", "/admin.html", "/admin-users.html", "/admin/export.html", "/admin/backup.html", "/visitors.html"]);
+  const adminPages = new Set(["/admin", "/admin/audit", "/admin/", "/admin/advertisements", "/admin/users", "/admin.html", "/admin-users.html", "/admin/export.html", "/admin/backup.html", "/visitors.html", "/admin-demo-redeem.html", "/admin-chandigarh-points.html"]);
   if (!adminPages.has(req.path)) return next();
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
   res.setHeader("Pragma", "no-cache");
@@ -647,20 +648,25 @@ app.get("/api/admin/chandigarh-number-report", adminOnly, async (req, res) => {
       .lean();
     const grouped = new Map();
     for (const play of plays) {
+      const isLine = play.playType === "LINE";
       const number = String(play.number ?? "").trim();
-      if (!number) continue;
+      const lineDigit = Number(play.lineDigit);
+      if (isLine && (!Number.isInteger(lineDigit) || lineDigit < 0 || lineDigit > 9)) continue;
+      if (!isLine && !number) continue;
       const points = Number(play.points || 0);
-      const multiplier = play.playType === "LINE" ? 9.7 : 97;
-      if (!grouped.has(number)) grouped.set(number, { number, totalPoints: 0, winningPoints: 0, plays: 0, users: new Set() });
-      const row = grouped.get(number);
+      const key = isLine ? "LINE:" + lineDigit : "NUMBER:" + number;
+      const label = isLine ? "Line " + lineDigit : "Number " + number;
+      const multiplier = isLine ? 9.7 : 97;
+      if (!grouped.has(key)) grouped.set(key, { key, label, number: isLine ? String(lineDigit) : number, playType: isLine ? "LINE" : "NUMBER", totalPoints: 0, winningPoints: 0, plays: 0, users: new Set() });
+      const row = grouped.get(key);
       row.totalPoints += points;
       row.winningPoints += points * multiplier;
       row.plays += 1;
       if (play.playerId) row.users.add(String(play.playerId));
     }
     const numbers = [...grouped.values()]
-      .map(row => ({ number: row.number, totalPoints: row.totalPoints, winningPoints: Math.round(row.winningPoints * 100) / 100, plays: row.plays, users: row.users.size }))
-      .sort((a, b) => b.totalPoints - a.totalPoints || a.number.localeCompare(b.number, "en", { numeric: true }));
+      .map(row => ({ label: row.label, number: row.number, playType: row.playType, totalPoints: row.totalPoints, winningPoints: Math.round(row.winningPoints * 100) / 100, plays: row.plays, users: row.users.size }))
+      .sort((a, b) => b.totalPoints - a.totalPoints || a.label.localeCompare(b.label, "en", { numeric: true }));
     res.setHeader("Cache-Control", "no-store").json({
       ok: true, market: "Chandigarh City", date, numbers,
       totals: {
