@@ -338,17 +338,37 @@ async function userOnly(req, res, next) {
 }
 
 async function adminOnly(req, res, next) {
+  const token = req.cookies.admin_session;
+  if (!token) return res.status(401).json({ error: "Login required" });
+
+  let payload;
   try {
-    const token = req.cookies.admin_session;
-    if (!token) return res.status(401).json({ error: "Login required" });
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    if (payload.role !== "admin" || !Number.isInteger(payload.sessionVersion)) return res.status(401).json({ error: "Session expired. Login again." });
-    const state = await AdminAuthState.findOne({ key: "admin" }).select("sessionVersion").lean();
-    if (!state || payload.sessionVersion !== state.sessionVersion) return res.status(401).json({ error: "Session expired. Login again." });
-    next();
-  } catch {
+    payload = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    if (["TokenExpiredError", "JsonWebTokenError", "NotBeforeError"].includes(err && err.name)) {
+      return res.status(401).json({ error: "Session expired. Login again." });
+    }
+    console.error("Admin session token verification failed:", err && err.message);
+    return res.status(500).json({ error: "Admin session check failed. Please retry." });
+  }
+
+  if (payload.role !== "admin" || !Number.isInteger(payload.sessionVersion)) {
     return res.status(401).json({ error: "Session expired. Login again." });
   }
+
+  let state;
+  try {
+    state = await AdminAuthState.findOne({ key: "admin" }).select("sessionVersion").lean();
+  } catch (err) {
+    console.error("Admin session state lookup failed:", err && err.message);
+    return res.status(503).json({ error: "Admin session check temporarily unavailable. Please retry." });
+  }
+
+  if (!state || payload.sessionVersion !== state.sessionVersion) {
+    return res.status(401).json({ error: "Session expired. Login again." });
+  }
+
+  return next();
 }
 
 async function demoPlayerOnly(req, res, next) {
