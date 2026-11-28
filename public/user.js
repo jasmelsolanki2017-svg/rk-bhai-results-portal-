@@ -148,9 +148,9 @@ async function loadChandigarhPointsReport(){
  status.textContent="हिसाब लोड हो रहा है…";rows.innerHTML="";summary.innerHTML="";
  try{
   const data=await userApi("/api/user/chandigarh-number-report?date="+encodeURIComponent(dateInput.value));
-  summary.innerHTML='<p><b>कुल Points:</b> '+Number(data.totals?.points||0).toLocaleString("en-IN")+' &nbsp; <b>कुल Plays:</b> '+Number(data.totals?.plays||0).toLocaleString("en-IN")+'</p>';
+  summary.innerHTML='<p><b>कुल Chandigarh City Points:</b> '+Number(data.totals?.points||0).toLocaleString("en-IN")+'</p>';
   if(!data.numbers?.length){rows.innerHTML='<p class="muted">इस तारीख को कोई Chandigarh City Play नहीं मिली।</p>';}
-  else rows.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="width:100%;border-collapse:collapse"><thead><tr><th>Number / Line</th><th>लगे Points</th><th>Pending Points</th><th>संभावित Return</th><th>Plays</th></tr></thead><tbody>'+data.numbers.map(x=>'<tr><td>'+userEsc(x.label)+'</td><td>'+Number(x.totalPoints||0).toLocaleString("en-IN")+'</td><td>'+Number(x.pendingPoints||0).toLocaleString("en-IN")+'</td><td>'+Number(x.returnPoints||0).toLocaleString("en-IN")+'</td><td>'+Number(x.plays||0)+'</td></tr>').join("")+'</tbody></table></div>';
+  else rows.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="width:100%;border-collapse:collapse"><thead><tr><th>Number / Line</th><th>कुल लगे Points</th></tr></thead><tbody>'+data.numbers.map(x=>'<tr><td>'+userEsc(x.label)+'</td><td>'+Number(x.totalPoints||0).toLocaleString("en-IN")+'</td></tr>').join("")+'</tbody></table></div>';
   status.textContent="Chandigarh City का हिसाब · "+data.date+" · केवल देखने के लिए";
  }catch(error){status.textContent=error.message;}
 }
