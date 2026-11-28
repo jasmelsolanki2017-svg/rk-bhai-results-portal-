@@ -59,8 +59,6 @@ async function loadDemoPlays(){
  }catch(e){msg.textContent=e.message;}
 }
 
-$("#showPortalUsers").addEventListener("click",()=>showUserTab("portal"));
-$("#showDemoPlayers").addEventListener("click",()=>showUserTab("demo"));
 
 function currentIndiaMonth(){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit"}).format(new Date());}
 function money(v){return Number(v||0).toLocaleString("en-IN",{maximumFractionDigits:1});}
