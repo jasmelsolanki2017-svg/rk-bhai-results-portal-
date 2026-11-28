@@ -25,7 +25,15 @@
 <p class="disclaimer">⚠️ केवल अभ्यास के लिए Virtual Points। कोई असली पैसा, जमा, भुगतान या निकासी नहीं।</p>
 </section>
 <section class="tab-panel" id="tab-plays"><section class="panel"><div class="section-head"><h2>📋 मेरी Play History</h2><button id="refresh" type="button">↻ Refresh</button></div><div class="history-filter"><label for="playDate">📅 तारीख चुनें</label><input id="playDate" type="date" aria-label="Demo Plays की तारीख चुनें"><button id="clearPlayDate" type="button">आज</button></div><div id="history" class="history"><p class="empty">डेटा लोड हो रहा है…</p></div><p class="notice" id="message" role="status"></p></section></section>
-<section class="tab-panel" id="tab-transactions"><section class="panel"><div class="section-head"><h2>💳 Wallet Transactions</h2></div><div id="transactions" class="history"><p class="empty">लोड हो रहा है…</p></div></section></section>
+<section class="tab-panel" id="tab-transactions">
+<section class="panel"><div class="section-head"><h2>💳 Wallet Summary</h2></div><div class="stats">
+<div class="stat"><small>Total Added</small><strong id="walletAdded">0</strong></div><div class="stat"><small>Total Played</small><strong id="walletPlayed">0</strong></div><div class="stat"><small>Total Won</small><strong id="walletWon">0</strong></div><div class="stat"><small>Current Balance</small><strong id="walletBalance">0</strong></div>
+</div></section>
+<section class="panel"><div class="section-head"><h2>📊 Daily / Monthly Totals</h2></div><div class="history-filter"><label for="walletPeriod">अवधि</label><select id="walletPeriod" style="min-height:40px;background:#090909;border:1px solid #765c2c;border-radius:9px;color:#f4d58b;padding:8px"><option value="day">आज</option><option value="month">यह महीना</option><option value="all">सभी</option></select></div><div class="stats"><div class="stat"><small>Added</small><strong id="periodAdded">0</strong></div><div class="stat"><small>Played</small><strong id="periodPlayed">0</strong></div><div class="stat"><small>Won</small><strong id="periodWon">0</strong></div></div></section>
+<section class="panel"><div class="section-head"><h2>📒 Transaction History</h2></div>
+<div class="history-filter"><label for="walletDate">📅 तारीख</label><input id="walletDate" type="date"><button id="walletToday" type="button">आज</button></div>
+<div class="history-filter"><input id="walletSearch" type="search" placeholder="🔎 Market या Transaction खोजें" aria-label="Transaction खोजें"><button id="walletClear" type="button">Clear</button></div>
+<div id="transactions" class="history"><p class="empty">लोड हो रहा है…</p></div></section></section>
 </main><script>
 (()=>{"use strict";
 const API="https://rk-bhai-results-portal.onrender.com",key="sattaking_demo_token",token=sessionStorage.getItem(key)||"", $=id=>document.getElementById(id);
@@ -38,37 +46,52 @@ const p=me.player||{},rows=settled.plays||[];$("name").textContent=p.name||"Demo
 const wins=rows.filter(x=>x.status==="WIN"),loss=rows.filter(x=>x.status==="NO MATCH"),pending=rows.filter(x=>x.status==="PENDING"),staked=rows.reduce((n,x)=>n+Number(x.points||0),0),earned=wins.reduce((n,x)=>n+Number(x.points||0)*97,0);
 $("wallet").textContent=fmt(settled.walletPoints);$("played").textContent=fmt(rows.length);$("wins").textContent=fmt(wins.length);$("losses").textContent=fmt(loss.length);$("staked").textContent=fmt(staked);$("pending").textContent=fmt(pending.length);$("rate").textContent=(rows.length?Math.round(wins.length/rows.length*100):0)+"%";$("earned").textContent=fmt(earned);
 window.demoPlayRows=rows;renderPlayHistory();
-$("transactions").innerHTML=renderWalletTransactions(tx.transactions||[]);
+window.demoTransactions=tx.transactions||[];$("transactions").innerHTML=renderWalletTransactions(window.demoTransactions);
 $("message").textContent="Profile और Wallet Server से अपडेट हैं।";
 }catch(e){$("message").textContent=e.message;if(/approved|session|login/i.test(e.message)){sessionStorage.removeItem(key);location.replace("./demo-play.html?expired=1");}}}
 document.querySelectorAll(".profile-tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".profile-tab").forEach(x=>x.classList.toggle("active",x===btn));document.querySelectorAll(".tab-panel").forEach(x=>x.classList.toggle("active",x.id==="tab-"+btn.dataset.tab));}));
 function renderWalletTransactions(rows){
+ const all=[...(rows||[])].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+ const today=localDateKey(Date.now()),date=$("walletDate").value,query=String($("walletSearch").value||"").trim().toLowerCase();
+ const filtered=all.filter(x=>{
+  const d=localDateKey(x.createdAt),reason=String(x.reason||"");
+  if(date&&d!==date)return false;
+  if(query&&!((reason+" "+String(x.type||"")+" "+String(x._id||x.id||"")).toLowerCase().includes(query)))return false;
+  return true;
+ });
+ const sum=(list,pred)=>list.filter(pred).reduce((n,x)=>n+Number(x.amount||0),0);
+ const credits=sum(all,x=>x.type==="CREDIT"),debits=sum(all,x=>x.type==="DEBIT");
+ const won=sum(all,x=>x.type==="CREDIT"&&/win|जीत|winning|reward/i.test(String(x.reason||"")));
+ $("walletAdded").textContent=fmt(credits);$("walletPlayed").textContent=fmt(debits);$("walletWon").textContent=fmt(won);$("walletBalance").textContent=fmt($("wallet").textContent.replace(/,/g,""));
+ const period=$("walletPeriod").value||"day",periodRows=all.filter(x=>{const d=localDateKey(x.createdAt);return period==="all"||(period==="day"?d===today:d.slice(0,7)===today.slice(0,7));});
+ $("periodAdded").textContent=fmt(sum(periodRows,x=>x.type==="CREDIT"));$("periodPlayed").textContent=fmt(sum(periodRows,x=>x.type==="DEBIT"));$("periodWon").textContent=fmt(sum(periodRows,x=>x.type==="CREDIT"&&/win|जीत|winning|reward/i.test(String(x.reason||""))));
  const marketNames=[...new Set((window.demoPlayRows||[]).map(p=>String(p.market||"").trim()).filter(Boolean))].sort((a,b)=>b.length-a.length);
  const groups=[];
- [...rows].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).forEach(x=>{
-  const reason=String(x.reason||"");
-  const market=marketNames.find(m=>reason.includes("· "+m+" ·"))||null;
-  const tail=market?reason.split("· "+market+" ·")[1]:"";
-  const numberMatch=tail.match(/(?:Line\\s+)?(\\d{1,2})\\s*$/);
-  const number=numberMatch?Number(numberMatch[1]):null;
-  const time=new Date(x.createdAt).getTime();
+ filtered.forEach(x=>{
+  const reason=String(x.reason||""),market=marketNames.find(m=>reason.includes("· "+m+" ·"))||null;
+  const tail=market?reason.split("· "+market+" ·")[1]:"",match=tail.match(/(?:Line\s+)?(\d{1,2})\s*$/),number=match?Number(match[1]):null,time=new Date(x.createdAt).getTime();
   let g=market&&number!==null?groups.find(z=>z.market===market&&z.type===x.type&&z.amount===Number(x.amount)&&Math.abs(time-z.lastTime)<=5000&&(z.numbers.includes(number-1)||z.numbers.includes(number+1))):null;
   if(!g){g={rows:[],market,type:x.type,amount:Number(x.amount),numbers:[],lastTime:time};groups.push(g);}
   g.rows.push(x);if(number!==null)g.numbers.push(number);g.lastTime=time;
  });
+ const receipt=x=>'<details style="margin-top:5px"><summary style="color:#cdb77f;cursor:pointer;font-size:11px">🧾 Receipt देखें</summary><small>Transaction ID: '+esc(x._id||x.id||"—")+'<br>पूरा विवरण: '+esc(x.reason||"—")+'<br>तारीख: '+esc(new Date(x.createdAt).toLocaleString("hi-IN"))+'</small></details>';
  const card=g=>{
-  const x=g.rows[0],count=g.rows.length,total=g.rows.reduce((n,r)=>n+Number(r.amount||0),0),nums=[...g.numbers].sort((a,b)=>a-b);
-  const range=nums.length>1?nums[0]+"–"+nums[nums.length-1]:nums.length?String(nums[0]):"";
-  const title=g.market?"🎮 "+esc(g.market)+" · "+range:(x.type==="CREDIT"?"➕ Credit":"➖ Debit");
+  const x=g.rows[0],count=g.rows.length,total=g.rows.reduce((n,r)=>n+Number(r.amount||0),0),nums=[...new Set(g.numbers)].sort((a,b)=>a-b),range=nums.length>1?nums[0]+"–"+nums[nums.length-1]:nums.length?String(nums[0]):"";
+  const title=g.market?"🎮 "+esc(g.market)+(range?" · "+range:""):(x.type==="CREDIT"?"➕ Credit":"➖ Debit");
   const detail=g.market?(count>1?fmt(x.amount)+" Points × "+count+" = "+fmt(total)+" Points":esc(x.reason)):esc(x.reason);
-  return '<article class="item"><div><strong>'+title+'</strong><small>'+detail+' · '+new Date(x.createdAt).toLocaleString("hi-IN")+'</small></div><span class="pill '+(x.type==="CREDIT"?"win":"loss")+'">'+(x.type==="CREDIT"?"+":"−")+fmt(total)+'</span></article>';
+  return '<article class="item"><div style="min-width:0"><strong>'+title+'</strong><small>'+detail+' · '+new Date(x.createdAt).toLocaleString("hi-IN")+'</small>'+g.rows.map(receipt).join("")+'</div><span class="pill '+(x.type==="CREDIT"?"win":"loss")+'">'+(x.type==="CREDIT"?"+":"−")+fmt(total)+'</span></article>';
  };
  const folders=new Map(),others=[];
- groups.forEach(g=>{if(g.market){if(!folders.has(g.market))folders.set(g.market,[]);folders.get(g.market).push(g);}else others.push(g);});
+ groups.forEach(g=>{
+  if(g.market){
+   const resolved=(window.demoPlayRows||[]).some(p=>String(p.market||"")===g.market&&p.status&&p.status!=="PENDING");
+   if(resolved){if(!folders.has(g.market))folders.set(g.market,[]);folders.get(g.market).push(g);}else others.push(g);
+  }else others.push(g);
+ });
  const html=[];
  if(others.length)html.push(others.map(card).join(""));
  [...folders.keys()].sort().forEach(m=>{const items=folders.get(m);html.push('<details class="panel" style="padding:10px;margin-bottom:8px"><summary style="color:#f4d58b;font-weight:900;cursor:pointer;padding:5px">📁 '+esc(m)+' <span class="pill">'+items.reduce((n,g)=>n+g.rows.length,0)+' Transactions</span></summary><div class="history" style="margin-top:10px">'+items.map(card).join("")+'</div></details>');});
- return html.join("")||'<p class="empty">अभी कोई Transaction नहीं है।</p>';
+ return html.join("")||'<p class="empty">इस फ़िल्टर में कोई Transaction नहीं मिला।</p>';
 }
 function localDateKey(value){const d=new Date(value);if(Number.isNaN(d.getTime()))return "";return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 function groupedPlayRows(rows){
@@ -99,6 +122,6 @@ function renderPlayHistory(){
   const amount=count>1?fmt(x.points)+" Points × "+count+" = "+fmt(total)+" Demo Points":fmt(x.points)+" Demo Points";
   return '<article class="item"><div><strong>'+esc(x.market)+' · '+esc(range)+'</strong><small>'+time+' · '+amount+(x.result?' · Result: '+esc(x.result):"")+'</small></div><span class="pill '+(x.status==="WIN"?"win":x.status==="NO MATCH"?"loss":"") +'">'+(x.status==="WIN"?"जीत · +"+fmt(total*97):x.status==="NO MATCH"?"मैच नहीं":"Pending")+'</span></article>';
  }).join(""):'<p class="empty">इस तारीख की कोई Demo Play नहीं मिली।</p>';
-}const today=localDateKey(Date.now());$("playDate").value=today;$("playDate").addEventListener("change",renderPlayHistory);$("clearPlayDate").addEventListener("click",()=>{$("playDate").value=localDateKey(Date.now());renderPlayHistory();});$("refresh").addEventListener("click",load);$("logout").addEventListener("click",()=>{sessionStorage.removeItem(key);location.replace("./demo-play.html");});load();
+}const today=localDateKey(Date.now());$("playDate").value=today;$("walletDate").value="";["walletDate","walletSearch","walletPeriod"].forEach(id=>$(id).addEventListener(id==="walletDate"?"change":"input",()=>{$("transactions").innerHTML=renderWalletTransactions(window.demoTransactions||[]);}));$("walletPeriod").addEventListener("change",()=>{$("transactions").innerHTML=renderWalletTransactions(window.demoTransactions||[]);});$("walletToday").addEventListener("click",()=>{$("walletDate").value=localDateKey(Date.now());$("transactions").innerHTML=renderWalletTransactions(window.demoTransactions||[]);});$("walletClear").addEventListener("click",()=>{$("walletDate").value="";$("walletSearch").value="";$("transactions").innerHTML=renderWalletTransactions(window.demoTransactions||[]);});$("playDate").addEventListener("change",renderPlayHistory);$("clearPlayDate").addEventListener("click",()=>{$("playDate").value=localDateKey(Date.now());renderPlayHistory();});$("refresh").addEventListener("click",load);$("logout").addEventListener("click",()=>{sessionStorage.removeItem(key);location.replace("./demo-play.html");});load();
 })();
 </script></body></html>
