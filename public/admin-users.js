@@ -47,7 +47,7 @@ async function loadDemoPlays(){
   });
   const batches=[];
   sorted.forEach(p=>{
-   const batchKey=[p.playerId?._id||"",p.market,p.playDate,p.status,p.points,p.playType||"NUMBER",p.lineDigit??"",Math.floor(new Date(p.createdAt).getTime()/3000)].join("|");
+   const batchKey=[p.playerId?._id||"",p.market,p.playDate,p.status,p.points,p.playType||"NUMBER",p.lineDigit??""].join("|");
    let batch=batches.find(x=>x.key===batchKey);
    if(!batch){batch={key:batchKey,rows:[]};batches.push(batch);}
    batch.rows.push(p);
