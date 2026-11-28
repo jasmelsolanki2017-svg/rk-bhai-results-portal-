@@ -4,6 +4,7 @@ function esc(v){return String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt
 function show(on){$("#loginBox").hidden=on;$("#managePanel").hidden=!on;}
 function showUserTab(tab){
  const demo=tab==="demo";
+ if(location.hash!==(demo?"#demo-users":"#superusers")) history.replaceState(null,"",demo?"#demo-users":"#superusers");
  $("#portalUsersPanel").hidden=demo;
  $("#portalCityPanel").hidden=demo;
  $("#demoUsersPanel").hidden=!demo;
@@ -115,4 +116,4 @@ document.addEventListener("click",async e=>{
   await refresh();
  }catch(err){alert(err.message);}
 });
-(async()=>{try{await api("/api/admin/session");show(true);await refresh();}catch{show(false);}})();
+(async()=>{try{await api("/api/admin/session");show(true);showUserTab(location.hash==="#demo-users"?"demo":"portal");await refresh();}catch{show(false);}})();
