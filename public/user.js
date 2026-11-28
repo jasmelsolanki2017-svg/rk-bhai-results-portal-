@@ -148,9 +148,28 @@ async function loadChandigarhPointsReport(){
  status.textContent="हिसाब लोड हो रहा है…";rows.innerHTML="";summary.innerHTML="";
  try{
   const data=await userApi("/api/user/chandigarh-number-report?date="+encodeURIComponent(dateInput.value));
-  summary.innerHTML='<p><b>कुल Chandigarh City Points:</b> '+Number(data.totals?.points||0).toLocaleString("en-IN")+'</p>';
-  if(!data.numbers?.length){rows.innerHTML='<p class="muted">इस तारीख को कोई Chandigarh City Play नहीं मिली।</p>';}
-  else rows.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="width:100%;border-collapse:collapse"><thead><tr><th>Number / Line</th><th>कुल लगे Points</th></tr></thead><tbody>'+data.numbers.map(x=>'<tr><td>'+userEsc(x.label)+'</td><td>'+Number(x.totalPoints||0).toLocaleString("en-IN")+'</td></tr>').join("")+'</tbody></table></div>';
+  const totalPoints=Number(data.totals?.points||0);
+  const reportRows=Array.isArray(data.numbers)?data.numbers:[];
+  summary.innerHTML='<p><b>कुल Chandigarh City Points:</b> '+totalPoints.toLocaleString("en-IN")+'</p>';
+  if(!reportRows.length){rows.innerHTML='<p class="muted">इस तारीख को कोई Chandigarh City Play नहीं मिली।</p>';status.textContent="Chandigarh City का हिसाब · "+data.date+" · केवल देखने के लिए";return;}
+  rows.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="width:100%;border-collapse:collapse"><thead><tr><th>Number / Line</th><th>कुल लगे Points</th><th>आने पर बनेंगे</th></tr></thead><tbody>'+reportRows.map(x=>{const points=Number(x.totalPoints||0),multiplier=x.playType==="LINE"?9.7:97,ret=points*multiplier;return '<tr><td>'+userEsc(x.label)+'</td><td>'+points.toLocaleString("en-IN")+'</td><td>'+ret.toLocaleString("en-IN",{maximumFractionDigits:2})+'</td></tr>';}).join("")+'</tbody><tfoot><tr><th>कुल</th><th>'+totalPoints.toLocaleString("en-IN")+'</th><th>अलग-अलग नंबर आने पर Return</th></tr></tfoot></table></div>'+
+  '<section class="chandigarh-number-calculator" style="margin-top:16px;padding:14px;border:1px solid var(--border,#777);border-radius:12px"><h3 style="margin-top:0">🧮 नंबर डालकर फायदा / नुकसान देखें</h3><label for="chandigarhCalcNumber">2 अंकों का नंबर भरें</label><input id="chandigarhCalcNumber" type="text" inputmode="numeric" maxlength="2" pattern="[0-9]{2}" placeholder="जैसे 56" autocomplete="off"><p class="muted" style="font-size:13px">नंबर भरते ही Number और उसकी आखिरी अंक वाली Line का हिसाब अपने आप निकलेगा।</p><div id="chandigarhCalcResult" aria-live="polite"><p>अभी नंबर नहीं भरा है।</p></div></section>';
+  const calcInput=$("#chandigarhCalcNumber"),calcResult=$("#chandigarhCalcResult");
+  const formatPoints=value=>Number(value||0).toLocaleString("en-IN",{maximumFractionDigits:2});
+  const calculate=()=>{
+   const raw=String(calcInput.value||"").replace(/\D/g,"").slice(0,2);
+   if(calcInput.value!==raw)calcInput.value=raw;
+   if(raw.length!==2){calcResult.innerHTML='<p>पूरा 2 अंकों का नंबर भरें।</p>';return;}
+   const lineDigit=raw.slice(-1);
+   const numberRow=reportRows.find(x=>x.playType==="NUMBER"&&String(x.number||"")===raw);
+   const lineRow=reportRows.find(x=>x.playType==="LINE"&&String(x.number||"")===lineDigit);
+   const numberStake=Number(numberRow?.totalPoints||0),lineStake=Number(lineRow?.totalPoints||0);
+   const numberReturn=numberStake*97,lineReturn=lineStake*9.7,totalReturn=numberReturn+lineReturn,net=totalReturn-totalPoints;
+   const sign=net>0?"+":net<0?"−":"";
+   const color=net>0?"#16803c":net<0?"#d13b35":"inherit";
+   calcResult.innerHTML='<div style="display:grid;gap:7px"><div>Number '+raw+' पर लगे: <b>'+formatPoints(numberStake)+' Points</b> · Return: <b>'+formatPoints(numberReturn)+'</b></div><div>Line '+lineDigit+' पर लगे: <b>'+formatPoints(lineStake)+' Points</b> · Return: <b>'+formatPoints(lineReturn)+'</b></div><div>कुल Return: <b>'+formatPoints(totalReturn)+' Points</b></div><div>कुल लगे Points: <b>'+formatPoints(totalPoints)+' Points</b></div><div style="padding-top:8px;border-top:1px solid var(--border,#777);font-size:18px;color:'+color+'"><b>अंतिम फायदा / नुकसान: '+sign+formatPoints(Math.abs(net))+' Points</b></div></div>';
+  };
+  calcInput.addEventListener("input",calculate);
   status.textContent="Chandigarh City का हिसाब · "+data.date+" · केवल देखने के लिए";
  }catch(error){status.textContent=error.message;}
 }
