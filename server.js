@@ -738,6 +738,88 @@ app.get("/api/user/chandigarh-number-report", userOnly, async (req, res) => {
   }
 });
 
+app.get("/api/user/chandigarh-demo-users", userOnly, async (req, res) => {
+  try {
+    const city = await City.findOne({ userId: req.portalUserId, cityName: /^Chandigarh City$/i, status: "approved" }).select("_id").lean();
+    if (!city) return res.status(403).json({ error: "यह पेज केवल Chandigarh City के assigned Super User के लिए है।" });
+    const date = String(req.query.date || new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()));
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: "सही तारीख चुनें।" });
+    const plays = await DemoPlay.find({ market: /^Chandigarh City$/i, playDate: date, status: { $in: ["PENDING", "WIN", "NO MATCH"] } })
+      .select("playerId number playType lineDigit points status").lean();
+    const grouped = new Map();
+    for (const play of plays) {
+      if (!play.playerId) continue;
+      const id = String(play.playerId), points = Number(play.points || 0);
+      if (!grouped.has(id)) grouped.set(id, { playerId: id, totalPoints: 0, plays: 0, pendingPoints: 0, returnedPoints: 0, actualNet: 0, settledPoints: 0 });
+      const row = grouped.get(id);
+      row.totalPoints += points; row.plays += 1;
+      if (play.status === "PENDING") row.pendingPoints += points;
+      if (play.status === "WIN") {
+        const reward = points * (play.playType === "LINE" ? 9.7 : 97);
+        row.returnedPoints += reward; row.actualNet += reward - points; row.settledPoints += points;
+      } else if (play.status === "NO MATCH") {
+        row.actualNet -= points; row.settledPoints += points;
+      }
+    }
+    const ids = [...grouped.keys()];
+    const players = ids.length ? await DemoPlayer.find({ _id: { $in: ids } }).select("name").lean() : [];
+    const names = new Map(players.map(player => [String(player._id), player.name]));
+    const users = [...grouped.values()].map(row => ({
+      playerId: row.playerId, name: names.get(row.playerId) || "Demo User",
+      totalPoints: row.totalPoints, plays: row.plays, pendingPoints: row.pendingPoints,
+      returnedPoints: Math.round(row.returnedPoints * 100) / 100,
+      actualNet: Math.round(row.actualNet * 100) / 100, settledPoints: row.settledPoints
+    })).sort((a, b) => b.totalPoints - a.totalPoints || a.name.localeCompare(b.name, "hi"));
+    res.setHeader("Cache-Control", "no-store").json({ ok: true, market: "Chandigarh City", date, users, totals: {
+      users: users.length, points: users.reduce((sum, row) => sum + row.totalPoints, 0),
+      plays: users.reduce((sum, row) => sum + row.plays, 0)
+    }});
+  } catch (error) {
+    console.error("Chandigarh Demo users report error:", error);
+    res.status(500).json({ error: "Chandigarh City के Demo Users का हिसाब लोड नहीं हो सका।" });
+  }
+});
+
+app.get("/api/user/chandigarh-demo-users/:id", userOnly, async (req, res) => {
+  try {
+    const city = await City.findOne({ userId: req.portalUserId, cityName: /^Chandigarh City$/i, status: "approved" }).select("_id").lean();
+    if (!city) return res.status(403).json({ error: "यह पेज केवल Chandigarh City के assigned Super User के लिए है।" });
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(400).json({ error: "Demo User ID सही नहीं है।" });
+    const date = String(req.query.date || new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()));
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: "सही तारीख चुनें।" });
+    const player = await DemoPlayer.findById(req.params.id).select("name").lean();
+    if (!player) return res.status(404).json({ error: "Demo User नहीं मिला।" });
+    const plays = await DemoPlay.find({ playerId: player._id, market: /^Chandigarh City$/i, playDate: date, status: { $in: ["PENDING", "WIN", "NO MATCH"] } })
+      .select("number playType lineDigit points status result createdAt").sort({ createdAt: 1 }).lean();
+    const grouped = new Map();
+    let totalPoints = 0, pendingPoints = 0, returnedPoints = 0, actualNet = 0, settledPoints = 0;
+    const rows = plays.map(play => {
+      const isLine = play.playType === "LINE", keyValue = isLine ? String(play.lineDigit ?? "") : String(play.number || "");
+      const label = isLine ? "Line " + keyValue : "Number " + keyValue;
+      const points = Number(play.points || 0), multiplier = isLine ? 9.7 : 97;
+      const reward = play.status === "WIN" ? points * multiplier : 0;
+      const net = play.status === "PENDING" ? null : reward - points;
+      totalPoints += points;
+      if (play.status === "PENDING") pendingPoints += points;
+      if (play.status === "WIN") { returnedPoints += reward; actualNet += reward - points; settledPoints += points; }
+      else if (play.status === "NO MATCH") { actualNet -= points; settledPoints += points; }
+      const key = (isLine ? "LINE:" : "NUMBER:") + keyValue;
+      if (!grouped.has(key)) grouped.set(key, { key, label, number: keyValue, playType: isLine ? "LINE" : "NUMBER", totalPoints: 0, pendingPoints: 0, plays: 0 });
+      const group = grouped.get(key); group.totalPoints += points; group.plays += 1;
+      if (play.status === "PENDING") group.pendingPoints += points;
+      return { label, number: keyValue, playType: isLine ? "LINE" : "NUMBER", points, status: play.status, result: String(play.result || ""), reward: Math.round(reward * 100) / 100, net: net === null ? null : Math.round(net * 100) / 100, createdAt: play.createdAt };
+    });
+    const numbers = [...grouped.values()].sort((a, b) => b.totalPoints - a.totalPoints || a.label.localeCompare(b.label, "en", { numeric: true }));
+    res.setHeader("Cache-Control", "no-store").json({ ok: true, market: "Chandigarh City", date, player: { id: String(player._id), name: player.name },
+      plays: rows, numbers, totals: { plays: rows.length, points: totalPoints, pendingPoints, returnedPoints: Math.round(returnedPoints * 100) / 100,
+        actualNet: Math.round(actualNet * 100) / 100, settledPoints }
+    });
+  } catch (error) {
+    console.error("Chandigarh Demo User detail error:", error);
+    res.status(500).json({ error: "Demo User का Chandigarh City हिसाब लोड नहीं हो सका।" });
+  }
+});
+
 app.get("/api/admin/chandigarh-number-report", adminOnly, async (req, res) => {
   try {
     const date = String(req.query.date || new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()));
