@@ -168,6 +168,16 @@ const DemoWalletTransaction = mongoose.model("DemoWalletTransaction", new mongoo
  reason:{type:String,required:true,maxlength:160},createdAt:{type:Date,default:Date.now}
 },{versionKey:false}));
 DemoWalletTransaction.schema.index({playerId:1,createdAt:-1});
+const DemoRedeemRequest = mongoose.model("DemoRedeemRequest", new mongoose.Schema({
+ playerId:{type:mongoose.Schema.Types.ObjectId,ref:"DemoPlayer",required:true,index:true},
+ points:{type:Number,required:true,min:1,max:1000000},
+ status:{type:String,enum:["PENDING","PROCESSING","APPROVED","REJECTED"],default:"PENDING",index:true},
+ adminNote:{type:String,default:"",maxlength:200},
+ createdAt:{type:Date,default:Date.now},
+ reviewedAt:{type:Date,default:null}
+},{versionKey:false}));
+DemoRedeemRequest.schema.index({playerId:1,createdAt:-1});
+
 const DemoGameSetting = mongoose.model("DemoGameSetting",new mongoose.Schema({
  key:{type:String,default:"global",unique:true},enabled:{type:Boolean,default:true},
  minPoints:{type:Number,default:1,min:1,max:1000000},maxPoints:{type:Number,default:1000000,min:1,max:1000000},
@@ -379,6 +389,21 @@ app.get("/api/demo/transactions",demoPlayerOnly,async(req,res)=>{
  const transactions=await DemoWalletTransaction.find({playerId:req.demoPlayer.id}).sort({createdAt:-1}).limit(200).lean();
  res.setHeader("Cache-Control","no-store").json({transactions});
 });
+app.get("/api/demo/redeem-requests",demoPlayerOnly,async(req,res)=>{
+ const requests=await DemoRedeemRequest.find({playerId:req.demoPlayer.id}).sort({createdAt:-1}).limit(100).lean();
+ res.setHeader("Cache-Control","no-store").json({requests});
+});
+app.post("/api/demo/redeem-requests",demoPlayerOnly,async(req,res)=>{
+ const points=Number(req.body?.points);
+ if(!Number.isSafeInteger(points)||points<1||points>1000000)return res.status(400).json({error:"1 से 10,00,000 तक पूरे Demo Points लिखें।"});
+ const player=await DemoPlayer.findById(req.demoPlayer.id).select("walletPoints").lean();
+ if(!player)return res.status(404).json({error:"Demo account नहीं मिला।"});
+ if(points>Number(player.walletPoints||0))return res.status(400).json({error:"आपके पास इतने उपलब्ध Demo Points नहीं हैं।"});
+ const pending=await DemoRedeemRequest.exists({playerId:req.demoPlayer.id,status:{$in:["PENDING","PROCESSING"]}});
+ if(pending)return res.status(409).json({error:"आपकी एक Redeem Request पहले से Pending है। उसके निर्णय के बाद नई Request भेजें।"});
+ const request=await DemoRedeemRequest.create({playerId:req.demoPlayer.id,points});
+ res.status(201).json({ok:true,request,message:"Redeem Request Admin को भेज दी गई है।"});
+});
 app.get("/api/demo/notifications",demoPlayerOnly,async(req,res)=>{
  const [tx,plays]=await Promise.all([
   DemoWalletTransaction.find({playerId:req.demoPlayer.id}).sort({createdAt:-1}).limit(30).lean(),
@@ -535,6 +560,38 @@ app.patch("/api/admin/demo-game-settings",adminOnly,async(req,res)=>{
  if(!Number.isSafeInteger(minPoints)||!Number.isSafeInteger(maxPoints)||minPoints<1||maxPoints>1000000||maxPoints<minPoints)return res.status(400).json({error:"Points सीमा सही रखें (1 से 10,00,000)।"});
  const x=await DemoGameSetting.findOneAndUpdate({key:"global"},{$set:{enabled,minPoints,maxPoints,marketTimes:cleanMarketTimes,updatedAt:new Date()}},{upsert:true,new:true,setDefaultsOnInsert:true}).lean();
  res.json({ok:true,enabled:x.enabled,minPoints:x.minPoints,maxPoints:x.maxPoints,marketTimes:x.marketTimes||{}});
+});
+app.get("/api/admin/demo-redeem-requests",adminOnly,async(req,res)=>{
+ const status=String(req.query.status||"ALL").toUpperCase();
+ const query=status==="ALL"?{}:{status};
+ const rows=await DemoRedeemRequest.find(query).sort({createdAt:-1}).limit(300).populate("playerId","name mobile walletPoints").lean();
+ res.setHeader("Cache-Control","no-store").json({requests:rows});
+});
+app.patch("/api/admin/demo-redeem-requests/:id",adminOnly,async(req,res)=>{
+ if(!mongoose.isValidObjectId(req.params.id))return res.status(400).json({error:"Redeem Request ID सही नहीं है।"});
+ const action=String(req.body?.action||"").toUpperCase();
+ if(action==="REJECT"){
+  const row=await DemoRedeemRequest.findOneAndUpdate({_id:req.params.id,status:"PENDING"},{$set:{status:"REJECTED",adminNote:String(req.body?.note||"Admin ने Request Reject की").slice(0,200),reviewedAt:new Date()}},{new:true}).lean();
+  if(!row)return res.status(409).json({error:"यह Request पहले ही Review हो चुकी है।"});
+  return res.json({ok:true,request:row});
+ }
+ if(action!=="APPROVE")return res.status(400).json({error:"Approve या Reject चुनें।"});
+ const row=await DemoRedeemRequest.findOneAndUpdate({_id:req.params.id,status:"PENDING"},{$set:{status:"PROCESSING"}},{new:true}).lean();
+ if(!row)return res.status(409).json({error:"यह Request पहले ही Review हो चुकी है।"});
+ const player=await DemoPlayer.findOneAndUpdate({_id:row.playerId,walletPoints:{$gte:row.points}},{$inc:{walletPoints:-row.points}},{new:true}).select("name mobile walletPoints").lean();
+ if(!player){
+  await DemoRedeemRequest.updateOne({_id:row._id,status:"PROCESSING"},{$set:{status:"PENDING"}});
+  return res.status(409).json({error:"User के पास अब पर्याप्त Points नहीं हैं। Request Pending रखी गई है।"});
+ }
+ try{
+  await DemoWalletTransaction.create({playerId:row.playerId,type:"DEBIT",amount:row.points,reason:"Demo Points Redeem Request Approved"});
+  const approved=await DemoRedeemRequest.findOneAndUpdate({_id:row._id,status:"PROCESSING"},{$set:{status:"APPROVED",adminNote:String(req.body?.note||"Admin ने Approve किया").slice(0,200),reviewedAt:new Date()}},{new:true}).lean();
+  return res.json({ok:true,request:approved,player});
+ }catch(error){
+  await DemoPlayer.updateOne({_id:row.playerId},{$inc:{walletPoints:row.points}});
+  await DemoRedeemRequest.updateOne({_id:row._id,status:"PROCESSING"},{$set:{status:"PENDING"}});
+  throw error;
+ }
 });
 app.get("/api/admin/demo-players", adminOnly, async (req, res) => {
   const rows = await DemoPlayer.find().select("name mobile email status walletPoints createdAt approvedAt").sort({ createdAt: -1 }).lean();
