@@ -207,6 +207,47 @@ const City = mongoose.model("PortalCity", new mongoose.Schema({
   reviewedAt: { type: Date, default: null }
 }));
 
+// Demo Game reads the same approved-city timing used by the public results page.
+// These fallbacks intentionally mirror public/app.js; Chandigarh remains fixed at 8:30 PM.
+const DEMO_MARKET_FALLBACK_TIMES = {
+  "disawar": "05:00", "desawar": "05:00",
+  "delhi bazar": "15:15",
+  "shree ganesh": "16:45", "shri ganesh": "16:45",
+  "faridabad": "18:20",
+  "chandigarh city": "20:30", "chandigarh": "20:30",
+  "ghaziabad": "22:05",
+  "gali": "00:05"
+};
+function toDemoMarketTime(value) {
+  const raw = String(value || "").trim();
+  let match = raw.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (match) {
+    let hour = Number(match[1]) % 12;
+    if (match[3].toUpperCase() === "PM") hour += 12;
+    return String(hour).padStart(2, "0") + ":" + match[2];
+  }
+  match = raw.match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+  return match ? match[1] + ":" + match[2] : "";
+}
+async function getDemoMarketResultTimes() {
+  const approved = await City.find({ status: "approved" }).select("cityName expectedTime").lean();
+  const byName = new Map(approved.map(city => [String(city.cityName || "").trim().toLocaleLowerCase("en"), city]));
+  const names = ["Disawar", "Delhi Bazar", "Shree Ganesh", "Faridabad", "Chandigarh City", "Ghaziabad", "Gali"];
+  return Object.fromEntries(names.map(name => {
+    const key = name.toLocaleLowerCase("en");
+    const city = byName.get(key);
+    const time = key === "chandigarh city" ? "20:30" : toDemoMarketTime(city?.expectedTime) || DEMO_MARKET_FALLBACK_TIMES[key] || "";
+    return [name, time];
+  }));
+}
+async function getDemoMarketResultTime(market) {
+  const key = String(market || "").trim().toLocaleLowerCase("en");
+  if (key === "chandigarh city" || key === "chandigarh") return "20:30";
+  const approved = await City.find({ status: "approved" }).select("cityName expectedTime").lean();
+  const city = approved.find(item => String(item.cityName || "").trim().toLocaleLowerCase("en") === key);
+  return toDemoMarketTime(city?.expectedTime) || DEMO_MARKET_FALLBACK_TIMES[key] || "";
+}
+
 const Poster = mongoose.model("PortalPoster", new mongoose.Schema({heading:{type:String,default:"",maxlength:120},description:{type:String,default:"",maxlength:1000},buttonText:{type:String,default:""},buttonUrl:{type:String,default:""},design:{type:mongoose.Schema.Types.Mixed,default:{}},enabled:{type:Boolean,default:false},updatedAt:{type:Date,default:Date.now}}));
 const PopupAd = mongoose.model("PortalPopupAd", new mongoose.Schema({title:{type:String,default:"",maxlength:120},description:{type:String,default:"",maxlength:500},imageData:{type:String,default:""},buttonText:{type:String,default:"अभी देखें",maxlength:40},buttonUrl:{type:String,default:"",maxlength:500},delaySeconds:{type:Number,default:5},frequencyMinutes:{type:Number,default:0},enabled:{type:Boolean,default:false},updatedAt:{type:Date,default:Date.now}}));
 const PopupAdItem = mongoose.model("PortalPopupAdItem", new mongoose.Schema({title:{type:String,default:"",maxlength:120},description:{type:String,default:"",maxlength:500},imageData:{type:String,default:""},buttonText:{type:String,default:"अभी देखें",maxlength:40},buttonUrl:{type:String,default:"",maxlength:500},delaySeconds:{type:Number,default:0},frequencyMinutes:{type:Number,default:0},design:{type:mongoose.Schema.Types.Mixed,default:{}},enabled:{type:Boolean,default:false},createdAt:{type:Date,default:Date.now},updatedAt:{type:Date,default:Date.now}}));
@@ -443,10 +484,9 @@ app.post("/api/demo/plays", demoPlayerOnly, async (req, res) => {
   const points = Number(req.body?.points);
   const setting = await DemoGameSetting.findOne({ key: "global" }).lean() || { enabled: true, minPoints: 1, maxPoints: 1000000 };
   if (!setting.enabled) return res.status(403).json({ error: "Demo Game अभी Admin ने बंद किया है।" });
-  // Lock only this market 30 minutes before its configured result time; reopen on today's publication.
-  const marketTimes = setting.marketTimes && typeof setting.marketTimes === "object" ? setting.marketTimes : {};
-  const scheduleKey = Object.keys(marketTimes).find(k => k.trim().toLocaleLowerCase("en") === market.toLocaleLowerCase("en"));
-  const resultTime = scheduleKey ? String(marketTimes[scheduleKey] || "") : "";
+  // Use the existing approved City timing (same source as the public results page).
+  // No time configured for this market means no automatic lock.
+  const resultTime = await getDemoMarketResultTime(market);
   if (/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(resultTime)) {
     const now = new Date();
     const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(now).split(":").map(Number);
@@ -549,18 +589,17 @@ app.post("/api/demo/settle", demoPlayerOnly, async (req, res) => {
 
 app.get("/api/admin/demo-game-settings",adminOnly,async(req,res)=>{
  const x=await DemoGameSetting.findOneAndUpdate({key:"global"},{$setOnInsert:{enabled:true,minPoints:1,maxPoints:1000000}},{upsert:true,new:true,setDefaultsOnInsert:true}).lean();
- res.json({enabled:x.enabled,minPoints:x.minPoints,maxPoints:x.maxPoints,marketTimes:x.marketTimes||{}});
+ const marketTimes=await getDemoMarketResultTimes();
+ res.setHeader("Cache-Control","no-store").json({enabled:x.enabled,minPoints:x.minPoints,maxPoints:x.maxPoints,marketTimes});
 });
 app.patch("/api/admin/demo-game-settings",adminOnly,async(req,res)=>{
  const enabled=req.body?.enabled,minPoints=Number(req.body?.minPoints),maxPoints=Number(req.body?.maxPoints);
- const marketTimes=req.body?.marketTimes && typeof req.body.marketTimes==="object" && !Array.isArray(req.body.marketTimes) ? req.body.marketTimes : {};
- const cleanMarketTimes={};
- for(const [name,time] of Object.entries(marketTimes)){const key=String(name).trim(),value=String(time||"").trim();if(key.length<2||key.length>80||(value&&!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value)))return res.status(400).json({error:"हर Market का समय HH:MM में सही भरें।"});if(value)cleanMarketTimes[key]=value;}
-
  if(typeof enabled!=="boolean")return res.status(400).json({error:"Game On/Off चुनें।"});
  if(!Number.isSafeInteger(minPoints)||!Number.isSafeInteger(maxPoints)||minPoints<1||maxPoints>1000000||maxPoints<minPoints)return res.status(400).json({error:"Points सीमा सही रखें (1 से 10,00,000)।"});
- const x=await DemoGameSetting.findOneAndUpdate({key:"global"},{$set:{enabled,minPoints,maxPoints,marketTimes:cleanMarketTimes,updatedAt:new Date()}},{upsert:true,new:true,setDefaultsOnInsert:true}).lean();
- res.json({ok:true,enabled:x.enabled,minPoints:x.minPoints,maxPoints:x.maxPoints,marketTimes:x.marketTimes||{}});
+ // Keep legacy marketTimes data untouched; the live schedule is read from City.expectedTime.
+ const x=await DemoGameSetting.findOneAndUpdate({key:"global"},{$set:{enabled,minPoints,maxPoints,updatedAt:new Date()}},{upsert:true,new:true,setDefaultsOnInsert:true}).lean();
+ const marketTimes=await getDemoMarketResultTimes();
+ res.setHeader("Cache-Control","no-store").json({ok:true,enabled:x.enabled,minPoints:x.minPoints,maxPoints:x.maxPoints,marketTimes});
 });
 app.get("/api/admin/demo-redeem-requests",adminOnly,async(req,res)=>{
  const status=String(req.query.status||"ALL").toUpperCase();
