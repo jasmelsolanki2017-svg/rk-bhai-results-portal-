@@ -638,6 +638,18 @@ app.get("/api/admin/demo-players", adminOnly, async (req, res) => {
   res.json(rows);
 });
 
+app.get("/api/admin/demo-players/:id/account", adminOnly, async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: "Demo User ID सही नहीं है।" });
+  const player = await DemoPlayer.findById(req.params.id).select("name mobile email status walletPoints createdAt approvedAt").lean();
+  if (!player) return res.status(404).json({ error: "Demo User नहीं मिला।" });
+  const [plays, transactions, redeemRequests] = await Promise.all([
+    DemoPlay.find({ playerId: player._id }).sort({ createdAt: -1 }).limit(200).lean(),
+    DemoWalletTransaction.find({ playerId: player._id }).sort({ createdAt: -1 }).limit(200).lean(),
+    DemoRedeemRequest.find({ playerId: player._id }).sort({ createdAt: -1 }).limit(100).lean()
+  ]);
+  res.setHeader("Cache-Control", "no-store");
+  res.json({ player, plays, transactions, redeemRequests });
+});
 app.get("/api/admin/demo-players/:id/ledger", adminOnly, async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: "Demo User ID सही नहीं है।" });
   const month = String(req.query.month || "");
