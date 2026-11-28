@@ -82,7 +82,7 @@ function renderWalletTransactions(rows){
   if(!g){g={rows:[],market,kind,type:x.type,amount:Number(x.amount),numbers:[],lastTime:time};groups.push(g);}
   g.rows.push(x);if(number!==null)g.numbers.push(number);g.lastTime=time;
  });
- const cleanReason=x=>String(x.reason||"—").replace(/^Demo Play\\s*·\\s*/i,"");
+ const cleanReason=x=>String(x.reason||"—").replace(/^Demo Play\s*·\s*/i,"");
  const receipt=x=>'<details style="margin-top:5px"><summary style="color:#cdb77f;cursor:pointer;font-size:11px">🧾 Receipt देखें</summary><small>Transaction ID: '+esc(x._id||x.id||"—")+'<br>पूरा विवरण: '+esc(cleanReason(x))+'<br>तारीख: '+esc(new Date(x.createdAt).toLocaleString("hi-IN"))+'</small></details>';
  const card=g=>{
   const x=g.rows[0],count=g.rows.length,total=g.rows.reduce((n,r)=>n+Number(r.amount||0),0),nums=[...new Set(g.numbers)].sort((a,b)=>a-b),range=nums.length>1?nums[0]+"–"+nums[nums.length-1]:nums.length?String(nums[0]):"";
