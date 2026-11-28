@@ -77,15 +77,15 @@ function renderWalletTransactions(rows){
  const groups=[];
  filtered.forEach(x=>{
   const reason=String(x.reason||""),market=marketNames.find(m=>reason.includes("· "+m+" ·"))||null;
-  const tail=market?reason.split("· "+market+" ·")[1]:"",match=tail.match(/(?:Line\s+)?(\d{1,2})\s*$/),number=match?Number(match[1]):null,time=new Date(x.createdAt).getTime();
-  let g=market&&number!==null?groups.find(z=>z.market===market&&z.type===x.type&&z.amount===Number(x.amount)&&Math.abs(time-z.lastTime)<=5000&&(z.numbers.includes(number-1)||z.numbers.includes(number+1))):null;
-  if(!g){g={rows:[],market,type:x.type,amount:Number(x.amount),numbers:[],lastTime:time};groups.push(g);}
+  const tail=market?reason.split("· "+market+" ·")[1]:"",kind=/^\s*Line\s+\d/.test(tail)?"LINE":"NUMBER",match=tail.match(/(?:Line\s+)?(\d{1,2})\s*$/),number=match?Number(match[1]):null,time=new Date(x.createdAt).getTime();
+  let g=market&&number!==null?groups.find(z=>z.market===market&&z.kind===kind&&z.type===x.type&&z.amount===Number(x.amount)&&Math.abs(time-z.lastTime)<=5000&&(z.numbers.includes(number-1)||z.numbers.includes(number+1))):null;
+  if(!g){g={rows:[],market,kind,type:x.type,amount:Number(x.amount),numbers:[],lastTime:time};groups.push(g);}
   g.rows.push(x);if(number!==null)g.numbers.push(number);g.lastTime=time;
  });
  const receipt=x=>'<details style="margin-top:5px"><summary style="color:#cdb77f;cursor:pointer;font-size:11px">🧾 Receipt देखें</summary><small>Transaction ID: '+esc(x._id||x.id||"—")+'<br>पूरा विवरण: '+esc(x.reason||"—")+'<br>तारीख: '+esc(new Date(x.createdAt).toLocaleString("hi-IN"))+'</small></details>';
  const card=g=>{
   const x=g.rows[0],count=g.rows.length,total=g.rows.reduce((n,r)=>n+Number(r.amount||0),0),nums=[...new Set(g.numbers)].sort((a,b)=>a-b),range=nums.length>1?nums[0]+"–"+nums[nums.length-1]:nums.length?String(nums[0]):"";
-  const title=g.market?"🎮 "+esc(g.market)+(range?" · "+range:""):(x.type==="CREDIT"?"➕ Credit":"➖ Debit");
+  const title=g.market?"🎮 "+esc(g.market)+(range?" · "+(g.kind==="LINE"?"Line ":"")+range:""):(x.type==="CREDIT"?"➕ Credit":"➖ Debit");
   const detail=g.market?(count>1?fmt(x.amount)+" Points × "+count+" = "+fmt(total)+" Points":esc(x.reason)):esc(x.reason);
   return '<article class="item"><div style="min-width:0"><strong>'+title+'</strong><small>'+detail+' · '+new Date(x.createdAt).toLocaleString("hi-IN")+'</small>'+g.rows.map(receipt).join("")+'</div><span class="pill '+(x.type==="CREDIT"?"win":"loss")+'">'+(x.type==="CREDIT"?"+":"−")+fmt(total)+'</span></article>';
  };
