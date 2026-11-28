@@ -28,12 +28,14 @@ $("#loadDemoLedger").addEventListener("click",loadDemoLedger);
 
 $("#loadDemoPlays").addEventListener("click",loadDemoPlays);
 async function loadDemoPlays(){
- const msg=$("#demoPlaysMsg"),out=$("#demoPlaysList"),status=$("#demoPlayStatusFilter").value;
+ const msg=$("#demoPlaysMsg"),out=$("#demoPlaysList"),status=$("#demoPlayStatusFilter").value,userId=$("#demoPlayUserFilter").value;
  msg.textContent="Plays लोड हो रही हैं…";out.innerHTML="";
  try{
   const d=await api("/api/admin/demo-plays?status="+encodeURIComponent(status));
-  const plays=d.plays||[];
-  msg.textContent="कुल "+plays.length+" हाल की Plays";
+  const allPlays=d.plays||[];
+  const plays=userId?allPlays.filter(p=>String(p.playerId?._id||"")===String(userId)):allPlays;
+  const userLabel=userId?($("#demoPlayUserFilter").selectedOptions[0]?.textContent||"चुना हुआ User"):"सभी Demo Users";
+  msg.textContent=userLabel+" · कुल "+plays.length+" हाल की Plays";
   const sorted=[...plays].sort((a,b)=>{
    const user=String(a.playerId?._id||"").localeCompare(String(b.playerId?._id||""));
    if(user)return user;
@@ -94,6 +96,9 @@ async function refresh(){
  renderAssignmentOptions(users);
  const demoPlayers=await api("/api/admin/demo-players");
  $("#demoPlayerRequests").innerHTML=demoPlayers.map(p=>'<article class="admin-row"><div class="admin-row-info"><b>'+esc(p.name)+' · '+esc(p.mobile)+'</b><p>Email: '+esc(p.email||"—")+' · Registration: '+esc(new Date(p.createdAt).toLocaleString("hi-IN"))+' · Status: '+esc(p.status)+' · Wallet: <strong>'+Number(p.walletPoints||0).toLocaleString("en-IN")+' Points</strong></p><div class="actions"><input type="number" min="1" max="1000000" step="1" inputmode="numeric" placeholder="Points जोड़ें" id="demo-points-'+p._id+'" style="width:125px;padding:8px;border-radius:8px"><button type="button" data-demopoints="'+p._id+'">➕ Wallet में Points डालें</button></div></div><div class="actions">'+(p.status!=="approved"?'<button type="button" data-demoplayer="'+p._id+'" data-demostatus="approved">Approve</button>':'')+(p.status!=="rejected"?'<button type="button" data-demoplayer="'+p._id+'" data-demostatus="rejected">Reject</button>':'')+(p.status!=="disabled"?'<button type="button" class="danger" data-demoplayer="'+p._id+'" data-demostatus="disabled">Disable</button>':'<button type="button" data-demoplayer="'+p._id+'" data-demostatus="approved">Enable</button>')+'<button type="button" class="danger" data-demodelete="'+p._id+'">🗑️ Delete</button></div></article>').join("")||'<p class="muted">अभी कोई Demo registration नहीं है।</p>';
+ const playUserSelect=$("#demoPlayUserFilter"),selectedPlayUser=playUserSelect.value;
+ playUserSelect.innerHTML='<option value="">सभी Demo Users</option>'+demoPlayers.map(p=>'<option value="'+esc(p._id)+'">'+esc(p.name)+' · '+esc(p.mobile)+'</option>').join("");
+ if(demoPlayers.some(p=>p._id===selectedPlayUser))playUserSelect.value=selectedPlayUser;
  const ledgerSelect=$("#demoLedgerUser"),selectedLedgerUser=ledgerSelect.value;
  ledgerSelect.innerHTML='<option value="">Demo User चुनें</option>'+demoPlayers.map(p=>'<option value="'+esc(p._id)+'">'+esc(p.name)+' · '+esc(p.mobile)+'</option>').join("");
  if(demoPlayers.some(p=>p._id===selectedLedgerUser))ledgerSelect.value=selectedLedgerUser;
