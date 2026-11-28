@@ -28,9 +28,23 @@ async function load(){
   $("#profile").innerHTML=[
    ["मोबाइल",p.mobile],["Email",p.email||"—"],["स्थिति",p.status],["Wallet Balance",money(p.walletPoints)+" Demo Points"],["Registration",date(p.createdAt)],["Approved",date(p.approvedAt)]
   ].map(x=>'<div class="account-stat"><small>'+esc(x[0])+'</small><b>'+esc(x[1])+'</b></div>').join("");
-  $("#playCount").textContent="("+d.plays.length+" हाल की)";
-  $("#plays").innerHTML=d.plays.map(x=>'<tr><td>'+esc(date(x.createdAt))+'</td><td>'+esc(x.market)+'</td><td>'+esc(x.playType==="LINE"?"Line "+x.lineDigit:x.number)+'</td><td>'+money(x.points)+'</td><td>'+esc(x.status)+'</td></tr>').join("")||'<tr><td colspan="5">कोई Play नहीं मिली।</td></tr>';
-  $("#txCount").textContent="("+d.transactions.length+" हाल के)";
+  const sortedPlays=[...d.plays].sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
+  const playGroups=[];
+  sortedPlays.forEach(x=>{
+   const time=new Date(x.createdAt).getTime(),key=[x.market,x.status,x.points,x.result||"",x.playType||"NUMBER",x.lineDigit??"",new Date(x.createdAt).toLocaleDateString("en-CA",{timeZone:"Asia/Kolkata"})].join("|");
+   let g=playGroups.find(g=>g.key===key&&Math.abs(time-g.lastTime)<=5000);
+   if(!g){g={key,rows:[],lastTime:time};playGroups.push(g);}
+   g.rows.push(x);g.lastTime=time;
+  });
+  playGroups.sort((a,b)=>new Date(b.rows[0].createdAt)-new Date(a.rows[0].createdAt));
+  $("#playCount").textContent="("+d.plays.length+" Plays · "+playGroups.length+" Groups)";
+  $("#plays").innerHTML=playGroups.map(g=>{
+   const first=g.rows[0],count=g.rows.length,total=g.rows.reduce((sum,x)=>sum+Number(x.points||0),0);
+   const numbers=[...new Set(g.rows.map(x=>String(x.number??"").trim()).filter(Boolean))].sort((a,b)=>Number(a)-Number(b));
+   const numberLabel=first.playType==="LINE"?"Line "+first.lineDigit:numbers.join(", ");
+   const stake=count>1?money(first.points)+" × "+count+" = "+money(total):money(total);
+   return '<tr><td>'+esc(date(first.createdAt))+'</td><td>'+esc(first.market)+'</td><td>'+esc(numberLabel)+'</td><td>'+stake+' Demo Points</td><td>'+esc(first.status)+'</td></tr>';
+  }).join("")||'<tr><td colspan="5">कोई Play नहीं मिली।</td></tr>';
   $("#transactions").innerHTML=d.transactions.map(x=>'<tr><td>'+esc(date(x.createdAt))+'</td><td>'+esc(String(x.reason||"—").replace(/^Demo Play\s*·\s*/i,""))+'</td><td>'+esc(x.type)+'</td><td>'+(x.type==="CREDIT"?"+":"−")+money(x.amount)+'</td></tr>').join("")||'<tr><td colspan="4">कोई Wallet Transaction नहीं मिली।</td></tr>';
   $("#redeemCount").textContent="("+d.redeemRequests.length+")";
   $("#redeems").innerHTML=d.redeemRequests.map(x=>'<tr><td>'+esc(date(x.createdAt))+'</td><td>'+money(x.points)+'</td><td>'+esc(x.status)+'</td><td>'+esc(x.adminNote||"—")+'</td></tr>').join("")||'<tr><td colspan="4">कोई Redeem Request नहीं है।</td></tr>';
