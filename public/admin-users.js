@@ -5,11 +5,12 @@ function show(on){$("#loginBox").hidden=on;$("#managePanel").hidden=!on;}
 function showUserTab(tab){
  const demo=tab==="demo";
  if(location.hash!==(demo?"#demo-users":"#superusers")) history.replaceState(null,"",demo?"#demo-users":"#superusers");
+ $("#userManagementTitle").textContent=demo?"🎮 Demo User Management":"👑 Super User Management";
+ $("#userManagementDescription").textContent=demo?"Demo Game users, उनकी Plays, Points और Calendar हिसाब manage करें।":"Superuser / Portal accounts, access duration और city assignments manage करें।";
+ document.title="👑 Satta king 👑 | "+(demo?"Demo User Management":"Super User Management");
  $("#portalUsersPanel").hidden=demo;
  $("#portalCityPanel").hidden=demo;
  $("#demoUsersPanel").hidden=!demo;
- $("#showPortalUsers").setAttribute("aria-pressed",String(!demo));
- $("#showDemoPlayers").setAttribute("aria-pressed",String(demo));
 }
 $("#loadDemoLedger").addEventListener("click",loadDemoLedger);
 $("#loadDemoPlays").addEventListener("click",loadDemoPlays);
