@@ -12,6 +12,7 @@
 <section class="panel hero"><div><h1>👤 मेरी Profile</h1><h2 id="name">लोड हो रहा है…</h2><p class="muted" id="mobile"></p></div><div class="profile-avatar">👑</div></section>
 <nav class="profile-tabs" aria-label="Profile sections">
 <button class="profile-tab active" type="button" data-tab="overview">Overview</button>
+<button class="profile-tab" type="button" data-tab="redeem">🎁 Redeem</button>
 <button class="profile-tab" type="button" data-tab="plays">Play History</button>
 <button class="profile-tab" type="button" data-tab="transactions">Wallet</button>
 </nav>
@@ -19,7 +20,7 @@
 <section class="panel"><div class="section-head"><h2>🪙 Virtual Wallet</h2></div><div class="stats">
 <div class="stat"><small>Available Points</small><strong id="wallet">—</strong></div><div class="stat"><small>Total Played</small><strong id="played">—</strong></div><div class="stat"><small>Won Plays</small><strong id="wins">—</strong></div><div class="stat"><small>Unmatched Plays</small><strong id="losses">—</strong></div>
 </div></section>
-<section class="panel"><div class="section-head"><h2>🎁 Demo Points Redeem Request</h2></div><p class="muted">यह केवल Virtual Demo Points का Fun Request है। कोई असली पैसा या भुगतान शामिल नहीं है।</p><form id="redeemForm" class="actions" style="align-items:center"><input id="redeemPoints" type="number" min="1" step="1" inputmode="numeric" placeholder="कितने Points Redeem करने हैं?" required style="flex:1;min-width:150px;min-height:42px;background:#090909;border:1px solid #765c2c;border-radius:9px;color:#f4d58b;padding:9px"><button type="submit">Request भेजें</button></form><p class="notice" id="redeemMessage" role="status"></p><div class="section-head" style="margin-top:10px"><h2 style="font-size:14px">मेरी Redeem Requests</h2><button id="redeemRefresh" type="button">↻ Refresh</button></div><div id="redeemHistory" class="history"><p class="empty">लोड हो रहा है…</p></div></section>
+
 <section class="panel"><div class="section-head"><h2>⏳ My Active Plays</h2><span class="pill" id="activeCount">0</span></div><div id="activePlays" class="history"><p class="empty">लोड हो रहा है…</p></div></section>
 <section class="panel"><div class="section-head"><h2>🏙️ Market-wise Today</h2></div><div id="marketSummary" class="history"><p class="empty">लोड हो रहा है…</p></div></section>
 <section class="panel"><div class="section-head"><h2>📊 Performance</h2></div><div class="stats">
@@ -27,6 +28,7 @@
 </div><p class="muted">आँकड़े आपकी Demo Play History पर आधारित हैं।</p></section>
 <p class="disclaimer">⚠️ केवल अभ्यास के लिए Virtual Points। कोई असली पैसा, जमा, भुगतान या निकासी नहीं।</p>
 </section>
+<section class="tab-panel" id="tab-redeem"><section class="panel"><div class="section-head"><h2>🎁 Demo Points Redeem Request</h2></div><p class="muted">यह केवल Virtual Demo Points का Fun Request है। कोई असली पैसा या भुगतान शामिल नहीं है।</p><form id="redeemForm" class="actions" style="align-items:center"><input id="redeemPoints" type="number" min="1" step="1" inputmode="numeric" placeholder="कितने Points Redeem करने हैं?" required style="flex:1;min-width:150px;min-height:42px;background:#090909;border:1px solid #765c2c;border-radius:9px;color:#f4d58b;padding:9px"><button type="submit">Request भेजें</button></form><p class="notice" id="redeemMessage" role="status"></p><div class="section-head" style="margin-top:10px"><h2 style="font-size:14px">मेरी Redeem Requests</h2><button id="redeemRefresh" type="button">↻ Refresh</button></div><div id="redeemHistory" class="history"><p class="empty">लोड हो रहा है…</p></div></section></section>
 <section class="tab-panel" id="tab-plays"><section class="panel"><div class="section-head"><h2>📋 मेरी Play History</h2><button id="refresh" type="button">↻ Refresh</button></div><div class="history-filter"><label for="playDate">📅 तारीख चुनें</label><input id="playDate" type="date" aria-label="Demo Plays की तारीख चुनें"><button id="clearPlayDate" type="button">आज</button></div><div id="history" class="history"><p class="empty">डेटा लोड हो रहा है…</p></div><p class="notice" id="message" role="status"></p></section></section>
 <section class="tab-panel" id="tab-transactions">
 <section class="panel"><div class="section-head"><h2>💳 Wallet Summary</h2></div><div class="stats">
