@@ -12,9 +12,9 @@
 <main class="report-wrap">
 <section class="report-head"><h1>📊 Chandigarh City · Number-Wise Points</h1><p class="muted">आज/चुनी गई तारीख के Pending Demo Plays का नंबर के अनुसार कुल हिसाब। सबसे ज्यादा Points वाला नंबर सबसे ऊपर रहेगा।</p>
 <div class="report-controls"><label>तारीख चुनें<input id="reportDate" type="date"></label><button id="refreshReport" type="button">Report Refresh करें</button></div></section>
-<section class="report-card"><div class="report-stats"><div class="report-stat"><small>कुल Numbers</small><strong id="totalNumbers">—</strong></div><div class="report-stat"><small>कुल लगे Points</small><strong id="totalPoints">—</strong></div><div class="report-stat"><small>Winning Return संभावित</small><strong id="totalWinning">—</strong></div><div class="report-stat"><small>कुल Plays</small><strong id="totalPlays">—</strong></div></div></section>
-<section class="report-card"><h2>सबसे ज्यादा से सबसे कम Points</h2><div id="reportStatus" class="muted" role="status">रिपोर्ट लोड हो रही है…</div><div class="table-scroll"><table><thead><tr><th>Rank</th><th>Number / Line</th><th>लगे हुए Points</th><th>Number निकलने पर Winning Points</th><th>Users</th><th>Plays</th></tr></thead><tbody id="reportRows"></tbody></table></div></section>
-<p class="muted">नोट: केवल Pending Chandigarh City Plays शामिल हैं। Winning Return में सामान्य Number के लिए 97x और Line Play के लिए 9.7x की गणना शामिल है। यह केवल Virtual Demo Points का हिसाब है।</p>
+<section class="report-card"><div class="report-stats"><div class="report-stat"><small>कुल Numbers</small><strong id="totalNumbers">—</strong></div><div class="report-stat"><small>कुल लगे Points</small><strong id="totalPoints">—</strong></div><div class="report-stat"><small>Winning / संभावित Return</small><strong id="totalWinning">—</strong></div><div class="report-stat"><small>कुल Plays</small><strong id="totalPlays">—</strong></div></div></section>
+<section class="report-card"><h2>सबसे ज्यादा से सबसे कम Points</h2><div id="reportStatus" class="muted" role="status">रिपोर्ट लोड हो रही है…</div><div class="table-scroll"><table><thead><tr><th>Rank</th><th>Number / Line</th><th>कुल लगे Points</th><th>Pending Points</th><th>Winning / संभावित Return</th><th>Users</th><th>Plays</th></tr></thead><tbody id="reportRows"></tbody></table></div></section>
+<p class="muted">नोट: कुल Points में Pending, WIN और NO MATCH Plays शामिल हैं; Not OK/Refund Plays हटाए गए हैं। Winning / संभावित Return में WIN का वास्तविक Return और Pending का संभावित Return जोड़ा गया है। सामान्य Number 97x और Line 9.7x है। यह केवल Virtual Demo Points का हिसाब है।</p>
 </main>
 <script>
 (function(){
@@ -30,9 +30,9 @@
    const data=await res.json();if(!res.ok||!data.ok)throw new Error(data.error||"रिपोर्ट लोड नहीं हुई।");
    const t=data.totals||{};
    $("totalNumbers").textContent=fmt(t.numbers);$("totalPoints").textContent=fmt(t.points);$("totalWinning").textContent=fmt(t.winningPoints);$("totalPlays").textContent=fmt(t.plays);
-   if(!data.numbers?.length){$("reportStatus").textContent="इस तारीख के लिए कोई Pending Chandigarh City Play नहीं है।";return;}
+   if(!data.numbers?.length){$("reportStatus").textContent="इस तारीख के लिए कोई Chandigarh City Play नहीं है।";return;}
    $("reportStatus").textContent="तारीख: "+data.date+" · ज्यादा Points से कम Points के क्रम में";
-   $("reportRows").innerHTML=data.numbers.map((x,i)=>"<tr><td class='rank'>"+(i+1)+"</td><td><strong>"+String(x.label||x.number).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))+"</strong></td><td>"+fmt(x.totalPoints)+"</td><td>"+fmt(x.winningPoints)+"</td><td>"+fmt(x.users)+"</td><td>"+fmt(x.plays)+"</td></tr>").join("");
+   $("reportRows").innerHTML=data.numbers.map((x,i)=>"<tr><td class='rank'>"+(i+1)+"</td><td><strong>"+String(x.label||x.number).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))+"</strong></td><td>"+fmt(x.totalPoints)+"</td><td>"+fmt(x.pendingPoints)+"</td><td>"+fmt(x.winningPoints)+"</td><td>"+fmt(x.users)+"</td><td>"+fmt(x.plays)+"</td></tr>").join("");
   }catch(e){$("reportStatus").textContent=e.message;$("totalNumbers").textContent="—";$("totalPoints").textContent="—";$("totalWinning").textContent="—";$("totalPlays").textContent="—";}
  }
  $("refreshReport").addEventListener("click",load);$("reportDate").addEventListener("change",load);load();
