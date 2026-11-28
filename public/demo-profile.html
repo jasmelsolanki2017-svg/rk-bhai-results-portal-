@@ -35,7 +35,7 @@
 <div class="stat"><small>Total Added</small><strong id="walletAdded">0</strong></div><div class="stat"><small>Total Played</small><strong id="walletPlayed">0</strong></div><div class="stat"><small>Total Won</small><strong id="walletWon">0</strong></div><div class="stat"><small>Current Balance</small><strong id="walletBalance">0</strong></div>
 </div></section>
 <section class="panel"><div class="section-head"><h2>📊 Daily / Monthly Totals</h2></div><div class="history-filter"><label for="walletPeriod">अवधि</label><select id="walletPeriod" style="min-height:40px;background:#090909;border:1px solid #765c2c;border-radius:9px;color:#f4d58b;padding:8px"><option value="day">आज</option><option value="month">यह महीना</option><option value="all">सभी</option></select></div><div class="stats"><div class="stat"><small>Added</small><strong id="periodAdded">0</strong></div><div class="stat"><small>Played</small><strong id="periodPlayed">0</strong></div><div class="stat"><small>Won</small><strong id="periodWon">0</strong></div></div></section>
-<section class="panel"><div class="section-head"><h2>📈 Profit / Loss Report</h2></div><div class="stats"><div class="stat"><small>Points Won (Credits*)</small><strong id="plWon">0</strong></div><div class="stat"><small>Points Played</small><strong id="plPlayed">0</strong></div><div class="stat"><small>Net Difference*</small><strong id="plNet">0</strong></div></div><p class="muted">*Wallet transactions में दर्ज जीत/क्रेडिट के आधार पर।</p></section>
+<section class="panel"><div class="section-head"><h2>📈 Profit / Loss Report</h2></div><div class="stats"><div class="stat"><small>Winning / Refunded Points</small><strong id="plWon">0</strong></div><div class="stat"><small>Points Played</small><strong id="plPlayed">0</strong></div><div class="stat"><small>Net Difference*</small><strong id="plNet">0</strong></div></div><p class="muted">*Wallet transactions में दर्ज जीत/क्रेडिट के आधार पर।</p></section>
 <section class="panel"><div class="section-head"><h2>↩️ Refund History</h2></div><div id="refundHistory" class="history"><p class="empty">लोड हो रहा है…</p></div></section>
 <section class="panel"><div class="section-head"><h2>📒 Transaction History</h2></div>
 <div class="history-filter"><button id="exportCsv" type="button">⬇ Excel/CSV</button><button id="exportPrint" type="button">🖨️ PDF / Print</button></div>
@@ -68,11 +68,11 @@ function renderWalletTransactions(rows){
   return true;
  });
  const sum=(list,pred)=>list.filter(pred).reduce((n,x)=>n+Number(x.amount||0),0);
- const credits=sum(all,x=>x.type==="CREDIT"),debits=sum(all,x=>x.type==="DEBIT");
+ const credits=sum(all,x=>x.type==="CREDIT"),debits=sum(all,x=>x.type==="DEBIT"&&String(x.reason||"").startsWith("Demo Play ·"));
  const won=sum(all,x=>x.type==="CREDIT"&&/win|जीत|winning|reward/i.test(String(x.reason||"")));
  $("walletAdded").textContent=fmt(credits);$("walletPlayed").textContent=fmt(debits);$("walletWon").textContent=fmt(won);$("walletBalance").textContent=fmt($("wallet").textContent.replace(/,/g,""));
  const period=$("walletPeriod").value||"day",periodRows=all.filter(x=>{const d=localDateKey(x.createdAt);return period==="all"||(period==="day"?d===today:d.slice(0,7)===today.slice(0,7));});
- $("periodAdded").textContent=fmt(sum(periodRows,x=>x.type==="CREDIT"));$("periodPlayed").textContent=fmt(sum(periodRows,x=>x.type==="DEBIT"));$("periodWon").textContent=fmt(sum(periodRows,x=>x.type==="CREDIT"&&/win|जीत|winning|reward/i.test(String(x.reason||""))));
+ $("periodAdded").textContent=fmt(sum(periodRows,x=>x.type==="CREDIT"));$("periodPlayed").textContent=fmt(sum(periodRows,x=>x.type==="DEBIT"&&String(x.reason||"").startsWith("Demo Play ·")));$("periodWon").textContent=fmt(sum(periodRows,x=>x.type==="CREDIT"&&/win|जीत|winning|reward/i.test(String(x.reason||""))));
  const marketNames=[...new Set((window.demoPlayRows||[]).map(p=>String(p.market||"").trim()).filter(Boolean))].sort((a,b)=>b.length-a.length);
  const groups=[];
  filtered.forEach(x=>{
@@ -113,7 +113,7 @@ function renderMarketSummary(rows){
  $("marketSummary").innerHTML=html.join("")||'<p class="empty">आज कोई Market Play नहीं है।</p>';
 }
 function renderProfitLoss(rows){
- const credits=rows.filter(x=>x.type==="CREDIT").reduce((n,x)=>n+Number(x.amount||0),0),debits=rows.filter(x=>x.type==="DEBIT").reduce((n,x)=>n+Number(x.amount||0),0);
+ const credits=rows.filter(x=>x.type==="CREDIT"&&/winning reward|refund|रिफंड|वापस/i.test(String(x.reason||""))).reduce((n,x)=>n+Number(x.amount||0),0),debits=rows.filter(x=>x.type==="DEBIT"&&String(x.reason||"").startsWith("Demo Play ·")).reduce((n,x)=>n+Number(x.amount||0),0);
  $("plWon").textContent=fmt(credits);$("plPlayed").textContent=fmt(debits);$("plNet").textContent=(credits-debits>=0?"+":"")+fmt(credits-debits);
 }
 function renderRedeemRequests(rows){
