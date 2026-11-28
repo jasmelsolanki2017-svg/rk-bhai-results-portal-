@@ -45,7 +45,7 @@ async function loadDemoPlays(){
   const cards=[...batches.values()].map(rows=>{
    rows.sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
    const first=rows[0],total=rows.reduce((s,p)=>s+Number(p.points||0),0);
-   const details=rows.map(p=>(p.playType==="LINE"?"Line "+p.lineDigit:String(p.number||"").padStart(2,"0"))).join(", ")+" — "+rows.map(p=>money(p.points)).join("-")+" Points";
+   const stakeByNumber=new Map();rows.forEach(p=>{const label=p.playType==="LINE"?"Line "+p.lineDigit:String(p.number||"").padStart(2,"0");stakeByNumber.set(label,(stakeByNumber.get(label)||0)+Number(p.points||0));});const details=[...stakeByNumber.keys()].join(", ")+" — "+[...stakeByNumber.values()].map(money).join("-")+" Points";
    const ids=rows.map(p=>p._id).join(",");
    return {time:new Date(rows[rows.length-1].createdAt).getTime(),html:'<article class="admin-row"><div class="admin-row-info"><b>'+esc(first.playerId?.name||"Deleted User")+' · '+esc(first.playerId?.mobile||"")+'</b><p>'+esc(first.market)+' · '+esc(first.playDate)+' · '+esc(details)+' · कुल '+money(total)+' Points · <strong>'+esc(first.status)+'</strong> · '+rows.length+' Plays</p></div><div class="actions">'+(first.status==="PENDING"?'<button type="button" class="danger" data-playnotok-group="'+esc(ids)+'">Not OK · सभी '+rows.length+' Plays के Points वापस करें</button>':'')+'</div></article>'};
   }).sort((a,b)=>b.time-a.time);
