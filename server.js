@@ -670,7 +670,7 @@ app.get("/api/admin/demo-players/:id/ledger", adminOnly, async (req, res) => {
     }
   }
   const dateFormat = value => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(value));
-  const walletTransactions = transactions.map(t => ({ date: dateFormat(t.createdAt), type: t.type, amount: Number(t.amount || 0), reason: t.reason }));
+  const walletTransactions = transactions.map(t => ({ date: dateFormat(t.createdAt), type: t.type, amount: Number(t.amount || 0), reason: String(t.reason || "—").replace(/^Demo Play\\s*·\\s*/i, "") }));
   res.setHeader("Cache-Control", "no-store").json({
     ok: true, player, month, totals,
     markets: [...marketMap.values()].map(m => ({ market: m.market, totals: m.totals, days: [...m.days.values()] })),
