@@ -2,6 +2,17 @@ const $=s=>document.querySelector(s);
 async function api(url,opts={}){const r=await fetch(url,{credentials:"same-origin",...opts,headers:{...(opts.body?{"Content-Type":"application/json"}:{}),...(opts.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Request failed");return d;}
 function esc(v){return String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 function show(on){$("#loginBox").hidden=on;$("#managePanel").hidden=!on;}
+function applyDemoPage(){
+ const page=new URLSearchParams(location.search).get("demoPage")||"home";
+ const sections={all:["demoAllUsers"],plays:["demoNotOkPanel"],ledger:["demoLedgerPanel"],approval:["demoAllUsers"]};
+ const titles={all:"👥 All Demo Users",plays:"🛑 Demo Plays / Not OK",ledger:"📅 User-wise हिसाब",approval:"✅ Demo User Approval & Wallet"};
+ const allowed=sections[page];
+ if(!allowed)return;
+ for(const id of ["demoAllUsers","demoNotOkPanel","demoLedgerPanel"]){const el=document.getElementById(id);if(el)el.hidden=!allowed.includes(id);}
+ $("#userManagementTitle").textContent=titles[page];
+ $("#userManagementDescription").textContent="Demo User Management · "+titles[page];
+ document.title="👑 Satta king 👑 | "+titles[page];
+}
 function showUserTab(tab){
  const demo=tab==="demo";
  if(location.hash!==(demo?"#demo-users":"#superusers")) history.replaceState(null,"",demo?"#demo-users":"#superusers");
@@ -14,7 +25,7 @@ function showUserTab(tab){
  $("#demoQuickMenu").hidden=!demo;
 }
 $("#loadDemoLedger").addEventListener("click",loadDemoLedger);
-$("#demoQuickMenu").querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>$("#demoQuickMenu").open=false));
+
 $("#loadDemoPlays").addEventListener("click",loadDemoPlays);
 async function loadDemoPlays(){
  const msg=$("#demoPlaysMsg"),out=$("#demoPlaysList"),status=$("#demoPlayStatusFilter").value;
@@ -152,4 +163,4 @@ document.addEventListener("click",async e=>{
   await refresh();
  }catch(err){alert(err.message);}
 });
-(async()=>{try{await api("/api/admin/session");show(true);showUserTab(location.hash==="#demo-users"?"demo":"portal");await refresh();}catch{show(false);}})();
+(async()=>{try{await api("/api/admin/session");show(true);showUserTab(location.hash==="#demo-users"?"demo":"portal");applyDemoPage();await refresh();}catch{show(false);}})();
