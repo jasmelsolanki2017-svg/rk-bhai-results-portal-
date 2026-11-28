@@ -602,7 +602,7 @@ app.get("/api/admin/demo-players", adminOnly, async (req, res) => {
 app.get("/api/admin/demo-players/:id/ledger", adminOnly, async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: "Demo User ID सही नहीं है।" });
   const month = String(req.query.month || "");
-  if (!/^\\d{4}-(0[1-9]|1[0-2])$/.test(month)) return res.status(400).json({ error: "सही महीना चुनें।" });
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) return res.status(400).json({ error: "सही महीना चुनें।" });
   const player = await DemoPlayer.findById(req.params.id).select("name mobile").lean();
   if (!player) return res.status(404).json({ error: "Demo User नहीं मिला।" });
   const plays = await DemoPlay.find({ playerId: player._id, playDate: { $regex: "^" + month } }).sort({ playDate: 1, market: 1, createdAt: 1 }).lean();
@@ -642,7 +642,7 @@ app.get("/api/admin/demo-players/:id/ledger", adminOnly, async (req, res) => {
 app.get("/api/admin/chandigarh-number-report", adminOnly, async (req, res) => {
   try {
     const date = String(req.query.date || new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()));
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) return res.status(400).json({ error: "सही तारीख चुनें।" });
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: "सही तारीख चुनें।" });
     const plays = await DemoPlay.find({ market: /^Chandigarh City$/i, playDate: date, status: "PENDING" })
       .select("playerId number playType lineDigit points status")
       .lean();
